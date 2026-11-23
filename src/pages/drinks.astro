@@ -1,0 +1,106 @@
+---
+import Base from '../layouts/Base.astro';
+import SubNav from '../components/SubNav.astro';
+import { drinks } from '../data/drinks.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const groups = [...new Set(drinks.map((d) => d.group))];
+const COLORS: Record<string, string> = {
+  espresso: '#4a2c1a', coffee: '#6b4226', water: '#cfdfe6', milk: '#f3e6cf', foam: '#fffaf0', cream: '#fff3d6', ice: '#dcecf2',
+  chocolate: '#2a1710', tonic: '#e3eef0', juice: '#f0a73c', syrup: '#c9973a', spirit: '#d9b98a', icecream: '#fbf1dc', other: '#b98d5f',
+};
+// 依 layers 畫一杯（由下往上）
+function cup(layers: { part: string; amount: number }[]) {
+  const total = layers.reduce((s, l) => s + l.amount, 0) || 1;
+  const H = Math.min(96, 30 + total * 3);
+  let y = 112;
+  const rects = layers.map((l) => {
+    const h = (l.amount / total) * H;
+    y -= h;
+    return `<rect x="26" y="${y.toFixed(1)}" width="48" height="${(h + 0.5).toFixed(1)}" fill="${COLORS[l.part] || COLORS.other}"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 100 124" class="cup" aria-hidden="true">${rects}<path d="M25 ${(112 - H - 8).toFixed(1)} V113 H75 V${(112 - H - 8).toFixed(1)}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+const lessonSlug: Record<string, string> = { '06': 'espresso', '08': 'signature-drinks' };
+---
+<Base title="飲品配方" description="義式經典飲品、冷咖啡、現代特調與咖啡調酒的組成與做法，可依器材、冷熱與酒精篩選。">
+  <div class="wrap">
+    <header class="tool-head">
+      <p class="eyebrow">查詢</p>
+      <h1>飲品配方</h1>
+      <p class="muted">{drinks.length} 款飲品，整理自<a href={`${base}/lessons/espresso/`}>第 06 篇</a>與<a href={`${base}/lessons/signature-drinks/`}>第 08 篇</a>。杯子的分層是示意比例，各店做法不同。</p>
+    </header>
+    <SubNav current="drinks" />
+
+    <div class="filters">
+      <div class="chips" id="f-group" role="group" aria-label="類別">
+        <button class="chip" type="button" data-v="" aria-pressed="true">全部</button>
+        {groups.map((g) => <button class="chip" type="button" data-v={g} aria-pressed="false">{g}</button>)}
+      </div>
+      <div class="toggles">
+        <label class="check-inline"><input type="checkbox" id="f-nomachine" /> 沒有濃縮機也能做</label>
+        <label class="check-inline"><input type="checkbox" id="f-cold" /> 只看冷飲</label>
+        <label class="check-inline"><input type="checkbox" id="f-noalc" /> 不含酒精</label>
+      </div>
+      <p class="muted" id="f-count" style="margin:0;font-size:.9rem"></p>
+    </div>
+
+    <div class="grid drink-grid" id="drinks">
+      {drinks.map((d) => (
+        <article class="card dcard" data-group={d.group} data-machine={String(d.machine)} data-temp={d.temp} data-alcohol={String(d.alcohol)}>
+          <div class="dtop">
+            <Fragment set:html={cup(d.layers)} />
+            <div>
+              <h3>{d.name}</h3>
+              <p class="den">{d.en}</p>
+              <p class="dmeta">
+                <span>{d.group}</span><span>{d.temp}</span>
+                {d.size && <span>{d.size}</span>}
+                {d.alcohol && <span class="warn">含酒精</span>}
+                {!d.machine && <span>免濃縮機</span>}
+              </p>
+            </div>
+          </div>
+          <p class="dsum">{d.summary}</p>
+          <ul class="dlayers">
+            {[...d.layers].reverse().map((l) => <li><i style={`background:${COLORS[l.part] || COLORS.other}`}></i>{l.label}</li>)}
+          </ul>
+          <details>
+            <summary>做法與故事</summary>
+            <ol>{d.recipe.map((s) => <li>{s}</li>)}</ol>
+            {d.tip && <p><b>關鍵</b>　{d.tip}</p>}
+            {d.story && <p class="muted">{d.story}</p>}
+            <p><a href={`${base}/lessons/${lessonSlug[d.lesson]}/`}>在第 {d.lesson} 篇讀完整說明 →</a></p>
+          </details>
+        </article>
+      ))}
+    </div>
+    <p class="empty" id="f-none" hidden>沒有符合的飲品，試著放寬條件。</p>
+    <p class="muted" style="font-size:.86rem;margin-top:24px">含酒精飲品請適量飲用，未成年請勿飲酒。</p>
+  </div>
+</Base>
+
+<script>
+  const cards = [...document.querySelectorAll<HTMLElement>('.dcard')];
+  const chk = (id: string) => (document.getElementById(id) as HTMLInputElement).checked;
+  let group = '';
+  function apply() {
+    let n = 0;
+    cards.forEach((c) => {
+      const ok = (!group || c.dataset.group === group) && (!chk('f-nomachine') || c.dataset.machine === 'false') &&
+        (!chk('f-cold') || c.dataset.temp === '冷') && (!chk('f-noalc') || c.dataset.alcohol === 'false');
+      c.hidden = !ok;
+      if (ok) n++;
+    });
+    document.getElementById('f-count')!.textContent = `${n} 款`;
+    document.getElementById('f-none')!.hidden = n > 0;
+  }
+  document.getElementById('f-group')!.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('.chip');
+    if (!b) return;
+    group = b.dataset.v!;
+    document.querySelectorAll('#f-group .chip').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    apply();
+  });
+  ['f-nomachine', 'f-cold', 'f-noalc'].forEach((id) => document.getElementById(id)!.addEventListener('change', apply));
+  apply();
+</script>

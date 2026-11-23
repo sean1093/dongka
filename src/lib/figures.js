@@ -1,3 +1,4 @@
+import { origins as _origins } from '../data/atlas.js';
 // 原創教學插圖（SVG）。顏色用固定色表現咖啡本身，文字與線條跟著主題色。
 const wrap = (svg, caption, cls = '') =>
   `<figure class="fig ${cls}">${svg}<figcaption>${caption}</figcaption></figure>`;
@@ -209,3 +210,208 @@ export function placeFigures(html, id) {
   }
   return html;
 }
+
+// ---------- v3：更多圖表 ----------
+
+const roastCurve = () =>
+  wrap(
+    `<svg viewBox="0 0 640 290" role="img" aria-label="烘焙曲線示意圖">
+      <rect x="105" y="30" width="157" height="200" fill="#9fae7f" opacity=".16"/>
+      <rect x="262" y="30" width="180" height="200" fill="#c9973a" opacity=".2"/>
+      <rect x="442" y="30" width="90" height="200" fill="#a8481f" opacity=".2"/>
+      <text x="183" y="46" text-anchor="middle" class="t-b">脫水期</text><text x="183" y="64" text-anchor="middle" class="t-s">綠轉黃、青草味</text>
+      <text x="352" y="204" text-anchor="middle" class="t-b">梅納反應期</text><text x="352" y="221" text-anchor="middle" class="t-s">黃轉褐、烤麵包香</text>
+      <text x="487" y="204" text-anchor="middle" class="t-b">發展期</text><text x="487" y="221" text-anchor="middle" class="t-s">風味定型</text>
+      <path d="M60 230 H610 M60 230 V30" class="arrow"/>
+      <path d="M60 72 C75 150 90 183 105 183 C160 183 200 140 262 125 C330 108 390 88 442 74 C480 66 510 63 532 60" fill="none" stroke="#a8481f" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M532 60 C560 55 580 50 600 46" fill="none" stroke="#a8481f" stroke-width="3" stroke-dasharray="6 5"/>
+      <circle cx="105" cy="183" r="5" class="dot"/><text x="112" y="204" class="t-a">回溫點</text>
+      <circle cx="442" cy="74" r="5" class="dot"/><text x="436" y="142" text-anchor="end" class="t-a">一爆（約 195–205°C）</text><path d="M440 80 L428 128" class="lead"/>
+      <circle cx="532" cy="60" r="5" class="dot"/><text x="538" y="84" class="t-a">下豆</text>
+      <circle cx="600" cy="46" r="4" class="dot"/><text x="604" y="34" text-anchor="end" class="t-s">繼續烘會進入二爆</text>
+      <text x="335" y="256" text-anchor="middle" class="t-s">時間 →（一鍋通常十分鐘上下）</text>
+      <text x="20" y="130" text-anchor="middle" class="t-s" transform="rotate(-90 20 130)">豆溫 →</text>
+      <text x="64" y="64" class="t-s">入豆</text>
+    </svg>`,
+    '烘焙曲線（示意）：豆溫先掉到回溫點再爬升。一爆之後到下豆的「發展期」長短，決定了酸、甜、苦的比例。'
+  );
+
+const cuppingTimeline = () => {
+  const steps = [['磨粉後', '聞乾香', ''], ['注水', '約 93°C 熱水', '0:00'], ['破渣', '推開粉層聞濕香', '3–5 分'], ['撈渣', '撈掉浮沫與粉', ''], ['啜吸', '降到約 71°C 開始', '8–10 分'], ['再評', '溫、室溫各一次', '到約 21°C']];
+  return wrap(
+    `<svg viewBox="0 0 640 150" role="img" aria-label="杯測流程時間軸">
+      <path d="M50 62 H590" class="arrow" style="stroke-width:3"/>
+      ${steps.map(([a, b, t], i) => {
+        const x = 50 + i * 108;
+        return `<circle cx="${x}" cy="62" r="13" fill="var(--accent)"/><text x="${x}" y="67" text-anchor="middle" style="fill:#fff;font:700 13px var(--sans)">${i + 1}</text>
+          <text x="${x}" y="34" text-anchor="middle" class="t-a">${t}</text>
+          <text x="${x}" y="98" text-anchor="middle" class="t-b">${a}</text><text x="${x}" y="118" text-anchor="middle" class="t-s">${b}</text>`;
+      }).join('')}
+    </svg>`,
+    '一次杯測的節奏：重點是每一杯的時間與動作都一樣，才比得出差異。'
+  );
+};
+
+const grindScale = () => {
+  const levels = [['粗', '法式濾壓、冷萃', 7, 5.5], ['中粗', '聰明濾杯、4:6 法', 12, 4.2], ['中細', '一般手沖', 20, 3.1], ['細', '摩卡壺、愛樂壓', 36, 2.1], ['極細', '義式濃縮', 70, 1.3]];
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  return wrap(
+    `<svg viewBox="0 0 640 215" role="img" aria-label="研磨度與適合的沖煮法">
+      ${levels.map(([n, use, count, r], i) => {
+        const cx = 70 + i * 125;
+        let dots = '';
+        for (let k = 0; k < count; k++) {
+          const a = rnd() * 6.283, d = Math.sqrt(rnd()) * 36;
+          dots += `<circle cx="${(cx + d * Math.cos(a)).toFixed(1)}" cy="${(62 + d * Math.sin(a)).toFixed(1)}" r="${r}" fill="#63391c"/>`;
+        }
+        return `<circle cx="${cx}" cy="62" r="44" fill="var(--surface-2)"/>${dots}
+          <text x="${cx}" y="130" text-anchor="middle" class="t-b" style="font-size:15px">${n}</text><text x="${cx}" y="150" text-anchor="middle" class="t-s">${use}</text>`;
+      }).join('')}
+      <path d="M40 182 H600" class="arrow"/><path d="M600 182 l-10 -5 v10 z" class="arrowhead"/>
+      <text x="320" y="204" text-anchor="middle" class="t-s">越細：表面積越大、水流越慢、萃取越多 →</text>
+    </svg>`,
+    '研磨度是最有效的調整。先依沖煮法選大範圍，再一格一格微調。'
+  );
+};
+
+const newDrippers = () => {
+  const item = (x, name, shape, n1, n2) => `<g transform="translate(${x} 0)">${shape}
+    <text x="76" y="168" text-anchor="middle" class="t-b" style="font-size:14px">${name}</text>
+    <text x="76" y="188" text-anchor="middle" class="t-s">${n1}</text><text x="76" y="206" text-anchor="middle" class="t-a">${n2}</text></g>`;
+  const bed = '#6b4226', liq = '#b98d5f';
+  return wrap(
+    `<svg viewBox="0 0 640 220" role="img" aria-label="近年濾杯的四種設計方向">
+      ${item(4, '閥門式', `<path d="M24 26 L68 126 H84 L128 26" class="vessel"/><path d="M33 46 L68 126 H84 L119 46 Z" fill="${liq}"/><path d="M52 90 L68 126 H84 L100 90 Z" fill="${bed}"/><circle cx="76" cy="132" r="7" fill="var(--accent)"/><path d="M62 144 H90" class="vessel"/>`, '關上浸泡，打開放流', '例：Hario Switch')}
+      ${item(162, '快流速平底', `<path d="M22 40 L40 126 H112 L130 40" class="vessel"/><path d="M33 92 L40 126 H112 L119 92 Z" fill="${bed}"/><path d="M52 130 V146 M76 130 V148 M100 130 V146" class="drip"/>`, '底部大開口，粉床淺而平', '例：Orea、April、B75')}
+      ${item(320, '無旁通', `<path d="M40 22 V126 H112 V22" class="vessel"/><path d="M42 86 H110 V126 H42 Z" fill="${bed}"/><path d="M42 44 H110" class="lead" stroke-dasharray="3 3"/><path d="M58 50 V78 M76 50 V78 M94 50 V78" class="drip" style="stroke:${liq};stroke-width:3"/><path d="M76 130 V146" class="drip"/>`, '直筒，水全部穿過粉層', '例：Tricolate、Pulsar')}
+      ${item(478, '可調流速', `<path d="M22 40 L40 126 H112 L130 40" class="vessel"/><path d="M33 92 L40 126 H112 L119 92 Z" fill="${bed}"/><path d="M40 136 H112" class="vessel" style="stroke:var(--accent)"/><path d="M56 140 V150 M96 140 V150" class="drip" style="stroke-width:2"/><path d="M118 130 a12 12 0 0 1 14 12 m0 0 l-6 -3 m6 3 l3 -6" class="lead" style="stroke:var(--accent);stroke-width:2"/>`, '轉動底座改變出水孔', '例：December Dripper')}
+    </svg>`,
+    '近年新濾杯的四個方向：控制浸泡時間、加快流速並整平粉床、消除旁通、讓流速可調。'
+  );
+};
+
+const controlChart = () => {
+  const X = (e) => 80 + ((e - 14) / 12) * 500, Y = (t) => 230 - ((t - 0.8) / 1) * 200;
+  const cell = (e, t, a, b) => `<text x="${X(e)}" y="${Y(t)}" text-anchor="middle" class="t-b" style="font-size:13px">${a}</text><text x="${X(e)}" y="${Y(t) + 17}" text-anchor="middle" class="t-s">${b}</text>`;
+  return wrap(
+    `<svg viewBox="0 0 640 290" role="img" aria-label="沖煮控制圖九宮格">
+      <rect x="80" y="30" width="500" height="200" fill="var(--surface-2)"/>
+      <rect x="${X(18)}" y="${Y(1.35)}" width="${X(22) - X(18)}" height="${Y(1.15) - Y(1.35)}" fill="#c9973a" opacity=".4"/>
+      <path d="M${X(18)} 30 V230 M${X(22)} 30 V230 M80 ${Y(1.15)} H580 M80 ${Y(1.35)} H580" class="lead" stroke-dasharray="4 4"/>
+      ${cell(16, 1.58, '濃而尖酸', '先磨細，再減粉')}${cell(20, 1.58, '濃但平衡', '加水或減粉')}${cell(24, 1.58, '濃而苦澀', '先磨粗，再調比例')}
+      ${cell(16, 1.27, '酸、缺甜感', '磨細')}${cell(20, 1.27, '金杯區', '平衡')}${cell(24, 1.27, '苦、澀、空洞', '磨粗')}
+      ${cell(16, 1.0, '淡而酸', '磨細，再加粉')}${cell(20, 1.0, '淡但平衡', '加粉')}${cell(24, 1.0, '淡而苦澀', '磨粗，再加粉')}
+      <path d="M${X(14.6)} ${Y(0.93)} L${X(25.4)} ${Y(1.62)}" stroke="var(--accent)" stroke-width="2" opacity=".7"/>
+      <text x="${X(25.3)}" y="${Y(1.68)}" text-anchor="end" class="t-a">同一粉水比：磨細往右上走</text>
+      ${[14, 18, 22, 26].map((e) => `<text x="${X(e)}" y="248" text-anchor="middle" class="t-s">${e}%</text>`).join('')}
+      ${[0.8, 1.15, 1.35, 1.8].map((t) => `<text x="72" y="${Y(t) + 4}" text-anchor="end" class="t-s">${t}</text>`).join('')}
+      <text x="330" y="272" text-anchor="middle" class="t-s">萃取率 →</text>
+      <text x="22" y="130" text-anchor="middle" class="t-s" transform="rotate(-90 22 130)">濃度 TDS % →</text>
+    </svg>`,
+    '沖煮控制圖：橫軸是萃取率（味道的組成），縱軸是濃度（味道的強弱）。先用研磨左右移動，再用粉水比上下移動。'
+  );
+};
+
+const espressoShot = () =>
+  wrap(
+    `<svg viewBox="0 0 640 235" role="img" aria-label="一份義式濃縮的參數">
+      <rect x="30" y="52" width="130" height="76" rx="12" fill="var(--surface-2)"/><text x="95" y="84" text-anchor="middle" class="t-b" style="font-size:20px">18 g</text><text x="95" y="108" text-anchor="middle" class="t-s">極細研磨的咖啡粉</text>
+      <path d="M170 90 H230" class="arrow" style="stroke-width:2.5"/><path d="M232 90 l-10 -6 v12 z" class="arrowhead"/>
+      <rect x="240" y="30" width="170" height="120" rx="14" fill="var(--accent-soft)"/>
+      <text x="325" y="62" text-anchor="middle" class="t-b" style="font-size:16px">約 9 bar</text><text x="325" y="88" text-anchor="middle" class="t-b" style="font-size:16px">90–94°C</text><text x="325" y="114" text-anchor="middle" class="t-b" style="font-size:16px">25–30 秒</text><text x="325" y="138" text-anchor="middle" class="t-s">壓力、水溫、時間</text>
+      <path d="M420 90 H480" class="arrow" style="stroke-width:2.5"/><path d="M482 90 l-10 -6 v12 z" class="arrowhead"/>
+      <rect x="490" y="52" width="130" height="76" rx="12" fill="#4a2c1a"/><text x="555" y="84" text-anchor="middle" style="fill:#fff;font:700 20px var(--sans)">36 g</text><text x="555" y="108" text-anchor="middle" style="fill:#e9dcc0;font:12px var(--sans)">濃縮液（1:2）</text>
+      ${[['Ristretto 短萃', '約 1:1 至 1:1.5', 60, '濃稠、甜'], ['Normale 標準', '約 1:2', 120, '平衡'], ['Lungo 長萃', '約 1:3 以上', 200, '較淡、苦味增加']].map(([n, r, w, d], i) => {
+        const x = 30 + i * 205;
+        return `<rect x="${x}" y="176" width="${w * 0.9}" height="12" rx="6" fill="#4a2c1a" opacity="${1 - i * 0.25}"/><text x="${x}" y="168" class="t-b" style="font-size:13px">${n}</text><text x="${x}" y="208" class="t-s">${r}　${d}</text>`;
+      }).join('')}
+    </svg>`,
+    '一份濃縮的標準起點（以 18g 粉為例），以及同樣粉量、不同出液量的三種萃取。'
+  );
+
+const threeWaves = () => {
+  const w = [['第一波', '普及', '讓家家戶戶喝得到：即溶、罐裝、大量生產', '#b98d5f'], ['第二波', '咖啡館與義式飲品', '連鎖咖啡館、拿鐵與卡布奇諾，咖啡變成一種生活場所', '#87552c'], ['第三波', '精品咖啡', '把咖啡當成農產品：產地、品種、處理、淺焙、手沖', '#4a2c1a']];
+  return wrap(
+    `<svg viewBox="0 0 640 170" role="img" aria-label="三波咖啡浪潮">
+      ${w.map(([n, t, d, c], i) => {
+        const x = 20 + i * 205;
+        const words = d.match(/.{1,13}/g);
+        return `<path d="M${x} 20 H${x + 175} l20 34 l-20 34 H${x} l20 -34 z" fill="${c}"/>
+          <text x="${x + 98}" y="48" text-anchor="middle" style="fill:#fff;font:700 15px var(--sans)">${n}</text><text x="${x + 98}" y="70" text-anchor="middle" style="fill:#f3e6cf;font:13px var(--sans)">${t}</text>
+          ${words.map((s, k) => `<text x="${x + 98}" y="${114 + k * 19}" text-anchor="middle" class="t-s" style="font-size:13px">${s}</text>`).join('')}`;
+      }).join('')}
+    </svg>`,
+    '「三波」是從美國咖啡史切出來的分期，每一波都沒有取代前一波，而是疊加上去。'
+  );
+};
+
+const coldMethods = () => {
+  const m = [['冰手沖', '熱水沖、直接滴在冰上', '數分鐘', '保留花果香與明亮酸質', 175, 60, '#d9822b'], ['冰滴', '冰水一滴一滴通過粉層', '數小時', '乾淨，熟成後帶酒香', 330, 150, '#7ea3b5'], ['冷萃', '冷水長時間浸泡', '12–24 小時', '酸感低、柔順、巧克力堅果', 520, 150, '#5b3a29']];
+  return wrap(
+    `<svg viewBox="0 0 640 270" role="img" aria-label="三種冷咖啡：水溫與時間">
+      <path d="M70 200 H610 M70 200 V24" class="arrow"/>
+      <text x="62" y="64" text-anchor="end" class="t-s">熱水</text><text x="62" y="154" text-anchor="end" class="t-s">冷水</text>
+      <text x="340" y="224" text-anchor="middle" class="t-s">萃取時間 →</text>
+      ${m.map(([n, how, t, f, x, y, c]) => `<circle cx="${x}" cy="${y}" r="26" fill="${c}" opacity=".9"/>
+        <text x="${x}" y="${y + 5}" text-anchor="middle" style="fill:#fff;font:700 13px var(--sans)">${n}</text>
+        <text x="${x}" y="${y - 34}" text-anchor="middle" class="t-a">${t}</text>
+        <text x="${x}" y="${y === 60 ? y + 46 : 246}" text-anchor="middle" class="t-s">${how}</text>
+        <text x="${x}" y="${y === 60 ? y + 64 : 264}" text-anchor="middle" class="t-b" style="font-size:12px">${f}</text>`).join('')}
+    </svg>`,
+    '三種冷咖啡的差別在水溫和時間。熱水才溶得出大部分的香氣與酸，所以想喝淺焙豆的花果香，選冰手沖。'
+  );
+};
+
+const taiwanSupply = () => {
+  let dots = '';
+  for (let i = 0; i < 100; i++) dots += `<circle cx="${42 + (i % 20) * 22}" cy="${40 + Math.floor(i / 20) * 22}" r="8" fill="${i < 2 ? 'var(--accent)' : '#b98d5f'}" opacity="${i < 2 ? 1 : 0.45}"/>`;
+  return wrap(
+    `<svg viewBox="0 0 640 215" role="img" aria-label="台灣咖啡自給率約百分之二">
+      ${dots}
+      <circle cx="500" cy="62" r="8" fill="var(--accent)"/><text x="516" y="67" class="t-b">國產：約 2%</text><text x="516" y="86" class="t-s">2024 年約 905 公噸</text>
+      <circle cx="500" cy="118" r="8" fill="#b98d5f" opacity=".45"/><text x="516" y="123" class="t-b">進口：約 98%</text><text x="516" y="142" class="t-s">2024 年約 4.5 萬公噸</text>
+      <text x="42" y="182" class="t-s">每一點代表台灣一年咖啡供應量的 1%。</text>
+    </svg>`,
+    '台灣人喝的咖啡，一百杯裡大約只有兩杯是台灣種的。數字依課文引用的年度資料，各年不同。'
+  );
+};
+
+const REGION_COLORS = { '非洲': '#d9534f', '中美洲與加勒比海': '#6f9f4f', '南美洲': '#c9973a', '亞洲、中東與大洋洲': '#7ea3b5' };
+export const originMapSvg = (list = _origins.filter((o) => o.flavors.length), interactive = false) => {
+  const X = (a) => 70 + ((a - 0.5) / 5) * 540, Y = (b) => 400 - ((b - 0.5) / 5) * 370;
+  // 同一格的產區排成一欄，避免文字重疊
+  const cells = {};
+  for (const o of list) (cells[`${o.acidity}-${o.body}`] ||= []).push(o);
+  const pts = [];
+  for (const group of Object.values(cells)) {
+    group.forEach((o, n) => pts.push({ o, x: X(o.acidity) - 34, y: Y(o.body) + (n - (group.length - 1) / 2) * 15 }));
+  }
+  return `<svg viewBox="0 0 640 460" role="img" aria-label="各產區的酸質與醇厚度分布">
+    <rect x="70" y="30" width="540" height="370" fill="var(--surface-2)" rx="6"/>
+    <path d="M340 30 V400 M70 215 H610" class="lead" stroke-dasharray="4 4"/>
+    <text x="190" y="48" class="t-s">厚實、低酸</text><text x="600" y="48" text-anchor="end" class="t-s">厚實、明亮</text>
+    <text x="80" y="392" class="t-s">輕盈、低酸</text><text x="600" y="392" text-anchor="end" class="t-s">輕盈、明亮</text>
+    ${pts.map(({ o, x, y }) => `<g${interactive ? ` class="om-pt" data-key="${o.key}" tabindex="0" role="button" aria-label="${o.name}"` : ''}>
+      <circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="5" fill="${REGION_COLORS[o.region] || '#888'}" stroke="var(--surface)" stroke-width="1.5"/>
+      <text x="${(x + 9).toFixed(0)}" y="${(y + 4).toFixed(0)}" class="t-s" style="font-size:11.5px;fill:var(--text)">${o.name}</text></g>`).join('')}
+    <text x="340" y="422" text-anchor="middle" class="t-s">酸質 →</text>
+    <text x="24" y="215" text-anchor="middle" class="t-s" transform="rotate(-90 24 215)">醇厚度 →</text>
+    ${Object.entries(REGION_COLORS).map(([r, c], i) => `<circle cx="${82 + i * 138}" cy="446" r="5" fill="${c}"/><text x="${92 + i * 138}" y="450" class="t-s">${r}</text>`).join('')}
+  </svg>`;
+};
+const originMap = () => wrap(originMapSvg(), '各產區的典型印象（示意）：位置依課文的描述給分，同一個產區不同處理法與烘焙度會差很多。');
+
+Object.assign(placements, {
+  '02': [['6. 產區風味速查表', originMap]],
+  '03': [...placements['03'], ['5. 烘焙曲線', roastCurve]],
+  '04': [...placements['04'], ['4. 杯測', cuppingTimeline]],
+  '05': [...placements['05'], ['2. 六大變數', grindScale], ['近年的新濾杯', newDrippers], ['9. 萃取控制圖', controlChart]],
+  '06': [['1. 義式濃縮', espressoShot], ...placements['06']],
+  '07': [['6. 美國與三波咖啡浪潮', threeWaves]],
+  '08': [['1. 冷咖啡的三個流派', coldMethods]],
+  '10': [['2. 產業現況', taiwanSupply]],
+});
+
+// 名詞面板可用的插圖
+export const figByKey = { cherry, processing, roast, extraction, wheel, drippers, drinks, chart: controlChart, grind: grindScale, curve: roastCurve, cupping: cuppingTimeline, shot: espressoShot, cold: coldMethods };

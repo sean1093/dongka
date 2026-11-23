@@ -1,0 +1,136 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// 題目依第 01、02、03 篇的原則設計：產區、品種、處理法、烘焙度各自把風味往哪個方向推。
+const flavors = [['floral', '花香、茶感'], ['citrus', '柑橘'], ['berry', '莓果、酒香'], ['stone', '核果、熱帶水果'], ['sweet', '焦糖、蜂蜜'], ['nutty', '堅果、巧克力'], ['spice', '香料、草本、木質']];
+const labels = [
+  { title: '衣索比亞 耶加雪菲 G1', rows: [['產區', 'Gedeo Zone, Yirgacheffe'], ['品種', '原生種'], ['海拔', '1,900–2,100 m'], ['處理', '水洗'], ['烘焙度', '淺焙']],
+    acid: 'hi', body: 'lo', flavors: ['floral', 'citrus'],
+    why: ['高海拔：酸質明亮、密度高', '衣索比亞原生種：花香與柑橘', '水洗：乾淨，讓品種與產地的特色清楚呈現', '淺焙：保留酸質與香氣，口感輕盈像茶'] },
+  { title: '巴西 喜拉朵', rows: [['產區', 'Cerrado Mineiro'], ['品種', 'Catuai'], ['海拔', '1,000–1,200 m'], ['處理', '日曬'], ['烘焙度', '中焙']],
+    acid: 'lo', body: 'hi', flavors: ['nutty', 'sweet'],
+    why: ['海拔相對低：酸質溫和', '巴西的典型印象：堅果、巧克力', '日曬：甜感與醇厚度提高', '中焙：焦糖與堅果調性出來，酸再降一些'] },
+  { title: '肯亞 Nyeri AA', rows: [['產區', 'Nyeri'], ['品種', 'SL28、SL34'], ['海拔', '1,700–1,900 m'], ['處理', '水洗（雙重發酵）'], ['烘焙度', '淺焙']],
+    acid: 'hi', body: 'mid', flavors: ['berry', 'citrus'],
+    why: ['SL28／SL34：黑醋栗、莓果，明亮多汁的酸', '肯亞式水洗：風味乾淨多汁', 'AA 是顆粒大小的分級，不直接代表風味', '淺焙：酸質與果香都留著'] },
+  { title: '印尼 蘇門答臘 曼特寧 G1', rows: [['產區', 'Sumatra'], ['品種', 'Typica、Catimor 系'], ['海拔', '1,100–1,500 m'], ['處理', '濕剝（Giling Basah）'], ['烘焙度', '中深焙']],
+    acid: 'lo', body: 'hi', flavors: ['spice', 'nutty'],
+    why: ['濕剝處理：厚重、低酸，帶土壤、木質、香料與草本', '中深焙：醇厚與巧克力調性更重，酸更低', '這是處理法影響大過品種的典型例子'] },
+  { title: '巴拿馬 波魁特 藝妓', rows: [['產區', 'Boquete'], ['品種', 'Geisha'], ['海拔', '1,600–1,800 m'], ['處理', '水洗'], ['烘焙度', '淺焙']],
+    acid: 'hi', body: 'lo', flavors: ['floral', 'citrus', 'stone'],
+    why: ['藝妓：茉莉花、佛手柑、蜜桃，像紅茶的輕盈質地', '水洗：乾淨，突顯品種本身', '淺焙：這種高價豆幾乎都烘得淺，為的是保留香氣'] },
+  { title: '哥斯大黎加 塔拉珠', rows: [['產區', 'Tarrazú'], ['品種', 'Caturra、Catuai'], ['海拔', '1,500–1,800 m'], ['處理', '紅蜜'], ['烘焙度', '中淺焙']],
+    acid: 'mid', body: 'mid', flavors: ['sweet', 'stone'],
+    why: ['蜜處理：保留果膠層乾燥，甜感與醇厚介於水洗和日曬之間', '中美洲水洗系的底子：平衡、乾淨', '中淺焙：酸甜平衡，甜感明顯'] },
+  { title: '衣索比亞 古吉 G1', rows: [['產區', 'Guji'], ['品種', '原生種'], ['海拔', '2,000 m 以上'], ['處理', '日曬'], ['烘焙度', '淺焙']],
+    acid: 'mid', body: 'mid', flavors: ['berry', 'floral'],
+    why: ['同樣是衣索比亞原生種，換成日曬：莓果與酒香變濃，乾淨度降低', '日曬讓甜感與醇厚提高，酸沒有水洗那麼銳利', '和第一題對照，就是「同產區、不同處理法」的差別'] },
+  { title: '哥倫比亞 薇拉', rows: [['產區', 'Huila'], ['品種', 'Caturra'], ['海拔', '1,600–1,900 m'], ['處理', '厭氧日曬'], ['烘焙度', '淺焙']],
+    acid: 'mid', body: 'hi', flavors: ['berry', 'stone', 'spice'],
+    why: ['厭氧發酵：濃郁的熱帶水果、酒香，有時帶肉桂般的香料感', '強度高，醇厚明顯', '這類豆子的風味有很大一部分來自發酵，而不是產地本身'] },
+];
+---
+<Base title="讀懂豆袋標籤" description="看標籤預測風味的互動練習：產區、品種、處理法與烘焙度各把味道往哪裡推。">
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow">練習</p>
+      <h1>讀懂豆袋標籤</h1>
+      <p class="muted">看標籤，先猜這包豆子喝起來怎樣，再對答案。原理在<a href={`${base}/lessons/beans/`}>第 01 篇</a>的「讀懂一包豆子的標籤」。</p>
+    </header>
+
+    <div class="lp-progress"><span id="lp-no"></span><span id="lp-score"></span></div>
+    <div class="card label-card" id="lp-label"></div>
+
+    <form class="card" id="lp-form" onsubmit="return false">
+      <fieldset><legend>酸質</legend><div class="chips" data-q="acid">
+        <button class="chip" type="button" data-v="hi">明亮</button><button class="chip" type="button" data-v="mid">中等</button><button class="chip" type="button" data-v="lo">低</button></div></fieldset>
+      <fieldset><legend>口感</legend><div class="chips" data-q="body">
+        <button class="chip" type="button" data-v="lo">輕盈</button><button class="chip" type="button" data-v="mid">中等</button><button class="chip" type="button" data-v="hi">厚實</button></div></fieldset>
+      <fieldset><legend>最可能出現的風味（選兩個）</legend><div class="chips" data-q="flavors">
+        {flavors.map(([k, l]) => <button class="chip" type="button" data-v={k}>{l}</button>)}</div></fieldset>
+      <button class="btn btn-primary" id="lp-check" type="button" disabled>對答案</button>
+    </form>
+
+    <div class="card" id="lp-result" hidden>
+      <h2 class="h-sm" id="lp-verdict"></h2>
+      <div id="lp-answer"></div>
+      <p style="font-weight:700;margin:14px 0 4px">為什麼</p>
+      <ul id="lp-why" style="margin:0;padding-left:1.3em"></ul>
+      <button class="btn btn-primary" id="lp-next" type="button" style="margin-top:16px">下一題</button>
+    </div>
+
+    <div class="card" id="lp-done" hidden>
+      <h2 class="h-sm">做完了</h2>
+      <p id="lp-final"></p>
+      <p class="muted">答案是「典型印象」，實際的豆子會有出入。真正的練習是買一包、先預測、再喝。</p>
+      <button class="btn" id="lp-again" type="button">再做一次</button>
+      <a class="btn" href={`${base}/atlas/`}>去豆子圖鑑</a>
+    </div>
+  </div>
+  <script type="application/json" id="lp-data" set:html={JSON.stringify({ labels, flavors })} />
+</Base>
+
+<script>
+  const { labels, flavors } = JSON.parse(document.getElementById('lp-data')!.textContent!);
+  const fname = Object.fromEntries(flavors);
+  const aname: Record<string, string> = { hi: '明亮', mid: '中等', lo: '低' };
+  const bname: Record<string, string> = { hi: '厚實', mid: '中等', lo: '輕盈' };
+  const $ = (id: string) => document.getElementById(id)!;
+  let i = 0, score = 0, ans: any = {};
+
+  function show() {
+    const l = labels[i];
+    ans = { acid: '', body: '', flavors: new Set<string>() };
+    $('lp-no').textContent = `第 ${i + 1} / ${labels.length} 題`;
+    $('lp-score').textContent = `目前 ${score} 分`;
+    $('lp-label').innerHTML = `<p class="label-title"></p><dl>${l.rows.map(() => '<dt></dt><dd></dd>').join('')}</dl>`;
+    $('lp-label').querySelector('.label-title')!.textContent = l.title;
+    const dts = $('lp-label').querySelectorAll('dt'), dds = $('lp-label').querySelectorAll('dd');
+    l.rows.forEach((r: string[], k: number) => { dts[k].textContent = r[0]; dds[k].textContent = r[1]; });
+    document.querySelectorAll('#lp-form .chip').forEach((c) => c.setAttribute('aria-pressed', 'false'));
+    $('lp-form').hidden = false; $('lp-result').hidden = true; $('lp-done').hidden = true; $('lp-label').hidden = false;
+    ($('lp-check') as HTMLButtonElement).disabled = true;
+  }
+
+  $('lp-form').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('.chip');
+    if (!b) return;
+    const q = b.parentElement!.dataset.q!, v = b.dataset.v!;
+    if (q === 'flavors') {
+      if (ans.flavors.has(v)) ans.flavors.delete(v); else if (ans.flavors.size < 2) ans.flavors.add(v); else return;
+      b.setAttribute('aria-pressed', String(ans.flavors.has(v)));
+    } else {
+      ans[q] = v;
+      b.parentElement!.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c === b)));
+    }
+    ($('lp-check') as HTMLButtonElement).disabled = !(ans.acid && ans.body && ans.flavors.size === 2);
+  });
+
+  $('lp-check').addEventListener('click', () => {
+    const l = labels[i];
+    const near = (a: string, b: string) => a === b ? 1 : (a === 'mid' || b === 'mid') ? 0.5 : 0;
+    const fhit = [...ans.flavors].filter((f) => l.flavors.includes(f)).length;
+    const pts = near(ans.acid, l.acid) + near(ans.body, l.body) + fhit;
+    score += pts;
+    $('lp-verdict').textContent = pts >= 3.5 ? `很準（${pts} / 4）` : pts >= 2 ? `方向對了（${pts} / 4）` : `再想想（${pts} / 4）`;
+    const mark = (ok: boolean) => (ok ? '✓' : '✗');
+    $('lp-answer').innerHTML = `<table><tbody>
+      <tr><th>酸質</th><td>${aname[l.acid]}</td><td>你選：${aname[ans.acid]} ${mark(ans.acid === l.acid)}</td></tr>
+      <tr><th>口感</th><td>${bname[l.body]}</td><td>你選：${bname[ans.body]} ${mark(ans.body === l.body)}</td></tr>
+      <tr><th>風味</th><td>${l.flavors.map((f: string) => fname[f]).join('、')}</td><td>你選：${[...ans.flavors].map((f: any) => `${fname[f]} ${mark(l.flavors.includes(f))}`).join('、')}</td></tr></tbody></table>`;
+    $('lp-why').innerHTML = l.why.map(() => '<li></li>').join('');
+    $('lp-why').querySelectorAll('li').forEach((li, k) => (li.textContent = l.why[k]));
+    $('lp-form').hidden = true; $('lp-result').hidden = false;
+    $('lp-next').textContent = i === labels.length - 1 ? '看結果' : '下一題';
+    $('lp-score').textContent = `目前 ${score} 分`;
+    $('lp-result').scrollIntoView({ block: 'nearest' });
+  });
+
+  $('lp-next').addEventListener('click', () => {
+    if (++i < labels.length) { show(); scrollTo({ top: 0 }); return; }
+    $('lp-label').hidden = true; $('lp-result').hidden = true; $('lp-done').hidden = false;
+    $('lp-final').textContent = `你拿了 ${score} / ${labels.length * 4} 分。`;
+  });
+  $('lp-again').addEventListener('click', () => { i = 0; score = 0; show(); });
+  show();
+</script>

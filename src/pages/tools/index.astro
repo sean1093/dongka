@@ -3,16 +3,27 @@ import Base from '../../layouts/Base.astro';
 import { tools } from '../../data/lessons.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-<Base title="沖煮工具" description="萃取率計算機、味道排查、沖煮計時器與沖煮紀錄。">
+<Base title="工具與練習" description="沖煮計時器、味道排查、萃取率計算機、沖煮與杯測紀錄，以及標籤判讀與錯題複習。">
   <div class="wrap">
     <header class="tool-head">
       <p class="eyebrow">工具</p>
-      <h1>沖煮工具</h1>
-      <p class="muted">這些工具的公式、排查表與配方都來自第 05 篇與第 08 篇，邊讀邊用最有感。</p>
+      <h1>工具與練習</h1>
+      <p class="muted">公式、排查表與配方都來自課程內容，邊讀邊用最有感。</p>
     </header>
+    <h2 class="section-title" style="margin-top:8px">沖煮與品飲</h2>
     <div class="grid grid-2">
-      {tools.map((t) => (
-        <a class="card tool-card" href={`${base}/tools/${t.slug}/`}>
+      {tools.filter((t) => t.kind === 'tool').map((t) => (
+        <a class="card tool-card" href={`${base}${t.path}`}>
+          <span class="ico" aria-hidden="true">{t.icon}</span>
+          <h3>{t.title}</h3>
+          <p>{t.desc}</p>
+        </a>
+      ))}
+    </div>
+    <h2 class="section-title">練習</h2>
+    <div class="grid grid-2">
+      {tools.filter((t) => t.kind === 'practice').map((t) => (
+        <a class="card tool-card" href={`${base}${t.path}`}>
           <span class="ico" aria-hidden="true">{t.icon}</span>
           <h3>{t.title}</h3>
           <p>{t.desc}</p>

@@ -1,0 +1,125 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const attrs = [['aroma', '乾香／濕香'], ['flavor', '風味'], ['after', '餘韻'], ['acidity', '酸質'], ['body', '醇厚度'], ['balance', '平衡感'], ['overall', '整體']];
+const cups = [['uniform', '一致性'], ['clean', '乾淨度'], ['sweet', '甜度']];
+const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料', '堅果可可', '甜', '其他'];
+---
+<Base title="杯測紀錄表" description="照傳統 100 分制杯測表打分數，自動加總、畫出雷達圖並存下紀錄。">
+  <div class="wrap">
+    <header class="tool-head">
+      <p class="eyebrow">工具</p>
+      <h1>杯測紀錄表</h1>
+      <p class="muted">依<a href={`${base}/lessons/tasting/`}>第 04 篇</a>介紹的傳統 100 分制杯測表簡化而成，適合在家練習。SCA 已改推新的 CVA 評估體系，正式評鑑請以最新公告為準。</p>
+    </header>
+    <div class="tool-layout tl-wide-left">
+      <form class="card" id="cf" onsubmit="return false">
+        <label>樣品（豆子、烘焙日）<input id="c-name" placeholder="衣索比亞孔加水洗，11/15 烘" /></label>
+        <h2 class="h-sm" style="margin-top:18px">七項評分（6 到 10 分）</h2>
+        {attrs.map(([k, l]) => (
+          <label class="slider">{l}<output id={`o-${k}`}>7.50</output>
+            <input type="range" id={`c-${k}`} min="6" max="10" step="0.25" value="7.5" />
+          </label>
+        ))}
+        <h2 class="h-sm" style="margin-top:18px">五杯檢查（每杯 2 分）</h2>
+        <p class="muted" style="font-size:.86rem;margin:0 0 8px">同一支豆子沖五杯。有問題的那一杯就取消勾選。只沖一杯練習時維持全勾即可。</p>
+        {cups.map(([k, l]) => (
+          <div class="cuprow"><span>{l}</span>
+            {[0, 1, 2, 3, 4].map((n) => <input type="checkbox" class={`cup-${k}`} checked aria-label={`${l} 第 ${n + 1} 杯`} />)}
+          </div>
+        ))}
+        <h2 class="h-sm" style="margin-top:18px">缺點扣分</h2>
+        <div class="grid grid-form">
+          <label>輕微缺點（杯數，每杯扣 2）<input type="number" id="c-taint" min="0" max="5" value="0" /></label>
+          <label>嚴重缺點（杯數，每杯扣 4）<input type="number" id="c-fault" min="0" max="5" value="0" /></label>
+        </div>
+        <h2 class="h-sm" style="margin-top:18px">喝到什麼</h2>
+        <div class="chips" id="c-cats">{cats.map((c) => <button class="chip" type="button" aria-pressed="false">{c}</button>)}</div>
+        <label style="margin-top:12px">筆記<textarea id="c-notes" rows="2" placeholder="熱的時候茉莉花香，降溫後檸檬酸變明顯，尾段有蜂蜜甜"></textarea></label>
+        <button class="btn btn-primary" id="c-save" type="button" style="margin-top:14px">存下這次杯測</button>
+      </form>
+      <div>
+        <div class="card" style="position:sticky;top:76px">
+          <div class="stat"><div><b id="c-total">–</b><span>總分</span></div><div><b id="c-grade" style="font-size:1.15rem;line-height:2.4rem">–</b><span>參考等級</span></div></div>
+          <svg id="c-radar" viewBox="0 0 300 260" class="chart" role="img" aria-label="七項評分雷達圖"></svg>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h2 class="h-sm" style="margin-top:0">紀錄 <span class="muted" id="c-count" style="font-size:.9rem;font-family:var(--sans)"></span></h2>
+          <div id="c-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="c-data" set:html={JSON.stringify({ attrs, cups })} />
+</Base>
+
+<script>
+  import { load, save } from '../../scripts/store.js';
+  const { attrs, cups } = JSON.parse(document.getElementById('c-data')!.textContent!);
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  let logs: any[] = load('cupping', []);
+
+  function read() {
+    const s: Record<string, number> = {};
+    attrs.forEach(([k]: string[]) => (s[k] = +$(`c-${k}`).value));
+    const c: Record<string, number> = {};
+    cups.forEach(([k]: string[]) => (c[k] = document.querySelectorAll(`.cup-${k}:checked`).length * 2));
+    const defects = (+$('c-taint').value || 0) * 2 + (+$('c-fault').value || 0) * 4;
+    const total = Object.values(s).reduce((a, b) => a + b, 0) + Object.values(c).reduce((a, b) => a + b, 0) - defects;
+    return { s, c, defects, total };
+  }
+  const grade = (t: number) => (t >= 90 ? '傑出' : t >= 85 ? '極佳' : t >= 80 ? '精品等級' : '未達精品門檻');
+
+  function radar(s: Record<string, number>) {
+    const cx = 150, cy = 128, R = 92, n = attrs.length;
+    const pt = (i: number, r: number) => `${(cx + r * Math.sin((i / n) * 6.2832)).toFixed(1)},${(cy - r * Math.cos((i / n) * 6.2832)).toFixed(1)}`;
+    let g = '';
+    for (const f of [0.25, 0.5, 0.75, 1]) g += `<polygon points="${attrs.map((_: any, i: number) => pt(i, R * f)).join(' ')}" fill="none" stroke="var(--line)"/>`;
+    attrs.forEach(([, l]: string[], i: number) => {
+      const [x, y] = pt(i, R + 20).split(',').map(Number);
+      g += `<line x1="${cx}" y1="${cy}" x2="${pt(i, R).split(',')[0]}" y2="${pt(i, R).split(',')[1]}" stroke="var(--line)"/><text x="${x}" y="${y + 4}" text-anchor="middle">${l}</text>`;
+    });
+    g += `<polygon points="${attrs.map(([k]: string[], i: number) => pt(i, R * ((s[k] - 6) / 4))).join(' ')}" fill="var(--accent)" fill-opacity=".3" stroke="var(--accent)" stroke-width="2"/>`;
+    document.getElementById('c-radar')!.innerHTML = g;
+  }
+
+  function update() {
+    const { s, total } = read();
+    attrs.forEach(([k]: string[]) => (document.getElementById(`o-${k}`)!.textContent = s[k].toFixed(2)));
+    $('c-total').textContent = total.toFixed(2);
+    $('c-grade').textContent = grade(total);
+    radar(s);
+  }
+
+  function list() {
+    $('c-count').textContent = logs.length ? `${logs.length} 筆` : '';
+    document.getElementById('c-list')!.innerHTML = logs.length ? logs.map((l) => `<div class="log-item">
+      <div style="display:flex;justify-content:space-between;gap:10px"><h4>${esc(l.name || '未命名樣品')}　<span style="color:var(--accent)">${(+l.total).toFixed(2)}</span></h4>
+      <button class="btn btn-sm" data-del="${esc(l.id)}" type="button">刪除</button></div>
+      <div class="log-meta">${new Date(l.at).toLocaleDateString('zh-TW')}${l.cats?.length ? ' · ' + l.cats.map(esc).join('、') : ''}</div>
+      ${l.notes ? `<div>${esc(l.notes)}</div>` : ''}</div>`).join('') : '<p class="empty">還沒有紀錄。</p>';
+  }
+
+  document.getElementById('cf')!.addEventListener('input', update);
+  document.getElementById('c-cats')!.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('.chip');
+    if (b) b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+  });
+  $('c-save').addEventListener('click', () => {
+    const r = read();
+    const cats = [...document.querySelectorAll('#c-cats .chip[aria-pressed="true"]')].map((c) => c.textContent);
+    logs.unshift({ id: Date.now().toString(36), at: new Date().toISOString(), name: $('c-name').value.trim(), notes: $('c-notes').value.trim(), cats, total: r.total, scores: r.s });
+    save('cupping', logs);
+    list();
+  });
+  document.getElementById('c-list')!.addEventListener('click', (e) => {
+    const id = (e.target as HTMLElement).dataset.del;
+    if (!id || !confirm('確定刪除這筆紀錄？')) return;
+    logs = logs.filter((l) => l.id !== id);
+    save('cupping', logs);
+    list();
+  });
+  update();
+  list();
+</script>
