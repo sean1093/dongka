@@ -1,10 +1,12 @@
 ---
-import Base from '../layouts/Base.astro';
-import SubNav from '../components/SubNav.astro';
-import { glossary } from '../data/glossary.js';
+import Base from '../../layouts/Base.astro';
+import SubNav from '../../components/SubNav.astro';
+import { glossary } from '../../data/glossary.js';
+import { slugify } from '../../data/site.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const groups = [...new Set(glossary.map((g) => g.group))];
 ---
-<Base title="名詞辭典" description="咖啡常見名詞的白話解釋：豆子、處理、烘焙、品飲、沖煮、義式與產業。">
+<Base fullTitle="咖啡名詞辭典：70 個咖啡術語白話解釋｜懂咖" description="咖啡名詞白話解釋：悶蒸、萃取率、TDS、水洗、日曬、蜜處理、一爆、杯測、crema 等 70 個術語，每個都有延伸說明與相關名詞。">
   <div class="wrap" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow">查詢</p>
@@ -21,11 +23,11 @@ const groups = [...new Set(glossary.map((g) => g.group))];
     </div>
     <div class="grid gloss-grid" id="glist">
       {glossary.map((g) => (
-        <button class="gcard" type="button" data-term={g.term} data-group={g.group} data-k={`${g.term} ${g.en} ${(g.alias || []).join(' ')}`.toLowerCase()}>
+        <a class="gcard" href={`${base}/glossary/${slugify(g.en)}/`} data-term={g.term} data-group={g.group} data-k={`${g.term} ${g.en} ${(g.alias || []).join(' ')}`.toLowerCase()}>
           <span class="gt">{g.term} <small>{g.en}</small></span>
           <span class="gd">{g.def}</span>
           <span class="gg">{g.group}</span>
-        </button>
+        </a>
       ))}
     </div>
     <p class="empty" id="gnone" hidden>找不到符合的名詞。</p>
@@ -33,7 +35,7 @@ const groups = [...new Set(glossary.map((g) => g.group))];
 </Base>
 
 <script>
-  import { openTerm } from '../scripts/term-panel.js';
+  import { openTerm } from '../../scripts/term-panel.js';
   const q = document.getElementById('gq') as HTMLInputElement;
   const cards = [...document.querySelectorAll<HTMLElement>('.gcard')];
   let group = '';
@@ -53,7 +55,7 @@ const groups = [...new Set(glossary.map((g) => g.group))];
   });
   document.getElementById('glist')!.addEventListener('click', (e) => {
     const c = (e.target as HTMLElement).closest<HTMLElement>('.gcard');
-    if (c) { openTerm(c.dataset.term); history.replaceState(null, '', `#${encodeURIComponent(c.dataset.term!)}`); }
+    if (c && !(e as MouseEvent).metaKey && !(e as MouseEvent).ctrlKey) { e.preventDefault(); openTerm(c.dataset.term); history.replaceState(null, '', `#${encodeURIComponent(c.dataset.term!)}`); }
   });
   document.addEventListener('term:open', (e) => { document.body.classList.add('with-panel'); cards.forEach((c) => c.classList.toggle('on', c.dataset.term === (e as CustomEvent).detail)); });
   document.addEventListener('term:close', () => { document.body.classList.remove('with-panel'); cards.forEach((c) => c.classList.remove('on')); history.replaceState(null, '', location.pathname); });

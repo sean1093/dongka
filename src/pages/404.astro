@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+import { lessons } from '../data/lessons.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base title="找不到這一頁" noindex>
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow">404</p>
+      <h1>這一頁不在了</h1>
+      <p class="muted">網址可能打錯，或是頁面搬家了（網站曾經改過名字與網址）。從下面找找看：</p>
+    </header>
+    <p><a class="btn btn-primary" href={`${base}/`}>回首頁</a> <a class="btn" href={`${base}/search/`}>搜尋</a></p>
+    <ul>{lessons.map((l) => <li><a href={`${base}/lessons/${l.slug}/`}>第 {l.id} 篇　{l.title}</a></li>)}</ul>
+  </div>
+</Base>

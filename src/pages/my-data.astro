@@ -1,0 +1,94 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="我的資料" description="匯出或匯入你在懂咖的學習進度、自我檢核標記、沖煮紀錄與杯測紀錄。資料只存在你的瀏覽器。">
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow">資料</p>
+      <h1>我的資料</h1>
+      <p class="muted">你的進度與紀錄只存在這台裝置的瀏覽器，沒有上傳到任何地方。換裝置、換瀏覽器或清除瀏覽資料前，先在這裡備份。</p>
+    </header>
+    <div class="card">
+      <h2 class="h-sm">目前存在這台裝置上的</h2>
+      <ul id="md-summary" style="margin:0 0 4px;padding-left:1.3em"></ul>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2 class="h-sm">備份</h2>
+      <p>下載一個 JSON 檔，裡面是上面列出的全部資料。</p>
+      <button class="btn btn-primary" id="md-export" type="button">匯出備份檔</button>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2 class="h-sm">還原或合併</h2>
+      <p>選擇之前匯出的備份檔。紀錄會和這台裝置上現有的合併，不會刪掉你現有的資料。</p>
+      <input type="file" id="md-file" accept="application/json,.json" />
+      <p id="md-msg" role="status" style="margin:10px 0 0;font-weight:600"></p>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2 class="h-sm">清除</h2>
+      <p>刪除這台裝置上的全部進度與紀錄。這個動作無法復原，建議先匯出備份。</p>
+      <button class="btn" id="md-clear" type="button">清除全部資料</button>
+    </div>
+  </div>
+</Base>
+
+<script>
+  const P = 'stc:';
+  const keys = () => Object.keys(localStorage).filter((k) => k.startsWith(P));
+  const get = (k: string) => { try { return JSON.parse(localStorage.getItem(k)!); } catch { return null; } };
+  const msg = (t: string) => (document.getElementById('md-msg')!.textContent = t);
+
+  function summary() {
+    const done = get(P + 'done') || [];
+    const quiz = keys().filter((k) => k.startsWith(P + 'quiz:')).reduce((n, k) => n + Object.keys(get(k) || {}).length, 0);
+    const rows = [`已完成的課程：${done.length} 篇`, `作答過的自我檢核題：${quiz} 題`, `沖煮紀錄：${(get(P + 'brewlog') || []).length} 筆`, `杯測紀錄：${(get(P + 'cupping') || []).length} 筆`];
+    document.getElementById('md-summary')!.innerHTML = rows.map(() => '<li></li>').join('');
+    document.querySelectorAll('#md-summary li').forEach((li, i) => (li.textContent = rows[i]));
+  }
+
+  document.getElementById('md-export')!.addEventListener('click', () => {
+    const data: Record<string, unknown> = {};
+    keys().forEach((k) => (data[k.slice(P.length)] = get(k)));
+    const blob = new Blob([JSON.stringify({ app: 'dongka', version: 1, exportedAt: new Date().toISOString(), data }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `dongka-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  document.getElementById('md-file')!.addEventListener('change', async (e) => {
+    const f = (e.target as HTMLInputElement).files?.[0];
+    if (!f) return;
+    try {
+      const j = JSON.parse(await f.text());
+      if (j?.app !== 'dongka' || typeof j.data !== 'object') throw new Error('format');
+      let n = 0;
+      for (const [k, v] of Object.entries<any>(j.data)) {
+        if (!/^[\w:-]+$/.test(k)) continue;
+        const cur = get(P + k);
+        let next = v;
+        if (k === 'done') next = [...new Set([...(cur || []), ...(Array.isArray(v) ? v : [])])].sort();
+        else if (k === 'brewlog' || k === 'cupping') {
+          // 依每筆紀錄的 id 取聯集，不覆蓋現有的
+          const ids = new Set((cur || []).map((x: any) => x.id));
+          next = [...(cur || []), ...(Array.isArray(v) ? v : []).filter((x: any) => x && !ids.has(x.id))].sort((a: any, b: any) => String(b.at).localeCompare(String(a.at)));
+        } else if (k.startsWith('quiz:')) next = { ...(v || {}), ...(cur || {}) };
+        else if (cur != null) continue; // 其他設定保留這台裝置現有的
+        localStorage.setItem(P + k, JSON.stringify(next));
+        n++;
+      }
+      msg(`已合併 ${n} 個項目。`);
+      summary();
+    } catch {
+      msg('這個檔案不是懂咖的備份檔，沒有匯入任何資料。');
+    }
+  });
+
+  document.getElementById('md-clear')!.addEventListener('click', () => {
+    if (!confirm('確定清除這台裝置上的全部進度與紀錄？這個動作無法復原。')) return;
+    keys().forEach((k) => localStorage.removeItem(k));
+    msg('已清除。');
+    summary();
+  });
+  summary();
+</script>

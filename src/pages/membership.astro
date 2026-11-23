@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const ideas = [
+  { icon: '🗓️', title: '引導練習計畫', state: '第 1 週已公開', href: '/practice/plan/', text: '把課程變成每週的任務：這週沖什麼、改哪個變數、怎麼記錄、怎樣算過關。先從四週手沖開始。' },
+  { icon: '📄', title: '可列印的表單與速查卡', state: '構想', text: '杯測表、沖煮紀錄本、豆袋標籤速查卡、開店成本試算表。印出來放在吧台旁邊用。' },
+  { icon: '👃', title: '氣味與味覺辨識週計畫', state: '構想', text: '用超市買得到的東西訓練感官：每週一組對照，慢慢把風味輪上的詞變成你聞得出來的味道。' },
+  { icon: '🧠', title: '擴充題庫與間隔複習', state: '構想', text: '更多情境題，並依你答錯的題目安排下一次複習的時間。' },
+];
+const free = ['11 篇課程與全部自我檢核題', '豆子圖鑑、飲品配方、名詞辭典', '沖煮計時器、味道排查、萃取率計算機、沖煮與杯測紀錄', '標籤練習、錯題複習', '你的資料匯出與匯入'];
+const faq = [
+  ['什麼時候開始？', '還沒決定。現在只有第 1 週的練習計畫是寫好的。要不要繼續做、做成什麼形式，取決於有多少人按了「通知我」。'],
+  ['會收多少錢？', '還沒定價。在有完成的內容可以給你看之前，不會公布價格，也不會收任何預付款。'],
+  ['現有的內容之後會變成付費嗎？', '不會。上面「永遠免費」清單裡的東西不會上鎖，也不會改成只能看一半。如果有付費內容，一定是新做的東西。'],
+  ['按「通知我」代表我要買嗎？', '不代表。那只是讓我知道有人有興趣，並在有新進展時寄一封信給你。你隨時可以要求刪除。'],
+  ['我的沖煮紀錄可以跨裝置同步嗎？', '目前不行，紀錄只存在你這台裝置的瀏覽器。你可以到「我的資料」匯出成檔案，再到另一台裝置匯入。'],
+  ['如果之後收費，可以退款嗎？', '可以。會提供購買後 7 日內無條件退款，取消方式會和訂閱方式一樣容易找到。'],
+];
+---
+<Base title="懂咖練習室（籌備中）" description="懂咖練習室：把咖啡知識練成手感的引導練習。目前籌備中，還沒有付費內容，現有課程與工具永遠免費。">
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow">會員 · 籌備中</p>
+      <h1>懂咖練習室</h1>
+      <p class="lede">免費的課程教你「懂」。練習室想做的是下一步：陪你把知道的東西，練成手上和嘴裡的感覺。</p>
+    </header>
+
+    <aside class="callout callout-brown">
+      <span class="callout-icon" aria-hidden="true">🚧</span>
+      <div class="callout-body">
+        <p><b>現在的狀態</b>：這裡還沒有任何付費內容，也還沒有決定要不要收費。我想先知道有沒有人需要，再決定要投入多少時間。</p>
+      </div>
+    </aside>
+
+    <h2 class="section-title">可能會做的東西</h2>
+    <div class="grid grid-2">
+      {ideas.map((i) => (
+        <div class="card idea">
+          <span class="ico" aria-hidden="true">{i.icon}</span>
+          <h3>{i.title} <span class="badge">{i.state}</span></h3>
+          <p>{i.text}</p>
+          {i.href && <a href={`${base}${i.href}`}>看第 1 週 →</a>}
+        </div>
+      ))}
+    </div>
+
+    <h2 class="section-title">永遠免費的東西</h2>
+    <p>下面這些不會上鎖，不會改成只能看一半，也不需要登入：</p>
+    <ul class="pledge">{free.map((f) => <li>{f}</li>)}</ul>
+    <p>這個網站也不會用彈出視窗打斷你，不會在文章中間插入付費提示。</p>
+
+    <h2 class="section-title">想知道後續嗎</h2>
+    <div class="card notify">
+      {site.waitlistUrl ? (
+        <>
+          <p>留下 email，有新的練習內容或決定開放時通知你。這不是購買承諾，也不會寄廣告。</p>
+          <a class="btn btn-primary btn-lg" href={site.waitlistUrl} rel="noopener">通知我</a>
+          <p class="muted" style="font-size:.86rem;margin:12px 0 0">表單由第三方服務提供，你的 email 只用來寄這件事的通知。詳見<a href={`${base}/privacy/`}>隱私權政策</a>。</p>
+        </>
+      ) : (
+        <p style="margin:0">通知登記還沒開放。在那之前，最直接的支持是把<a href={`${base}/practice/plan/`}>第 1 週練習</a>做一遍，把覺得有用的頁面分享給同樣想學咖啡的朋友。</p>
+      )}
+    </div>
+
+    <h2 class="section-title">常見問題</h2>
+    {faq.map(([q, a]) => (
+      <details class="toggle"><summary>{q}</summary><div><p>{a}</p></div></details>
+    ))}
+  </div>
+</Base>

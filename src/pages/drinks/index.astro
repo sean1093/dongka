@@ -1,28 +1,13 @@
 ---
-import Base from '../layouts/Base.astro';
-import SubNav from '../components/SubNav.astro';
-import { drinks } from '../data/drinks.js';
+import Base from '../../layouts/Base.astro';
+import SubNav from '../../components/SubNav.astro';
+import { drinks } from '../../data/drinks.js';
+import { cup, COLORS } from '../../lib/cup.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const groups = [...new Set(drinks.map((d) => d.group))];
-const COLORS: Record<string, string> = {
-  espresso: '#4a2c1a', coffee: '#6b4226', water: '#cfdfe6', milk: '#f3e6cf', foam: '#fffaf0', cream: '#fff3d6', ice: '#dcecf2',
-  chocolate: '#2a1710', tonic: '#e3eef0', juice: '#f0a73c', syrup: '#c9973a', spirit: '#d9b98a', icecream: '#fbf1dc', other: '#b98d5f',
-};
-// 依 layers 畫一杯（由下往上）
-function cup(layers: { part: string; amount: number }[]) {
-  const total = layers.reduce((s, l) => s + l.amount, 0) || 1;
-  const H = Math.min(96, 30 + total * 3);
-  let y = 112;
-  const rects = layers.map((l) => {
-    const h = (l.amount / total) * H;
-    y -= h;
-    return `<rect x="26" y="${y.toFixed(1)}" width="48" height="${(h + 0.5).toFixed(1)}" fill="${COLORS[l.part] || COLORS.other}"/>`;
-  }).join('');
-  return `<svg viewBox="0 0 100 124" class="cup" aria-hidden="true">${rects}<path d="M25 ${(112 - H - 8).toFixed(1)} V113 H75 V${(112 - H - 8).toFixed(1)}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
-}
 const lessonSlug: Record<string, string> = { '06': 'espresso', '08': 'signature-drinks' };
 ---
-<Base title="飲品配方" description="義式經典飲品、冷咖啡、現代特調與咖啡調酒的組成與做法，可依器材、冷熱與酒精篩選。">
+<Base fullTitle="咖啡飲品種類與做法：拿鐵、馥列白、冷萃、Dirty 等 35 款配方｜懂咖" description="35 款咖啡飲品的組成比例與做法：義式經典、奶咖、冷咖啡、現代特調與咖啡調酒，可依有沒有濃縮機、冷熱與是否含酒精篩選。">
   <div class="wrap">
     <header class="tool-head">
       <p class="eyebrow">查詢</p>
@@ -50,7 +35,7 @@ const lessonSlug: Record<string, string> = { '06': 'espresso', '08': 'signature-
           <div class="dtop">
             <Fragment set:html={cup(d.layers)} />
             <div>
-              <h3>{d.name}</h3>
+              <h3><a href={`${base}/drinks/${d.key}/`}>{d.name}</a></h3>
               <p class="den">{d.en}</p>
               <p class="dmeta">
                 <span>{d.group}</span><span>{d.temp}</span>
@@ -75,7 +60,7 @@ const lessonSlug: Record<string, string> = { '06': 'espresso', '08': 'signature-
       ))}
     </div>
     <p class="empty" id="f-none" hidden>沒有符合的飲品，試著放寬條件。</p>
-    <p class="muted" style="font-size:.86rem;margin-top:24px">含酒精飲品請適量飲用，未成年請勿飲酒。</p>
+    <p class="muted" style="font-size:.86rem;margin-top:24px">含酒精飲品請適量飲用，未滿 18 歲請勿飲酒。</p>
   </div>
 </Base>
 
