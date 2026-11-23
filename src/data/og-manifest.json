@@ -1,0 +1,33 @@
+{
+ "pages": [
+  "lessons--beans",
+  "lessons--origins",
+  "lessons--roasting",
+  "lessons--tasting",
+  "lessons--brewing",
+  "lessons--espresso",
+  "lessons--culture",
+  "lessons--signature-drinks",
+  "lessons--trade",
+  "lessons--taiwan",
+  "lessons--career",
+  "faq",
+  "compare",
+  "cheatsheets",
+  "atlas",
+  "drinks",
+  "glossary",
+  "tools",
+  "start"
+ ],
+ "shared": {
+  "faq": "faq",
+  "compare": "compare",
+  "cheatsheets": "cheatsheets",
+  "atlas": "atlas",
+  "drinks": "drinks",
+  "glossary": "glossary",
+  "tools": "tools",
+  "practice": "tools"
+ }
+}

@@ -1,8 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
+import { site } from '../data/site.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-<Base title="關於" description="懂咖是一套繁體中文的咖啡自學網站。這一頁說明名字的意思、內容怎麼來的與查核方式、免費與付費的界線，以及你的資料存在哪裡。">
+<Base title="關於" description="懂咖是一套繁體中文的咖啡自學網站。這一頁說明名字的意思、內容怎麼來的與查核方式、內容的查核與更正方式，以及你的資料存在哪裡。">
   <div class="wrap narrow prose">
     <header class="tool-head">
       <p class="eyebrow">關於</p>
@@ -28,6 +29,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     </aside>
     <p>部分飲品含酒精（第 08 篇的咖啡調酒），請適量飲用，未滿 18 歲請勿飲酒。</p>
 
+    <h2>內容怎麼查核、怎麼更正</h2>
+    <ul>
+      <li>11 篇課程各做過一輪事實查核，修正紀錄與「仍待確認」的清單公開在原始碼的 <code>docs/fact-check</code> 資料夾。</li>
+      <li>常見問題、比一比、速查表、圖鑑與飲品頁都是從課程整理出來的，每頁下方標明依據哪一篇。課程更正時，這些頁面會一起更正。</li>
+      <li>每頁標示的「最後查核」是全站最近一次整體查核的日期（{site.updated}）。</li>
+      <li>發現錯誤，請到 <a href={site.issuesUrl} rel="noopener">GitHub 回報</a>，附上頁面網址與你看到的資料來源。確認後會更正並在該頁說明。</li>
+    </ul>
+
     <h2>想查證或深入，可以從這裡開始</h2>
     <ul>
       <li><a href="https://sca.coffee/" rel="noopener">Specialty Coffee Association（SCA）</a>：杯測表、風味輪、水質與沖煮標準</li>
@@ -39,8 +48,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <h2>插圖</h2>
     <p>站內的示意圖（咖啡櫻桃剖面、處理法、烘焙度光譜、萃取順序、濾杯剖面、飲品組成、風味輪）都是為這個網站繪製的原創圖，標示「示意」的圖只表達相對關係，不是精確數據。</p>
 
-    <h2>免費與付費的界線</h2>
-    <p>現有的課程、自我檢核、圖鑑、配方、辭典、工具與練習永遠免費，不會上鎖。如果之後有付費內容，一定是新做的東西。目前的想法寫在<a href={`${base}/membership/`}>懂咖練習室</a>。</p>
+    <h2>全部免費</h2>
+    <p>懂咖的課程、自我檢核、圖鑑、配方、辭典、工具與練習全部免費，不需要登入，也沒有會員制。</p>
 
     <h2>你的資料</h2>
     <p>學習進度、自我檢核的標記與<a href={`${base}/tools/brew-log/`}>沖煮紀錄</a>都只存在你這台裝置的瀏覽器裡（localStorage），不會上傳到任何伺服器。換裝置或清除瀏覽器資料後就會消失，沖煮紀錄可以先匯出 CSV 備份。</p>

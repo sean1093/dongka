@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import RefNav from '../../components/RefNav.astro';
+import { comparisons } from '../../data/compare.js';
+import { breadcrumb, itemList } from '../../lib/seo.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const origin = (Astro.site?.origin || '').replace(/\/$/, '');
+---
+<Base
+  fullTitle="咖啡比一比：水洗日曬、淺焙深焙、拿鐵馥列白差在哪｜懂咖"
+  description="把常被搞混的咖啡名詞放在一起比：處理法、烘焙度、義式飲品、冷咖啡、濾杯、產區風味。每組先給一句結論，再用表格對照。"
+  jsonld={[breadcrumb(origin, [['懂咖', `${base}/`], ['比一比', `${base}/compare/`]]), itemList(origin, '咖啡比一比', comparisons.map((c) => [c.title, `${base}/compare/${c.slug}/`]))]}
+>
+  <div class="wrap">
+    <header class="tool-head">
+      <p class="eyebrow">速查</p>
+      <h1>比一比</h1>
+      <p class="muted">「A 和 B 差在哪」的 {comparisons.length} 組對照。每組先給一句結論，再用表格並排。</p>
+    </header>
+    <RefNav current="compare" />
+    <div class="qa-list">
+      {comparisons.map((c) => (
+        <a class="qa" href={`${base}/compare/${c.slug}/`}>
+          <b>{c.title}</b>
+          <span>{c.verdict}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</Base>

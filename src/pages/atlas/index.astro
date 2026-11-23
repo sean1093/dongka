@@ -1,8 +1,9 @@
 ---
-import Base from '../layouts/Base.astro';
-import SubNav from '../components/SubNav.astro';
-import { flavorTags, origins, varieties, processes } from '../data/atlas.js';
-import { originMapSvg } from '../lib/figures.js';
+import Base from '../../layouts/Base.astro';
+import SubNav from '../../components/SubNav.astro';
+import { flavorTags, origins, varieties, processes } from '../../data/atlas.js';
+import { originMapSvg } from '../../lib/figures.js';
+import { hasOriginPage } from '../../lib/origin-pages.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const tag = Object.fromEntries(flavorTags.map((t) => [t.key, t.label]));
 const proc = Object.fromEntries(processes.map((p) => [p.key, p.name]));
@@ -44,7 +45,7 @@ const bar = (label: string, v: number) => `<span class="mbar"><i>${label}</i><b 
         <div class="grid atlas-grid">
           {origins.filter((o) => o.region === r).map((o) => (
             <article class="card acard" id={`o-${o.key}`} data-key={o.key}>
-              <h3>{o.name}</h3>
+              <h3>{hasOriginPage(o) ? <a href={`${base}/atlas/${o.key}/`}>{o.name}</a> : o.name}</h3>
               <p class="asum">{o.summary}</p>
               <div class="tags">{o.flavors.map((f) => <span>{tag[f]}</span>)}</div>
               {o.flavors.length > 0 && <div class="mbars" set:html={bar('酸質', o.acidity) + bar('醇厚', o.body) + bar('甜感', o.sweetness)} />}
@@ -127,6 +128,24 @@ const bar = (label: string, v: number) => `<span class="mbar"><i>${label}</i><b 
     recommend();
   });
   ['rec-acid', 'rec-body'].forEach((id) => document.getElementById(id)!.addEventListener('change', recommend));
+  // 把選擇寫進網址，分享出去的連結會還原同一組推薦：?f=floral,citrus&a=hi&b=lo
+  const sync = () => {
+    const p = new URLSearchParams();
+    if (picked.size) p.set('f', [...picked].join(','));
+    if (sel('rec-acid')) p.set('a', sel('rec-acid'));
+    if (sel('rec-body')) p.set('b', sel('rec-body'));
+    history.replaceState(null, '', p.toString() ? `?${p}` : location.pathname);
+  };
+  document.getElementById('rec')!.addEventListener('click', sync);
+  document.getElementById('rec')!.addEventListener('change', sync);
+  const q0 = new URLSearchParams(location.search);
+  (q0.get('f') || '').split(',').filter((k) => k in tag).slice(0, 3).forEach((k) => {
+    picked.add(k);
+    document.querySelector(`#rec-tags .chip[data-k="${k}"]`)?.setAttribute('aria-pressed', 'true');
+  });
+  if (['hi', 'lo'].includes(q0.get('a') || '')) (document.getElementById('rec-acid') as HTMLSelectElement).value = q0.get('a')!;
+  if (['hi', 'lo'].includes(q0.get('b') || '')) (document.getElementById('rec-body') as HTMLSelectElement).value = q0.get('b')!;
+  recommend();
 
   // 分布圖上的點 → 捲到對應的卡片
   const go = (k: string) => {

@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-<Base title="萃取率計算機" description="輸入粉重、咖啡液重與 TDS，計算萃取率並標在沖煮控制圖上。">
+<Base fullTitle="咖啡萃取率計算機：輸入粉重、液重與 TDS，看這杯在不在金杯範圍｜懂咖" description="咖啡萃取率怎麼算？輸入咖啡粉重、咖啡液重與 TDS 濃度，自動算出萃取率，並標在沖煮控制圖上告訴你該怎麼調整。">
   <div class="wrap">
     <header class="tool-head">
       <p class="eyebrow">工具</p>
@@ -95,6 +95,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       dose > 0 && ratio > 0 ? `粉水比 1:${ratio} → <b>${dose}g 粉配 ${Math.round(dose * ratio)}g 水</b>` : '';
     draw(valid ? ey : NaN, valid ? tds : NaN, dose, bev);
   }
-  document.getElementById('f')!.addEventListener('input', update);
+  // 用網址帶入與分享計算結果：?d=15&b=225&t=1.35&r=16
+  const qs = new URLSearchParams(location.search);
+  ([['d', 'dose'], ['b', 'bev'], ['t', 'tds'], ['r', 'ratio']] as const).forEach(([k, id]) => { const v = parseFloat(qs.get(k) || ''); if (v > 0) $(id).value = String(v); });
+  const sync = () => history.replaceState(null, '', `?d=${$('dose').value}&b=${$('bev').value}&t=${$('tds').value}&r=${$('ratio').value}`);
+  document.getElementById('f')!.addEventListener('input', () => { update(); sync(); });
   update();
 </script>

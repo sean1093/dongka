@@ -3,6 +3,7 @@
 import { Marked } from 'marked';
 import { lessons } from '../data/lessons.js';
 import { glossary } from '../data/glossary.js';
+import { slugify } from '../data/site.js';
 import { placeFigures } from './figures.js';
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -129,7 +130,7 @@ function stackTables(html) {
 }
 
 // 每個名詞在一篇裡第一次出現時標記起來
-function markTerms(html) {
+function markTerms(html, base = '') {
   const terms = glossary.flatMap((g) => [g.term, ...(g.alias || [])].map((w) => ({ w, g }))).sort((a, b) => b.w.length - a.w.length);
   const used = new Set();
   const marks = [];
@@ -146,7 +147,7 @@ function markTerms(html) {
       const i = seg.indexOf(w);
       if (i < 0) continue;
       used.add(g.term);
-      marks.push(`<button type="button" class="term" data-term="${esc(g.term)}" data-en="${esc(g.en)}" data-def="${esc(g.def)}">${w}</button>`);
+      marks.push(`<a class="term" href="${base}/glossary/${slugify(g.en)}/" data-term="${esc(g.term)}" data-en="${esc(g.en)}" data-def="${esc(g.def)}">${w}</a>`);
       seg = `${seg.slice(0, i)}\u0000${marks.length - 1}\u0000${seg.slice(i + w.length)}`;
     }
     return seg;
@@ -177,7 +178,7 @@ function postprocess(html, base, lesson) {
     const l = lessons.find((x) => x.id === id);
     return l ? `<a href="${base}/lessons/${l.slug}/">${m0}</a>` : m0;
   });
-  if (lesson) html = markTerms(html);
+  if (lesson) html = markTerms(html, base);
   return { html, toc };
 }
 

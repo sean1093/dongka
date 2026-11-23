@@ -122,7 +122,7 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
 
         <div class="lesson-end" data-pagefind-ignore>
           <button class="btn btn-primary" id="done-btn" type="button">標記這篇為已完成</button>
-          <a href={`${base}/`}>回課程總覽</a>
+          <span><a href={site.issuesUrl} rel="noopener">回報這篇的錯誤</a>　<a href={`${base}/`}>回課程總覽</a></span>
         </div>
         <nav class="pager" aria-label="上下篇" data-pagefind-ignore>
           {prev && <a href={`${base}/lessons/${prev.slug}/`}><small>← 上一篇</small>{prev.id} {prev.title}</a>}
@@ -218,6 +218,8 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
   document.addEventListener('click', (e) => {
     const t = (e.target as HTMLElement).closest<HTMLElement>('.term');
     if ((e.target as HTMLElement).closest('.tp-more')) { const name = cur?.dataset.term; hide(); if (name) openTerm(name); return; }
+    if (t && ((e as MouseEvent).metaKey || (e as MouseEvent).ctrlKey)) return; // 另開分頁時照一般連結處理
+    if (t) e.preventDefault();
     if (!t || t === cur) return hide();
     // 桌機：直接開右側面板（不遮內文）；手機：先給一句話，想看再展開
     if (matchMedia('(min-width: 961px)').matches) { hide(); openTerm(t.dataset.term); return; }

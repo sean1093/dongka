@@ -2,19 +2,26 @@
 import '../styles/global.css';
 import { site } from '../data/site.js';
 // fullTitle：整個 <title> 自己決定（給首頁與需要關鍵字在前的頁面）；jsonld：結構化資料；noindex：不希望被收錄的頁面
-const { title, fullTitle, description = site.description, jsonld = [], ogType = 'website', noindex = false } = Astro.props;
+import ogList from '../data/og-manifest.json';
+// share：頁尾是否顯示分享列；shareText：分享時帶出去的那句話
+const { title, fullTitle, description = site.description, jsonld = [], ogType = 'website', noindex = false, share = true, shareText } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const full = fullTitle || (title ? `${title}｜懂咖 Dongka` : '懂咖 Dongka｜咖啡入門自學課：從喜歡喝，到喝得懂');
 const path = Astro.url.pathname;
 const origin = (Astro.site?.origin || '').replace(/\/$/, '');
 const canonical = `${origin}${path.endsWith('/') || path.includes('.') ? path : path + '/'}`;
-const ogImage = `${origin}${base}/og.png`;
+// 分享圖（scripts/og.mjs 產生）：這一頁自己的 → 所屬類別共用的 → 全站共用的
+const ogKey = path.slice(base.length).replace(/^\/|\/$/g, '').replace(/\//g, '--');
+const ogPages: string[] = (ogList as any).pages || [];
+const ogShared: Record<string, string> = (ogList as any).shared || {};
+const ogName = ogPages.includes(ogKey) ? ogKey : ogShared[ogKey.split('--')[0]];
+const ogImage = `${origin}${base}/${ogName ? `og/${ogName}.jpg` : 'og.png'}`;
 const ld = (Array.isArray(jsonld) ? jsonld : [jsonld]).filter(Boolean);
 const nav = [
   { href: `${base}/`, label: '課程', on: path === `${base}/` || path.includes('/lessons/') },
-  { href: `${base}/atlas/`, label: '圖鑑', on: /\/(atlas|drinks|glossary)\//.test(path) },
+  { href: `${base}/faq/`, label: '速查', on: /\/(faq|compare|cheatsheets)\//.test(path) },
+  { href: `${base}/atlas/`, label: '圖鑑', on: /\/(atlas|drinks|glossary|quiz)\//.test(path) },
   { href: `${base}/tools/`, label: '工具', on: /\/(tools|practice)\//.test(path) },
-  { href: `${base}/about/`, label: '關於', on: path.includes('/about/') },
 ];
 ---
 <!doctype html>
@@ -59,11 +66,22 @@ const nav = [
         </nav>
       </div>
     </header>
-    <main id="main"><slot /></main>
+    <main id="main">
+      <slot />
+      {share && !noindex && (
+        <div class="wrap">
+          <div class="share" data-title={shareText || title || site.tagline}>
+            <span>覺得有用，分享給也想學咖啡的人</span>
+            <button type="button" class="btn btn-sm" data-share="native" hidden>分享</button>
+            <button type="button" class="btn btn-sm" data-share="line">LINE</button>
+            <button type="button" class="btn btn-sm" data-share="copy">複製連結</button>
+          </div>
+        </div>
+      )}
+    </main>
     <footer class="site-footer">
       <div class="wrap">
         <nav class="foot-nav" aria-label="頁尾">
-          <a href={`${base}/membership/`}>懂咖練習室（籌備中）</a>
           <a href={`${base}/practice/plan/`}>練習計畫</a>
           <a href={`${base}/my-data/`}>我的資料</a>
           <a href={`${base}/about/`}>關於</a>
@@ -75,6 +93,7 @@ const nav = [
       </div>
     </footer>
     <script>
+      import '../scripts/share.js';
       document.getElementById('theme-btn')?.addEventListener('click', () => {
         const root = document.documentElement;
         const dark = root.dataset.theme

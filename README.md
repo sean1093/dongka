@@ -8,6 +8,7 @@
 
 - **課程**：11 篇文章，分六個階段（原料、轉化、感官、沖煮、文化與創意、產業與職涯），每篇結尾有可標記的自我檢核題。
 - **閱讀輔助**：每篇有導言、三個重點、閱讀時間；「進階」段落可整段收合；名詞第一次出現時可點開解釋；原創示意圖；全站搜尋。
+- **速查**：常見問題（每題先用一兩句話回答）、比一比（並排對照表）、速查表（可列印）、新手入口。內容都從課程整理，各頁標明依據。
 - **查詢**：豆子圖鑑（產區、品種、處理法，依風味偏好推薦）、飲品配方（可依器材、冷熱、酒精篩選）、名詞辭典（點開側欄看延伸說明）。
 - **工具**：沖煮計時器、味道排查、萃取率計算機（含沖煮控制圖）、沖煮紀錄與杯測紀錄表。
 - **練習**：讀懂豆袋標籤、錯題複習。
@@ -42,12 +43,14 @@ npm run build
 都在 `src/data/site.js`：
 
 - `googleSiteVerification`：Google Search Console 的 HTML 標記驗證碼。
-- `waitlistUrl`：懂咖練習室「通知我」表單的網址，留空時會員頁顯示尚未開放。
 - `updated`：內容最後查核日期，會顯示在文章頁，也寫進結構化資料與 sitemap。改過內容後記得更新。
 
 ## SEO
 
-- 每頁有獨立的 title、description、canonical 與社群分享圖（`public/og.png`）。
+- 每頁有獨立的 title、description、canonical。
+- 社群分享圖：每篇課程一張，其餘頁面依類別共用（`public/og/`）。改了課程標題或新增類別後執行 `npm run og` 重新產生並提交；這個指令需要本機有 Playwright 與中文字型。
+- 每頁頁尾有分享列（手機原生分享、LINE、複製連結），圖表可存成帶網站名稱的圖片，圖鑑推薦與萃取率計算機的狀態會寫進網址。
+- `/llms.txt` 提供給 AI 助理的網站摘要。
 - 文章、名詞頁、飲品頁輸出 Article 與 BreadcrumbList 結構化資料；首頁輸出 WebSite。
 - `/sitemap.xml` 由 `src/pages/sitemap.xml.js` 產生；新增頁面類型時要加進去。
 - 每個名詞（`/glossary/<英文名>/`）與每款飲品（`/drinks/<key>/`）都有獨立頁面。
@@ -60,6 +63,7 @@ npm run build
 | `src/content/lessons/NN.md` | 文章內容，從 Notion 匯出的 Notion-flavored Markdown（含 `<callout>`、`<toggle>` 等標籤） |
 | `src/lib/notion.js` | 把上述格式轉成 HTML，並把「自我檢核」的 toggle 抽成題目 |
 | `src/data/lessons.js` | 課程階段、文章標題、導言（lede）、三個重點（takeaways）、進階段落編號（advanced）、工具清單 |
+| `src/data/faq.js`、`compare.js`、`cheatsheets.js` | 常見問題、比一比、速查表的內容。只收課程能支持的說法；課程更正時要一起改 |
 | `src/data/recipes.js` | 沖煮計時器的配方資料 |
 | `src/data/glossary.js` | 名詞辭典；文章中的名詞會自動標記，點開是側欄面板（`src/scripts/term-panel.js`） |
 | `src/data/atlas.js` | 豆子圖鑑：產區、品種、處理法（整理自第 01、02 篇） |

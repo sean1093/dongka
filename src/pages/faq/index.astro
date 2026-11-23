@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import RefNav from '../../components/RefNav.astro';
+import { faqs, faqGroups } from '../../data/faq.js';
+import { breadcrumb, itemList } from '../../lib/seo.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const origin = (Astro.site?.origin || '').replace(/\/$/, '');
+---
+<Base
+  fullTitle={`咖啡常見問題：${faqs.length} 個新手最常問的問題，一句話先回答｜懂咖`}
+  description="咖啡豆要養幾天、手沖水溫幾度、咖啡太酸太苦怎麼辦、冷萃和冰滴差在哪。每個問題先用一兩句話回答，再告訴你原因與做法。"
+  jsonld={[breadcrumb(origin, [['懂咖', `${base}/`], ['常見問題', `${base}/faq/`]]), itemList(origin, '咖啡常見問題', faqs.map((f) => [f.q, `${base}/faq/${f.slug}/`]))]}
+>
+  <div class="wrap">
+    <header class="tool-head">
+      <p class="eyebrow">速查</p>
+      <h1>咖啡常見問題</h1>
+      <p class="muted">{faqs.length} 個問題，每題先用一兩句話回答，想知道為什麼再點進去。答案都整理自課程，並標明出自哪一篇。</p>
+    </header>
+    <RefNav current="faq" />
+    {faqGroups.map((g) => faqs.some((f) => f.group === g) && (
+      <section>
+        <h2 class="section-title" style="margin-top:36px">{g}</h2>
+        <div class="qa-list">
+          {faqs.filter((f) => f.group === g).map((f) => (
+            <a class="qa" href={`${base}/faq/${f.slug}/`}>
+              <b>{f.q}</b>
+              <span>{f.short}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+</Base>
