@@ -368,3 +368,4 @@ svg .drip { stroke: #6b4226; stroke-width: 4; stroke-linecap: round; }
 .tl-form { grid-template-columns: minmax(280px, 440px) minmax(0, 1fr); }
 @media (max-width: 820px) { .tl-wide-left, .tl-form { grid-template-columns: minmax(0, 1fr); } }
 @media (min-width: 1100px) { body.with-panel main { padding-right: 430px; } }
+.brand-t small { font-family: var(--sans); font-weight: 400; font-size: .72rem; color: var(--muted); letter-spacing: .08em; }

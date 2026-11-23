@@ -1,8 +1,8 @@
-# Seed to Cup
+# 懂咖 Dongka
 
-從種子到杯子：一套 11 堂的繁體中文咖啡自學課程，附自我檢核與沖煮工具。
+從喜歡喝，到喝得懂。一套 11 堂的繁體中文咖啡自學課程，附圖鑑、配方、名詞辭典與沖煮工具。
 
-線上版：https://sean1093.github.io/seed-to-cup/
+線上版：https://sean1093.github.io/dongka/
 
 ## 內容
 
@@ -34,7 +34,7 @@ npm run build
 把圖檔放到 `public/images/`，在文章的 Markdown 裡用一般語法插入，並在圖說寫上作者與授權：
 
 ```md
-![咖啡櫻桃](/seed-to-cup/images/cherry.jpg)
+![咖啡櫻桃](/dongka/images/cherry.jpg)
 ```
 
 ## 結構
@@ -57,4 +57,4 @@ npm run build
 
 推到 `main` 會由 `.github/workflows/deploy.yml` 建置並部署到 GitHub Pages。第一次需要到 repo 的 Settings → Pages，把 Source 設為 **GitHub Actions**。
 
-若改用自訂網域，修改 `astro.config.mjs` 的 `site` 與 `base`。
+網址的路徑（`/dongka/`）由 workflow 依 repo 名稱自動帶入，repo 改名或換成自訂網域後重新部署即可，不用改設定檔。
