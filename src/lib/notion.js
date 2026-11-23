@@ -163,13 +163,13 @@ function postprocess(html, base, lesson) {
     const num = +(strip(inner).match(/^(\d+)\./) || [])[1];
     const adv = !!lesson?.advanced?.includes(num);
     toc.push({ id, text: strip(inner), adv });
-    return `\u0001${adv ? 'adv' : 'core'}\u0001<h2 id="${id}">${inner}${adv ? ' <span class="badge">進階</span>' : ''}</h2>`;
+    return `\u0001${adv ? 'adv' : strip(inner).trim() === '參考資料' ? 'refs' : 'core'}\u0001<h2 id="${id}">${inner}${adv ? ' <span class="badge">進階</span>' : ''}</h2>`;
   });
   // 以 h2 為界包成 section，進階段落可以整段收合
-  const parts = html.split(/\u0001(adv|core)\u0001/);
+  const parts = html.split(/\u0001(adv|core|refs)\u0001/);
   html = parts[0];
   for (let i = 1; i < parts.length; i += 2) {
-    html += `<section class="sec"${parts[i] === 'adv' ? ' data-adv' : ''}>${parts[i + 1]}</section>`;
+    html += `<section class="sec${parts[i] === 'refs' ? ' refs' : ''}"${parts[i] === 'adv' ? ' data-adv' : ''}>${parts[i + 1]}</section>`;
   }
   html = stackTables(html);
   html = html.replace(/<table/g, '<div class="table-wrap"><table').replace(/<\/table>/g, '</table></div>');

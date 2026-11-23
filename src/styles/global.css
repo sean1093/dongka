@@ -277,3 +277,4 @@ svg .drip { stroke: #6b4226; stroke-width: 4; stroke-linecap: round; }
 .prose img { display: block; max-width: 100%; height: auto; border-radius: 14px; margin: 1.6em auto .5em; }
 .prose p:has(> img) + p > em:only-child { display: block; text-align: center; font-size: .86rem; color: var(--muted); font-style: normal; }
 .refs { font-size: .9rem; }
+.refs ul { padding-left: 1.2em; } .refs li { margin: .5em 0; line-height: 1.65; overflow-wrap: anywhere; color: var(--muted); } .refs li a { font-weight: 600; }
