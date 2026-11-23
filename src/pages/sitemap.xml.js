@@ -6,9 +6,7 @@ import { comparisons } from '../data/compare.js';
 import { sheets } from '../data/cheatsheets.js';
 import { origins } from '../data/atlas.js';
 import { site, slugify } from '../data/site.js';
-
-// 與 src/pages/atlas/[key].astro 的條件一致
-const hasOriginPage = (o) => o.flavors.length > 0 && (o.areas.length > 0 || o.processes.length > 0) && o.notes.length >= 30;
+import { hasOriginPage } from '../lib/origin-pages.js';
 
 export function GET({ site: origin }) {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');

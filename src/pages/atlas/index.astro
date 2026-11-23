@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import SubNav from '../../components/SubNav.astro';
 import { flavorTags, origins, varieties, processes } from '../../data/atlas.js';
 import { originMapSvg } from '../../lib/figures.js';
+import { hasOriginPage } from '../../lib/origin-pages.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const tag = Object.fromEntries(flavorTags.map((t) => [t.key, t.label]));
 const proc = Object.fromEntries(processes.map((p) => [p.key, p.name]));
@@ -44,7 +45,7 @@ const bar = (label: string, v: number) => `<span class="mbar"><i>${label}</i><b 
         <div class="grid atlas-grid">
           {origins.filter((o) => o.region === r).map((o) => (
             <article class="card acard" id={`o-${o.key}`} data-key={o.key}>
-              <h3>{o.flavors.length > 0 ? <a href={`${base}/atlas/${o.key}/`}>{o.name}</a> : o.name}</h3>
+              <h3>{hasOriginPage(o) ? <a href={`${base}/atlas/${o.key}/`}>{o.name}</a> : o.name}</h3>
               <p class="asum">{o.summary}</p>
               <div class="tags">{o.flavors.map((f) => <span>{tag[f]}</span>)}</div>
               {o.flavors.length > 0 && <div class="mbars" set:html={bar('酸質', o.acidity) + bar('醇厚', o.body) + bar('甜感', o.sweetness)} />}

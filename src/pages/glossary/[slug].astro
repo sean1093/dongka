@@ -24,7 +24,7 @@ const words = [g.term, ...(g.alias || [])];
 const inLessons = lessons.filter((l) => words.some((w) => (files[`../../content/lessons/${l.id}.md`] as string).includes(w)));
 const related = (g.related || []).map((t: string) => glossary.find((x) => x.term === t)).filter(Boolean);
 const path = `${base}/glossary/${slugify(g.en)}/`;
-const desc = `${g.term}（${g.en}）是什麼？${g.def}`.slice(0, 150);
+const desc = `${g.term}（${g.en}）是什麼？${g.def}${g.def.length < 40 ? ` ${g.why}` : ''}`.slice(0, 150);
 ---
 <Base
   fullTitle={`${g.term}是什麼？${g.en} 的意思與重點｜咖啡名詞｜懂咖`}
