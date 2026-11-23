@@ -272,3 +272,8 @@ svg .drip { stroke: #6b4226; stroke-width: 4; stroke-linecap: round; }
 .check-inline { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; }
 .check-inline input { width: auto; margin: 0; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+
+/* 照片 */
+.prose img { display: block; max-width: 100%; height: auto; border-radius: 14px; margin: 1.6em auto .5em; }
+.prose p:has(> img) + p > em:only-child { display: block; text-align: center; font-size: .86rem; color: var(--muted); font-style: normal; }
+.refs { font-size: .9rem; }
