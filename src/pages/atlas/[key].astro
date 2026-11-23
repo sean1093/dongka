@@ -1,0 +1,80 @@
+---
+import Base from '../../layouts/Base.astro';
+import SubNav from '../../components/SubNav.astro';
+import { flavorTags, origins, processes } from '../../data/atlas.js';
+import { site } from '../../data/site.js';
+import { breadcrumb, article } from '../../lib/seo.js';
+
+// 只有內容夠獨立的產區才有自己的頁面：要有風味資料，且有著名產區或常見處理法可以說
+const eligible = (o: any) => o.flavors.length > 0 && (o.areas.length > 0 || o.processes.length > 0) && o.notes.length >= 30;
+export function getStaticPaths() {
+  return origins.filter(eligible).map((o) => ({ params: { key: o.key }, props: { o } }));
+}
+const { o } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const org = (Astro.site?.origin || '').replace(/\/$/, '');
+const tag = Object.fromEntries(flavorTags.map((t) => [t.key, t.label]));
+const procs = o.processes.map((k: string) => processes.find((p) => p.key === k)).filter(Boolean);
+const others = origins.filter((x) => x.key !== o.key && x.flavors.length);
+const link = (x: any) => (eligible(x) ? `${base}/atlas/${x.key}/` : `${base}/atlas/#o-${x.key}`);
+// 風味相近：共同風味標籤最多；風格相反：酸質與醇厚度差距最大
+const similar = others.map((x) => ({ x, n: x.flavors.filter((f: string) => o.flavors.includes(f)).length })).filter((s) => s.n > 0).sort((a, b) => b.n - a.n).slice(0, 3).map((s) => s.x);
+const opposite = [...others].sort((a, b) => (Math.abs(b.acidity - o.acidity) + Math.abs(b.body - o.body)) - (Math.abs(a.acidity - o.acidity) + Math.abs(a.body - o.body)))[0];
+const lvl = (v: number, lo: string, mid: string, hi: string) => (v >= 4 ? hi : v <= 2 ? lo : mid);
+const roast = o.acidity >= 4 ? '淺焙到中淺焙，保留酸質與香氣' : o.body >= 4 ? '中焙到中深焙，把厚實感與甜感帶出來' : '中淺焙到中焙，酸甜比較平衡';
+const flavorText = o.flavors.map((f: string) => tag[f]).join('、');
+const path = `${base}/atlas/${o.key}/`;
+const desc = `${o.name}咖啡豆是什麼味道？${o.summary}。典型風味：${flavorText}。整理${o.name}的著名產區、常見處理法、適合的烘焙度，以及和其他產區的差別。`.slice(0, 155);
+const bar = (label: string, v: number) => `<span class="mbar"><i>${label}</i><b style="--v:${v}"></b></span>`;
+---
+<Base
+  fullTitle={`${o.name}咖啡豆風味：${flavorText}｜產區特色與挑選方式｜懂咖`}
+  description={desc}
+  ogType="article"
+  shareText={`${o.name}咖啡豆是什麼味道？${o.summary}`}
+  jsonld={[breadcrumb(org, [['懂咖', `${base}/`], ['豆子圖鑑', `${base}/atlas/`], [o.name, path]]), article(org, { headline: `${o.name}咖啡豆的風味與特色`, description: desc, path })]}
+>
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow"><a href={`${base}/atlas/`}>豆子圖鑑</a> / {o.region}</p>
+      <h1>{o.name}咖啡豆是什麼味道？</h1>
+      <p class="lede">{o.summary}。</p>
+    </header>
+    <SubNav current="atlas" />
+    <article class="prose" data-pagefind-body>
+      <div class="answer">
+        <p>{o.name}的典型印象是{flavorText}，酸質{lvl(o.acidity, '偏低', '中等', '明亮')}，口感{lvl(o.body, '輕盈', '中等', '厚實')}。</p>
+        <div class="mbars" set:html={bar('酸質', o.acidity) + bar('醇厚', o.body) + bar('甜感', o.sweetness)} />
+      </div>
+      <p>{o.notes}</p>
+      <dl class="afacts" style="font-size:.95rem">
+        {o.areas.length > 0 && <><dt>著名產區</dt><dd>{o.areas.join('、')}</dd></>}
+        {o.varieties.length > 0 && <><dt>常見品種</dt><dd>{o.varieties.join('、')}</dd></>}
+        {o.altitude && <><dt>海拔</dt><dd>{o.altitude}</dd></>}
+      </dl>
+
+      {procs.length > 0 && (
+        <>
+          <h2 class="h-sm" style="margin-top:1.8em">常見的處理法會怎麼改變它</h2>
+          <ul class="rel-terms">{procs.map((p: any) => <li><b>{p.name}</b>：{p.effect}</li>)}</ul>
+        </>
+      )}
+
+      <h2 class="h-sm" style="margin-top:1.8em">挑豆與沖煮的起點</h2>
+      <ul class="points">
+        <li>烘焙度：{roast}。</li>
+        <li>{o.acidity >= 4 ? '沖煮：這類豆子密度高、不易萃取，可以用較高的水溫並稍微磨細。' : o.body >= 4 ? '沖煮：容易萃取、苦味物質較多，水溫可以低一點、研磨稍粗。' : '沖煮：用通用配方就能有不錯的結果，適合拿來練習調整參數。'}</li>
+        <li>標籤上先看處理法：同一個產區，水洗和日曬的味道可以差很多。</li>
+      </ul>
+
+      <h2 class="h-sm" style="margin-top:1.8em">和其他產區比</h2>
+      <ul class="rel-terms">
+        {similar.map((x: any) => <li>風味相近：<a href={link(x)}>{x.name}</a>，{x.summary}</li>)}
+        {opposite && <li>風格相反：<a href={link(opposite)}>{opposite.name}</a>，{opposite.summary}</li>}
+      </ul>
+
+      <p class="src">依據：<a href={`${base}/lessons/origins/`}>第 02 篇　產區巡禮</a>與<a href={`${base}/lessons/beans/`}>第 01 篇　咖啡豆</a>。這裡寫的是典型印象，酸質與醇厚的分數是依課文描述推估的。最後查核 {site.updated}。</p>
+      <p><a href={`${base}/practice/label/`}>用標籤練習測試你的判斷 →</a></p>
+    </article>
+  </div>
+</Base>

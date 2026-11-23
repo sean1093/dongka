@@ -33,3 +33,10 @@ export const website = (origin, base) => ({
   inLanguage: 'zh-Hant-TW',
   description: site.description,
 });
+
+export const itemList = (origin, name, items) => ({
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name,
+  itemListElement: items.map(([n, path], i) => ({ '@type': 'ListItem', position: i + 1, name: n, url: `${origin}${path}` })),
+});

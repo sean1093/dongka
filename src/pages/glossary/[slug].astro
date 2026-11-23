@@ -40,6 +40,7 @@ const desc = `${g.term}（${g.en}）是什麼？${g.def}`.slice(0, 150);
       <p class="eyebrow"><a href={`${base}/glossary/`}>名詞辭典</a> / {g.group}</p>
       <h1>{g.term} <small class="h1-en">{g.en}</small></h1>
       <p class="lede">{g.def}</p>
+      <button type="button" class="btn btn-sm" data-copy={`${g.term}（${g.en}）：${g.def}`}>複製這段解釋</button>
     </header>
     <SubNav current="glossary" />
     <article class="prose" data-pagefind-body>

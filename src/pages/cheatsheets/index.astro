@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import RefNav from '../../components/RefNav.astro';
+import { sheets } from '../../data/cheatsheets.js';
+import { breadcrumb, itemList } from '../../lib/seo.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const origin = (Astro.site?.origin || '').replace(/\/$/, '');
+---
+<Base
+  fullTitle="咖啡速查表：手沖參數、味道排查、養豆保存、飲品比例一頁看完｜懂咖"
+  description="可以列印或截圖的咖啡速查表：手沖粉水比與水溫、味道排查、養豆與保存、義式飲品比例、烘焙度、風味描述。"
+  jsonld={[breadcrumb(origin, [['懂咖', `${base}/`], ['速查表', `${base}/cheatsheets/`]]), itemList(origin, '咖啡速查表', sheets.map((s) => [s.title, `${base}/cheatsheets/${s.slug}/`]))]}
+>
+  <div class="wrap">
+    <header class="tool-head">
+      <p class="eyebrow">速查</p>
+      <h1>速查表</h1>
+      <p class="muted">一頁一張，適合列印貼在吧台旁，或截圖存在手機裡。</p>
+    </header>
+    <RefNav current="cheatsheets" />
+    <div class="qa-list">
+      {sheets.map((s) => (
+        <a class="qa" href={`${base}/cheatsheets/${s.slug}/`}>
+          <b>{s.title}</b>
+          <span>{s.question}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</Base>

@@ -21,7 +21,7 @@ const paths = [
     <p class="lead">給喜歡喝咖啡、想知道「為什麼」的人。從種子到杯子，每一篇都從你喝得到的差異講起，附上可以照做的配方、名詞解釋與自我檢核。</p>
     <div class="hero-actions">
       <a class="btn btn-primary" id="resume" href={`${base}/lessons/${lessons[0].slug}/`}>從第 01 篇開始</a>
-      <a class="btn" href="#paths">不知道從哪開始？</a>
+      <a class="btn" href={`${base}/start/`}>不知道從哪開始？</a>
     </div>
     <div class="progress">
       <div class="progress-bar"><i id="pbar"></i></div>
@@ -41,6 +41,20 @@ const paths = [
           <p>{p.how}</p>
           <div class="path-links">{p.links.map(([href, label]) => <a href={`${base}${href}`}>{label}</a>)}</div>
         </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap">
+    <h2 class="section-title">有問題，先查</h2>
+    <p class="muted" style="margin:0 0 20px">不想讀長文的時候，直接看答案。</p>
+    <div class="grid grid-2">
+      {[['❓', '常見問題', '養豆幾天、水溫幾度、太酸太苦怎麼辦。每題先用一兩句話回答。', '/faq/'], ['⚖️', '比一比', '水洗和日曬、淺焙和深焙、拿鐵和馥列白，一張表並排看。', '/compare/'], ['📋', '速查表', '手沖參數、味道排查、養豆保存、飲品比例，一頁一張可列印。', '/cheatsheets/'], ['🧭', '從這裡開始', '依你想做的事，五條不用從頭讀到尾的入門路線。', '/start/']].map(([icon, t, d, href]) => (
+        <a class="card tool-card" href={`${base}${href}`}>
+          <span class="ico" aria-hidden="true">{icon}</span>
+          <h3>{t}</h3>
+          <p>{d}</p>
+        </a>
       ))}
     </div>
   </section>

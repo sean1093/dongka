@@ -1,0 +1,54 @@
+---
+import Base from '../../layouts/Base.astro';
+import RefNav from '../../components/RefNav.astro';
+import { sheets } from '../../data/cheatsheets.js';
+import { lessons } from '../../data/lessons.js';
+import { site } from '../../data/site.js';
+import { breadcrumb, article } from '../../lib/seo.js';
+
+export function getStaticPaths() {
+  return sheets.map((s) => ({ params: { slug: s.slug }, props: { s } }));
+}
+const { s } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const origin = (Astro.site?.origin || '').replace(/\/$/, '');
+const src = s.lessons.map((id: string) => lessons.find((l) => l.id === id)).filter(Boolean);
+const path = `${base}/cheatsheets/${s.slug}/`;
+---
+<Base
+  fullTitle={`${s.title}：${s.question.replace(/？$/, '')}｜懂咖`}
+  description={`${s.question}${s.intro}`}
+  ogType="article"
+  shareText={`${s.title}｜${s.question}`}
+  jsonld={[breadcrumb(origin, [['懂咖', `${base}/`], ['速查表', `${base}/cheatsheets/`], [s.title, path]]), article(origin, { headline: s.title, description: s.question, path })]}
+>
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow"><a href={`${base}/cheatsheets/`}>速查表</a></p>
+      <h1>{s.title}</h1>
+      <p class="lede">{s.question}</p>
+      <p class="muted">{s.intro}</p>
+      <button type="button" class="btn btn-sm no-print" onclick="window.print()">列印這一頁</button>
+    </header>
+    <article class="prose sheet" data-pagefind-body>
+      {s.blocks.map((b: any) => (
+        <section>
+          <h2 class="h-sm">{b.heading}</h2>
+          {b.type === 'table' && (
+            <div class="table-wrap">
+              <table class:list={{ stack: b.head.length >= 3 }}>
+                <thead><tr>{b.head.map((h: string) => <th>{h}</th>)}</tr></thead>
+                <tbody>{b.rows.map((r: string[]) => <tr>{r.map((c, n) => <td data-label={b.head[n]}>{c}</td>)}</tr>)}</tbody>
+              </table>
+            </div>
+          )}
+          {b.type === 'steps' && <ol>{b.items.map((x: string) => <li>{x}</li>)}</ol>}
+          {b.type === 'list' && <ul class="points">{b.items.map((x: string) => <li>{x}</li>)}</ul>}
+        </section>
+      ))}
+      {s.note && <p class="muted">{s.note}</p>}
+      <p class="src">依據：{src.map((l: any, n: number) => <>{n > 0 && '、'}<a href={`${base}/lessons/${l.slug}/`}>第 {l.id} 篇　{l.title}</a></>)}。最後查核 {site.updated}。懂咖 Dongka</p>
+    </article>
+    <RefNav current="cheatsheets" />
+  </div>
+</Base>

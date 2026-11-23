@@ -1,8 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
+import { site } from '../data/site.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-<Base title="關於" description="懂咖是一套繁體中文的咖啡自學網站。這一頁說明名字的意思、內容怎麼來的與查核方式、免費與付費的界線，以及你的資料存在哪裡。">
+<Base title="關於" description="懂咖是一套繁體中文的咖啡自學網站。這一頁說明名字的意思、內容怎麼來的與查核方式、內容的查核與更正方式，以及你的資料存在哪裡。">
   <div class="wrap narrow prose">
     <header class="tool-head">
       <p class="eyebrow">關於</p>
@@ -27,6 +28,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       </div>
     </aside>
     <p>部分飲品含酒精（第 08 篇的咖啡調酒），請適量飲用，未滿 18 歲請勿飲酒。</p>
+
+    <h2>內容怎麼查核、怎麼更正</h2>
+    <ul>
+      <li>11 篇課程各做過一輪事實查核，修正紀錄與「仍待確認」的清單公開在原始碼的 <code>docs/fact-check</code> 資料夾。</li>
+      <li>常見問題、比一比、速查表、圖鑑與飲品頁都是從課程整理出來的，每頁下方標明依據哪一篇。課程更正時，這些頁面會一起更正。</li>
+      <li>每頁標示的「最後查核」是全站最近一次整體查核的日期（{site.updated}）。</li>
+      <li>發現錯誤，請到 <a href={site.issuesUrl} rel="noopener">GitHub 回報</a>，附上頁面網址與你看到的資料來源。確認後會更正並在該頁說明。</li>
+    </ul>
 
     <h2>想查證或深入，可以從這裡開始</h2>
     <ul>

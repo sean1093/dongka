@@ -1,0 +1,65 @@
+---
+import Base from '../../layouts/Base.astro';
+import RefNav from '../../components/RefNav.astro';
+import { comparisons } from '../../data/compare.js';
+import { lessons } from '../../data/lessons.js';
+import { faqs } from '../../data/faq.js';
+import { site } from '../../data/site.js';
+import { breadcrumb, article } from '../../lib/seo.js';
+
+export function getStaticPaths() {
+  return comparisons.map((c) => ({ params: { slug: c.slug }, props: { c } }));
+}
+const { c } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const origin = (Astro.site?.origin || '').replace(/\/$/, '');
+const src = c.lessons.map((id: string) => lessons.find((l) => l.id === id)).filter(Boolean);
+const related = c.related.map((s: string) => comparisons.find((x) => x.slug === s)).filter(Boolean);
+const qs = faqs.filter((f) => c.lessons.includes(f.lesson)).slice(0, 3);
+const path = `${base}/compare/${c.slug}/`;
+---
+<Base
+  fullTitle={`${c.title.replace(/？$/, '')}？一張表看懂｜懂咖`}
+  description={c.verdict}
+  ogType="article"
+  shareText={`${c.title} ${c.verdict}`}
+  jsonld={[breadcrumb(origin, [['懂咖', `${base}/`], ['比一比', `${base}/compare/`], [c.title, path]]), article(origin, { headline: c.title, description: c.verdict, path })]}
+>
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow"><a href={`${base}/compare/`}>比一比</a></p>
+      <h1>{c.title}</h1>
+    </header>
+    <article class="prose" data-pagefind-body>
+      <div class="answer">
+        <p>{c.verdict}</p>
+        <button type="button" class="btn btn-sm" data-copy={`${c.title}\n${c.verdict}`}>複製這段結論</button>
+      </div>
+      <div class="table-wrap">
+        <table class="cmp">
+          <thead><tr><th></th>{c.items.map((i: string) => <th>{i}</th>)}</tr></thead>
+          <tbody>
+            {c.rows.map((r: any) => <tr><th>{r.aspect}</th>{r.values.map((v: string, n: number) => <td data-label={c.items[n]}>{v}</td>)}</tr>)}
+          </tbody>
+        </table>
+      </div>
+      <h2 class="h-sm" style="margin-top:1.6em">怎麼選</h2>
+      <ul class="points">{c.choose.map((x: string) => <li>{x}</li>)}</ul>
+      {c.note && <p class="muted">{c.note}</p>}
+      <p class="src">依據：{src.map((l: any, n: number) => <>{n > 0 && '、'}<a href={`${base}/lessons/${l.slug}/`}>第 {l.id} 篇　{l.title}</a></>)}。最後查核 {site.updated}。</p>
+      {related.length > 0 && (
+        <>
+          <h2 class="h-sm" style="margin-top:1.8em">其他比較</h2>
+          <ul class="rel-terms">{related.map((r: any) => <li><a href={`${base}/compare/${r.slug}/`}>{r.title}</a></li>)}</ul>
+        </>
+      )}
+      {qs.length > 0 && (
+        <>
+          <h2 class="h-sm" style="margin-top:1.8em">相關問題</h2>
+          <ul class="rel-terms">{qs.map((q) => <li><a href={`${base}/faq/${q.slug}/`}>{q.q}</a></li>)}</ul>
+        </>
+      )}
+    </article>
+    <RefNav current="compare" />
+  </div>
+</Base>
