@@ -1,0 +1,114 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// 欄位取自第 05 篇「沖煮紀錄表」
+const fields = [
+  { id: 'bean', label: '豆子（產區、處理、烘焙度）', ph: '衣索比亞孔加水洗、淺焙', wide: true, req: true },
+  { id: 'roastDate', label: '烘焙日', type: 'date' },
+  { id: 'gear', label: '濾杯／器材', ph: 'V60 陶瓷' },
+  { id: 'grind', label: '磨豆機與刻度', ph: '第 24 格' },
+  { id: 'dose', label: '粉重 g', type: 'number', step: '0.1', ph: '15' },
+  { id: 'water', label: '水重 g', type: 'number', step: '1', ph: '240' },
+  { id: 'temp', label: '水溫 °C', type: 'number', step: '1', ph: '93' },
+  { id: 'time', label: '總時間', ph: '2:50' },
+  { id: 'bev', label: '液重 g', type: 'number', step: '1', ph: '215' },
+  { id: 'tds', label: 'TDS %（選填）', type: 'number', step: '0.01', ph: '1.38' },
+  { id: 'score', label: '整體分數 1–10', type: 'number', step: '1', min: '1', max: '10', ph: '7' },
+  { id: 'method', label: '手法（悶蒸、注水段數、是否搖晃）', ph: '悶蒸 40g / 40 秒，分兩段，1:45 搖一次', wide: true },
+  { id: 'taste', label: '感官（香氣、酸、甜、苦、口感、餘韻）', ph: '檸檬、蜜桃，酸明亮但尾段略澀', wide: true },
+  { id: 'next', label: '下一步：打算改哪一個變數、為什麼', ph: '尾段澀 → 磨粗一格，其他不變', wide: true },
+];
+---
+<Base title="沖煮紀錄" description="記下每一杯的參數與感受，資料只存在你的瀏覽器，可匯出 CSV。">
+  <div class="wrap">
+    <header class="tool-head">
+      <p class="eyebrow">工具</p>
+      <h1>沖煮紀錄</h1>
+      <p class="muted">「好喝的配方」是從一次次有紀錄的實驗中找出來的。欄位來自<a href={`${base}/lessons/brewing/`}>第 05 篇</a>的沖煮紀錄表。</p>
+    </header>
+    <div class="tool-layout" style="grid-template-columns:minmax(280px,440px) minmax(0,1fr)">
+      <form class="card" id="form">
+        <div class="grid grid-form">
+          {fields.map((f) => (
+            <label style={f.wide ? 'grid-column:1/-1' : ''}>{f.label}
+              <input name={f.id} type={f.type || 'text'} step={f.step} min={f.min} max={f.max} placeholder={f.ph} required={f.req} inputmode={f.type === 'number' ? 'decimal' : undefined} />
+            </label>
+          ))}
+        </div>
+        <button class="btn btn-primary" type="submit" style="margin-top:16px">存下這一杯</button>
+      </form>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <h2 style="margin:0;font-size:1.2rem">我的紀錄 <span class="muted" id="count" style="font-size:.9rem;font-family:var(--sans)"></span></h2>
+          <button class="btn btn-sm" id="export" type="button">匯出 CSV</button>
+        </div>
+        <div id="list" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="fields" set:html={JSON.stringify(fields.map((f) => [f.id, f.label]))} />
+</Base>
+
+<script>
+  import { load, save } from '../../scripts/store.js';
+  const fields: [string, string][] = JSON.parse(document.getElementById('fields')!.textContent!);
+  const form = document.getElementById('form') as HTMLFormElement;
+  const list = document.getElementById('list')!;
+  let logs: any[] = load('brewlog', []);
+  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  const ey = (l: any) => (l.tds > 0 && l.bev > 0 && l.dose > 0 ? (l.tds * l.bev) / l.dose : null);
+
+  function render() {
+    document.getElementById('count')!.textContent = logs.length ? `${logs.length} 杯` : '';
+    if (!logs.length) { list.innerHTML = '<p class="empty">還沒有紀錄。沖一杯，把參數和感受寫下來。</p>'; return; }
+    list.innerHTML = logs.map((l) => {
+      const e = ey(l);
+      const params = [l.gear, l.grind, l.dose && l.water ? `${l.dose}g : ${l.water}g（1:${(l.water / l.dose).toFixed(1)}）` : '', l.temp ? `${l.temp}°C` : '', l.time,
+        l.tds ? `TDS ${l.tds}%` : '', e ? `萃取率 ${e.toFixed(1)}%` : ''].filter(Boolean).map(esc).join(' · ');
+      const days = l.roastDate ? Math.round((new Date(l.at).getTime() - new Date(l.roastDate).getTime()) / 864e5) : null;
+      return `<div class="log-item">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
+          <h4>${esc(l.bean)}${l.score ? `　<span style="color:var(--accent)">${esc(l.score)} 分</span>` : ''}</h4>
+          <button class="btn btn-sm" data-del="${l.id}" type="button" aria-label="刪除這筆紀錄">刪除</button>
+        </div>
+        <div class="log-meta">${new Date(l.at).toLocaleDateString('zh-TW')}${days !== null && days >= 0 ? ` · 養豆第 ${days} 天` : ''}</div>
+        ${params ? `<div class="log-meta">${params}</div>` : ''}
+        ${l.method ? `<div>手法：${esc(l.method)}</div>` : ''}
+        ${l.taste ? `<div>感官：${esc(l.taste)}</div>` : ''}
+        ${l.next ? `<div>下一步：${esc(l.next)}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const data: any = Object.fromEntries(new FormData(form));
+    for (const k of ['dose', 'water', 'temp', 'bev', 'tds', 'score']) data[k] = data[k] === '' ? '' : +data[k];
+    logs.unshift({ id: Date.now().toString(36), at: new Date().toISOString(), ...data });
+    save('brewlog', logs);
+    // 保留豆子與器材，方便連續沖同一支豆做對照
+    const keep = ['bean', 'roastDate', 'gear', 'grind', 'dose', 'water', 'temp'];
+    [...form.elements].forEach((e: any) => { if (e.name && !keep.includes(e.name)) e.value = ''; });
+    render();
+  });
+  list.addEventListener('click', (ev) => {
+    const id = (ev.target as HTMLElement).dataset.del;
+    if (!id || !confirm('確定刪除這筆紀錄？')) return;
+    logs = logs.filter((l) => l.id !== id);
+    save('brewlog', logs);
+    render();
+  });
+  document.getElementById('export')!.addEventListener('click', () => {
+    if (!logs.length) return;
+    const cols: [string, string][] = [['at', '時間'], ...fields, ['ey', '萃取率 %']];
+    const q = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = logs.map((l) => cols.map(([k]) => q(k === 'ey' ? ey(l)?.toFixed(1) ?? '' : l[k])).join(','));
+    const csv = '﻿' + [cols.map(([, n]) => q(n)).join(','), ...rows].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'seed-to-cup-brew-log.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  render();
+</script>

@@ -1,0 +1,93 @@
+---
+import Base from '../../layouts/Base.astro';
+import { recipes } from '../../data/recipes.js';
+---
+<Base title="沖煮計時器" description="六套手沖與浸泡配方，依粉量換算注水量並跟著時間點操作。">
+  <div class="wrap">
+    <header class="tool-head">
+      <p class="eyebrow">工具</p>
+      <h1>沖煮計時器</h1>
+      <p class="muted">選配方、調粉量，注水量會等比例換算。秤上看到的是「累計水量」。</p>
+    </header>
+    <div class="chips" id="picker" role="group" aria-label="配方">
+      {recipes.map((r, i) => <button class="chip" type="button" data-key={r.key} aria-pressed={i === 0 ? 'true' : 'false'}>{r.name}</button>)}
+    </div>
+    <div class="tool-layout" style="margin-top:20px">
+      <div class="card">
+        <div class="clock" id="clock" aria-live="off">0:00</div>
+        <p id="now" style="min-height:3.6em;font-weight:600;margin:.6em 0"></p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="start" type="button">開始</button>
+          <button class="btn" id="reset" type="button">重設</button>
+        </div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:18px 0" />
+        <label>粉量（g）<input id="dose" type="number" inputmode="decimal" min="5" step="1" /></label>
+        <dl id="meta" style="font-size:.92rem;margin:14px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px"></dl>
+      </div>
+      <div class="card">
+        <ol class="steps" id="steps"></ol>
+        <p class="muted" id="note" style="font-size:.88rem;margin:12px 0 0"></p>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="recipes" set:html={JSON.stringify(recipes)} />
+</Base>
+
+<script>
+  import { fmtTime, load, save } from '../../scripts/store.js';
+  const recipes = JSON.parse(document.getElementById('recipes')!.textContent!);
+  const el = (id: string) => document.getElementById(id)!;
+  const doseIn = el('dose') as HTMLInputElement;
+  let r = recipes.find((x: any) => x.key === load('timer:recipe', '')) || recipes[0];
+  let started = 0, elapsed = 0, timer = 0;
+
+  const scale = () => (+doseIn.value > 0 ? +doseIn.value / r.dose : 1);
+  const g = (w: number) => `${Math.round(w * scale())}g`;
+
+  function render() {
+    document.querySelectorAll<HTMLElement>('#picker .chip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.key === r.key)));
+    const rows = [['器材', r.gear], ['研磨', r.grind], ['水溫', r.temp], ['總水量', g(r.water) + (r.ice ? `＋冰塊 ${g(r.ice)}` : '')],
+      ['粉水比', `1 : ${((r.water + (r.ice || 0)) / r.dose).toFixed(1).replace('.0', '')}`], ['完成', r.target]];
+    el('meta').innerHTML = rows.map(([k, v]) => `<dt class="muted">${k}</dt><dd style="margin:0">${v}</dd>`).join('');
+    el('steps').innerHTML = r.steps.map((s: any, i: number) =>
+      `<li data-i="${i}"><span class="time">${fmtTime(s.t)}</span><span>${s.w ? `<b>注到 ${g(s.w)}</b>　` : ''}${s.text}</span></li>`).join('');
+    el('note').textContent = r.note || '';
+    tick();
+  }
+
+  function tick() {
+    const t = elapsed + (started ? (Date.now() - started) / 1000 : 0);
+    el('clock').textContent = fmtTime(t);
+    let cur = -1;
+    r.steps.forEach((s: any, i: number) => { if (t >= s.t) cur = i; });
+    const running = started || elapsed > 0;
+    document.querySelectorAll<HTMLElement>('#steps li').forEach((li, i) => {
+      li.classList.toggle('now', running && i === cur);
+      li.classList.toggle('past', running && i < cur);
+    });
+    const s = r.steps[cur], next = r.steps[cur + 1];
+    el('now').textContent = !running ? '準備好後按「開始」，同時注下第一注水。'
+      : t >= r.end ? `時間到。${r.target}`
+      : `${s.w ? `注到 ${g(s.w)}：` : ''}${s.text}${next ? `（${Math.max(0, Math.ceil(next.t - t))} 秒後下一步）` : ''}`;
+  }
+
+  el('start').addEventListener('click', () => {
+    if (started) { elapsed += (Date.now() - started) / 1000; started = 0; clearInterval(timer); el('start').textContent = '繼續'; }
+    else { started = Date.now(); timer = window.setInterval(tick, 200); el('start').textContent = '暫停'; }
+    tick();
+  });
+  const reset = () => { clearInterval(timer); started = 0; elapsed = 0; el('start').textContent = '開始'; tick(); };
+  el('reset').addEventListener('click', reset);
+  doseIn.addEventListener('input', render);
+  el('picker').addEventListener('click', (e) => {
+    const k = (e.target as HTMLElement).dataset.key;
+    if (!k) return;
+    r = recipes.find((x: any) => x.key === k);
+    save('timer:recipe', k);
+    doseIn.value = r.dose;
+    reset();
+    render();
+  });
+  doseIn.value = r.dose;
+  render();
+</script>

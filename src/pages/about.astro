@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base title="關於" description="Seed to Cup 是什麼、內容從哪裡來、資料怎麼存。">
+  <div class="wrap narrow prose">
+    <header class="tool-head">
+      <p class="eyebrow">關於</p>
+      <h1>關於 Seed to Cup</h1>
+    </header>
+    <p>Seed to Cup 是一套繁體中文的咖啡自學課程，把個人的咖啡學習筆記整理成 11 堂有順序的課，從咖啡豆、產區、烘焙、品飲、沖煮，一路到文化、特調、產業與職涯。</p>
+
+    <h2>每篇文章的結構</h2>
+    <ul>
+      <li><b>核心知識</b>：詳細說明，盡量讓你不必再查其他資料</li>
+      <li><b>實作與配方</b>：具體數字、步驟與調整方法</li>
+      <li><b>故事與脈絡</b>：歷史、人物、文化</li>
+      <li><b>自我檢核</b>：知識題與實作情境題，答案收合起來，先自己想再看</li>
+    </ul>
+
+    <h2>請這樣看待內容</h2>
+    <aside class="callout">
+      <span class="callout-icon" aria-hidden="true">⚠️</span>
+      <div class="callout-body">
+        <p>這是學習筆記，不是經過審訂的教材。文中的數字、年份、標準與歷史故事<b>尚未逐一附上出處</b>，有些說法本來就難以考證。請把它當成學習的起點；涉及法規、食品衛生、開店與職涯決策的部分（第 09 至 11 篇），請以主管機關與專業人士的最新資訊為準。</p>
+      </div>
+    </aside>
+    <p>部分飲品含酒精（第 08 篇的咖啡調酒），請適量飲用，未成年請勿飲酒。</p>
+
+    <h2>你的資料</h2>
+    <p>學習進度、自我檢核的標記與<a href={`${base}/tools/brew-log/`}>沖煮紀錄</a>都只存在你這台裝置的瀏覽器裡（localStorage），不會上傳到任何伺服器。換裝置或清除瀏覽器資料後就會消失，沖煮紀錄可以先匯出 CSV 備份。</p>
+  </div>
+</Base>

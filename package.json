@@ -1,0 +1,16 @@
+{
+  "name": "seed-to-cup",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^7.4.13",
+    "marked": "^18.2.1",
+    "mermaid": "^12.3.0"
+  }
+}

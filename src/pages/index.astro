@@ -1,0 +1,84 @@
+---
+import Base from '../layouts/Base.astro';
+import { stages, lessons, tools } from '../data/lessons.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base>
+  <section class="hero wrap">
+    <p class="eyebrow">咖啡自學課 · 11 堂</p>
+    <h1>從種子到杯子，理解一杯咖啡的每一個環節</h1>
+    <p class="lead">從「喜歡喝咖啡」走到能自己挑豆、沖煮、調整、描述風味，也能說出每種飲品背後的故事。每篇都是獨立單元，照順序讀效果最好。</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" id="resume" href={`${base}/lessons/${lessons[0].slug}/`}>從第 01 篇開始</a>
+      <a class="btn" href={`${base}/tools/`}>沖煮工具</a>
+    </div>
+    <div class="progress">
+      <div class="progress-bar"><i id="pbar"></i></div>
+      <small id="ptext">已完成 0 / {lessons.length} 篇</small>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <h2 class="section-title">學習路線</h2>
+    <p class="muted" style="margin:0 0 20px">每篇包含核心知識、實作與配方、故事與脈絡，以及收合答案的自我檢核題。</p>
+    {stages.map((s) => (
+      <div class="stage">
+        <div class="stage-head">
+          <span class="num">階段 {s.id}</span>
+          <h3>{s.name}</h3>
+          <p>{s.ability}</p>
+        </div>
+        <div class="lesson-list">
+          {lessons.filter((l) => l.stage === s.id).map((l) => (
+            <a class="lesson-link" data-lesson={l.id} href={`${base}/lessons/${l.slug}/`}>
+              <span class="no">{l.id}</span>
+              <span class="t">{l.title}</span>
+              <span class="check" aria-hidden="true">✓</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    ))}
+  </section>
+
+  <section class="wrap">
+    <h2 class="section-title">沖煮工具</h2>
+    <p class="muted" style="margin:0 0 20px">把課程裡的公式、排查表與配方變成可以直接用的工具。</p>
+    <div class="grid grid-2">
+      {tools.map((t) => (
+        <a class="card tool-card" href={`${base}/tools/${t.slug}/`}>
+          <span class="ico" aria-hidden="true">{t.icon}</span>
+          <h3>{t.title}</h3>
+          <p>{t.desc}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap narrow" style="margin-top:56px">
+    <aside class="callout">
+      <span class="callout-icon" aria-hidden="true">🧪</span>
+      <div class="callout-body">
+        <p><b>建議搭配練習</b>：準備手沖壺、濾杯、磨豆機、電子秤（精度 0.1g）與溫度計，並固定一支中淺焙的衣索比亞水洗豆與一支中焙的巴西日曬豆作為「基準豆」，之後每學一個主題都用這兩支豆子實驗對照。</p>
+      </div>
+    </aside>
+  </section>
+</Base>
+
+<script>
+  import { getDone } from '../scripts/store.js';
+  const done = getDone();
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-lesson]')];
+  links.forEach((a) => a.classList.toggle('done', done.includes(a.dataset.lesson!)));
+  const n = links.filter((a) => a.classList.contains('done')).length;
+  (document.getElementById('pbar') as HTMLElement).style.width = `${(n / links.length) * 100}%`;
+  document.getElementById('ptext')!.textContent = `已完成 ${n} / ${links.length} 篇`;
+  const next = links.find((a) => !a.classList.contains('done'));
+  const resume = document.getElementById('resume') as HTMLAnchorElement;
+  if (n > 0 && next) {
+    resume.href = next.href;
+    resume.textContent = `繼續第 ${next.dataset.lesson} 篇`;
+  } else if (n > 0) {
+    resume.textContent = '全部完成，再複習一次';
+  }
+</script>

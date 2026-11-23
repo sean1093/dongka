@@ -1,0 +1,100 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base title="萃取率計算機" description="輸入粉重、咖啡液重與 TDS，計算萃取率並標在沖煮控制圖上。">
+  <div class="wrap">
+    <header class="tool-head">
+      <p class="eyebrow">工具</p>
+      <h1>萃取率計算機</h1>
+      <p class="muted">萃取率 = TDS × 咖啡液重量 ÷ 咖啡粉重量。原理見<a href={`${base}/lessons/brewing/`}>第 05 篇</a>的「萃取控制圖」。</p>
+    </header>
+    <div class="tool-layout">
+      <form class="card grid" id="f" onsubmit="return false">
+        <label>咖啡粉重（g）<input id="dose" type="number" inputmode="decimal" step="0.1" min="1" value="15" /></label>
+        <label>咖啡液重（g）<input id="bev" type="number" inputmode="decimal" step="1" min="1" value="225" /></label>
+        <label>TDS 濃度（%）<input id="tds" type="number" inputmode="decimal" step="0.01" min="0.1" value="1.35" /></label>
+        <p class="muted" style="font-size:.85rem;margin:0">咖啡液重是沖完後杯裡的重量，不是注水量（粉會吸走約粉重兩倍的水）。TDS 需要折射計量測。</p>
+        <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0" />
+        <label>想沖的粉水比（1 : ?）<input id="ratio" type="number" inputmode="decimal" step="0.5" min="1" value="16" /></label>
+        <p style="margin:0" id="water-out"></p>
+      </form>
+      <div class="card">
+        <div class="stat">
+          <div><b id="ey">–</b><span>萃取率 EY</span></div>
+          <div><b id="tds-out">–</b><span>濃度 TDS</span></div>
+          <div><b id="ratio-out">–</b><span>實際液粉比</span></div>
+        </div>
+        <div class="verdict" id="verdict"></div>
+        <svg class="chart" id="chart" viewBox="0 0 520 380" role="img" aria-label="沖煮控制圖" style="margin-top:16px"></svg>
+        <p class="muted" style="font-size:.82rem;margin:8px 0 0">金杯區採 SCA 參考範圍（萃取率 18–22%、手沖 TDS 1.15–1.45%）。不同地區與個人偏好不同，數字只是平均值，萃取是否均勻仍要靠嘴巴判斷。</p>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const X0 = 14, X1 = 26, Y0 = 0.8, Y1 = 1.8, L = 46, T = 14, W = 460, H = 320;
+  const px = (ey: number) => L + ((ey - X0) / (X1 - X0)) * W;
+  const py = (tds: number) => T + H - ((tds - Y0) / (Y1 - Y0)) * H;
+  const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+  const grid: Record<string, [string, string]> = {
+    'strong-under': ['濃而萃取不足', '濃而尖酸、帶鹹、尾韻單薄。先磨細（或提高水溫）把萃取拉上來，再減粉調濃度。'],
+    'strong-ideal': ['偏濃但平衡', '味道組成是好的，只是太濃。加點熱水，或下次少放一點粉。'],
+    'strong-over': ['濃而萃取過度', '濃、苦、澀、口乾。先磨粗（或降水溫、縮短時間），再調粉水比。'],
+    'ideal-under': ['萃取不足', '偏酸、未發展、缺甜感。磨細一點，或提高水溫、延長時間、增加擾流。'],
+    'ideal-ideal': ['金杯區：平衡', '濃度與萃取率都在參考範圍內。接下來只需要依個人口味微調。'],
+    'ideal-over': ['萃取過度', '苦、澀、空洞。磨粗一點，或降低水溫、縮短時間、減少擾流。'],
+    'weak-under': ['淡而萃取不足', '淡而酸，像果汁水。先磨細把萃取率拉上來，再加粉提高濃度。'],
+    'weak-ideal': ['偏淡但平衡', '風味組成好但不夠力。增加粉量（調整粉水比），不要靠磨細。'],
+    'weak-over': ['淡而萃取過度', '淡又苦澀，最難喝的一格。先磨粗降低萃取，再加粉提高濃度。'],
+  };
+
+  function draw(ey: number, tds: number, dose: number, bev: number) {
+    const ok = isFinite(ey) && isFinite(tds);
+    let s = '';
+    s += `<rect x="${L}" y="${T}" width="${W}" height="${H}" fill="var(--surface-2)" rx="6"/>`;
+    s += `<rect x="${px(18)}" y="${py(1.45)}" width="${px(22) - px(18)}" height="${py(1.15) - py(1.45)}" fill="var(--gold)" opacity=".35" rx="3"/>`;
+    for (const x of [18, 22]) s += `<line x1="${px(x)}" x2="${px(x)}" y1="${T}" y2="${T + H}" stroke="var(--line)" stroke-dasharray="4 4"/>`;
+    for (const y of [1.15, 1.45]) s += `<line x1="${L}" x2="${L + W}" y1="${py(y)}" y2="${py(y)}" stroke="var(--line)" stroke-dasharray="4 4"/>`;
+    for (let x = 14; x <= 26; x += 2) s += `<text x="${px(x)}" y="${T + H + 16}" text-anchor="middle">${x}%</text>`;
+    for (let y = 0.8; y <= 1.81; y += 0.2) s += `<text x="${L - 6}" y="${py(y) + 4}" text-anchor="end">${y.toFixed(1)}</text>`;
+    s += `<text x="${L + W / 2}" y="${T + H + 34}" text-anchor="middle">萃取率 →</text>`;
+    s += `<text x="12" y="${T + H / 2}" text-anchor="middle" transform="rotate(-90 12 ${T + H / 2})">濃度 TDS % →</text>`;
+    s += `<text x="${px(20)}" y="${py(1.3) + 4}" text-anchor="middle" style="font-weight:700;fill:var(--text)">金杯區</text>`;
+    s += `<text x="${px(16)}" y="${py(1.3) + 4}" text-anchor="middle">萃取不足</text><text x="${px(24)}" y="${py(1.3) + 4}" text-anchor="middle">萃取過度</text>`;
+    s += `<text x="${px(20)}" y="${py(1.65)}" text-anchor="middle">偏濃</text><text x="${px(20)}" y="${py(0.95)}" text-anchor="middle">偏淡</text>`;
+    if (ok && dose > 0 && bev > 0) {
+      // 同一粉水比的斜線：TDS = EY × 粉重 ÷ 液重
+      const k = dose / bev;
+      const a = Math.max(X0, Y0 / k), b = Math.min(X1, Y1 / k);
+      if (a < b) s += `<line x1="${px(a)}" y1="${py(a * k)}" x2="${px(b)}" y2="${py(b * k)}" stroke="var(--accent)" stroke-width="1.5" opacity=".6"/>`;
+      const cx = px(clamp(ey, X0, X1)), cy = py(clamp(tds, Y0, Y1));
+      s += `<circle cx="${cx}" cy="${cy}" r="12" fill="var(--accent)" opacity=".2"/><circle cx="${cx}" cy="${cy}" r="6" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`;
+    }
+    document.getElementById('chart')!.innerHTML = s;
+  }
+
+  function update() {
+    const dose = +$('dose').value, bev = +$('bev').value, tds = +$('tds').value, ratio = +$('ratio').value;
+    const ey = (tds * bev) / dose;
+    const valid = dose > 0 && bev > 0 && tds > 0;
+    $('ey').textContent = valid ? `${ey.toFixed(1)}%` : '–';
+    $('tds-out').textContent = valid ? `${tds.toFixed(2)}%` : '–';
+    $('ratio-out').textContent = valid ? `1 : ${(bev / dose).toFixed(1)}` : '–';
+    const v = document.getElementById('verdict')!;
+    if (valid) {
+      const row = tds > 1.45 ? 'strong' : tds < 1.15 ? 'weak' : 'ideal';
+      const col = ey < 18 ? 'under' : ey > 22 ? 'over' : 'ideal';
+      const [h, p] = grid[`${row}-${col}`];
+      v.innerHTML = `<b>${h}</b>${p}`;
+    } else v.textContent = '請輸入粉重、液重與 TDS。';
+    document.getElementById('water-out')!.innerHTML =
+      dose > 0 && ratio > 0 ? `粉水比 1:${ratio} → <b>${dose}g 粉配 ${Math.round(dose * ratio)}g 水</b>` : '';
+    draw(valid ? ey : NaN, valid ? tds : NaN, dose, bev);
+  }
+  document.getElementById('f')!.addEventListener('input', update);
+  update();
+</script>

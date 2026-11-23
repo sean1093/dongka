@@ -1,0 +1,128 @@
+---
+import Base from '../../layouts/Base.astro';
+import { stages, lessons } from '../../data/lessons.js';
+import { renderLesson } from '../../lib/notion.js';
+
+export function getStaticPaths() {
+  return lessons.map((l) => ({ params: { slug: l.slug }, props: { lesson: l } }));
+}
+const { lesson } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const files = import.meta.glob('../../content/lessons/*.md', { query: '?raw', import: 'default', eager: true });
+const src = files[`../../content/lessons/${lesson.id}.md`] as string;
+if (!src) throw new Error(`找不到第 ${lesson.id} 篇的內容檔`);
+const { html, toc, quiz, extra } = renderLesson(src, base);
+const stage = stages.find((s) => s.id === lesson.stage)!;
+const i = lessons.indexOf(lesson);
+const prev = lessons[i - 1];
+const next = lessons[i + 1];
+const hasMermaid = html.includes('class="mermaid"');
+---
+<Base title={`${lesson.id} ${lesson.title}`} description={`Seed to Cup 第 ${lesson.id} 篇：${lesson.title}。${stage.ability}。`}>
+  <div class="wrap">
+    <header class="lesson-head">
+      <p class="eyebrow">階段 {stage.id} · {stage.name} · 第 {lesson.id} 篇</p>
+      <h1>{lesson.title}</h1>
+    </header>
+    <div class="lesson-layout">
+      <article class="prose" data-lesson={lesson.id}>
+        <Fragment set:html={html} />
+
+        {quiz.length > 0 && (
+          <section class="quiz" id="quiz">
+            <div class="quiz-head">
+              <h2>自我檢核</h2>
+              <span class="muted" id="quiz-score">0 / {quiz.length} 題已掌握</span>
+            </div>
+            <p class="muted">先在心裡（或說出口）回答，再看參考答案，然後誠實標記自己答得如何。</p>
+            {quiz.map((q, n) => (
+              <div class="qcard" data-q={n}>
+                <p class="q"><span>{q.label}</span><span style="color:inherit;font-family:inherit;flex:1" set:html={q.q} /></p>
+                <div class="a" set:html={q.a} />
+                <button class="btn btn-sm reveal" type="button">看參考答案</button>
+                <div class="rate">
+                  <button class="btn btn-sm" type="button" data-rate="ok">✓ 我答對了</button>
+                  <button class="btn btn-sm" type="button" data-rate="again">↻ 還要再練</button>
+                  <button class="btn btn-sm" type="button" data-rate="hide">收合</button>
+                </div>
+              </div>
+            ))}
+            <Fragment set:html={extra} />
+          </section>
+        )}
+
+        <div class="lesson-end">
+          <button class="btn btn-primary" id="done-btn" type="button">標記這篇為已完成</button>
+          <a href={`${base}/`}>回課程總覽</a>
+        </div>
+        <nav class="pager" aria-label="上下篇">
+          {prev && <a href={`${base}/lessons/${prev.slug}/`}><small>← 上一篇</small>{prev.id} {prev.title}</a>}
+          {next && <a class="next" href={`${base}/lessons/${next.slug}/`}><small>下一篇 →</small>{next.id} {next.title}</a>}
+        </nav>
+      </article>
+
+      <aside class="toc" aria-label="本篇目錄">
+        <strong>本篇目錄</strong>
+        {toc.map((t) => <a href={`#${t.id}`}>{t.text}</a>)}
+        {quiz.length > 0 && <a href="#quiz">自我檢核</a>}
+      </aside>
+    </div>
+  </div>
+  {hasMermaid && (
+    <script>
+      import mermaid from 'mermaid';
+      const dark = document.documentElement.dataset.theme
+        ? document.documentElement.dataset.theme === 'dark'
+        : matchMedia('(prefers-color-scheme: dark)').matches;
+      mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'neutral', securityLevel: 'strict', fontFamily: 'system-ui, sans-serif' });
+      mermaid.run({ querySelector: 'pre.mermaid' });
+    </script>
+  )}
+</Base>
+
+<script>
+  import { load, save, getDone, setDone } from '../../scripts/store.js';
+  const article = document.querySelector<HTMLElement>('article[data-lesson]')!;
+  const id = article.dataset.lesson!;
+
+  // 完成標記
+  const btn = document.getElementById('done-btn')!;
+  const paint = () => {
+    const on = getDone().includes(id);
+    btn.classList.toggle('done', on);
+    btn.classList.toggle('btn-primary', !on);
+    btn.textContent = on ? '✓ 已完成（點一下取消）' : '標記這篇為已完成';
+  };
+  btn.addEventListener('click', () => { setDone(id, !getDone().includes(id)); paint(); });
+  paint();
+
+  // 自我檢核
+  const state: Record<string, string> = load(`quiz:${id}`, {});
+  const cards = [...document.querySelectorAll<HTMLElement>('.qcard')];
+  const score = document.getElementById('quiz-score');
+  const paintQuiz = () => {
+    cards.forEach((c) => { c.dataset.state = state[c.dataset.q!] || ''; });
+    if (score) score.textContent = `${cards.filter((c) => c.dataset.state === 'ok').length} / ${cards.length} 題已掌握`;
+  };
+  cards.forEach((c) => {
+    c.querySelector('.reveal')!.addEventListener('click', () => c.classList.add('open'));
+    c.querySelectorAll<HTMLElement>('[data-rate]').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (b.dataset.rate !== 'hide') { state[c.dataset.q!] = b.dataset.rate!; save(`quiz:${id}`, state); }
+        c.classList.remove('open');
+        paintQuiz();
+      })
+    );
+  });
+  paintQuiz();
+
+  // 目錄高亮
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.toc a')];
+  const io = new IntersectionObserver(
+    (es) => es.forEach((e) => {
+      if (e.isIntersecting) links.forEach((a) => a.classList.toggle('on', a.hash === `#${e.target.id}`));
+    }),
+    { rootMargin: '-80px 0px -70% 0px' }
+  );
+  document.querySelectorAll('.prose h2[id], #quiz').forEach((h) => io.observe(h));
+</script>

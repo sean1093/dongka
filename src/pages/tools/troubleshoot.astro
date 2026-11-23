@@ -1,0 +1,59 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// 取自第 05 篇「味道問題排查」與「用感官判斷萃取」
+const symptoms = [
+  { key: 'sour', label: '尖酸、單薄、鹹、尾韻短', cause: '萃取不足', why: '酸與鹹最先溶出，甜感還沒跟上就結束了。鹹味與尖酸是萃取不足最可靠的信號。',
+    steps: ['把研磨調細一點（最有效，先試這個）', '提高水溫', '延長總時間', '增加擾流（攪拌、搖晃、注水力道）'] },
+  { key: 'bitter', label: '苦、澀、口腔乾、空洞', cause: '萃取過度，或細粉過多', why: '較大的苦澀分子在後段大量溶出。舌頭兩側與牙齦的乾澀感是萃取過度最可靠的信號。',
+    steps: ['把研磨調粗一點', '降低水溫', '縮短時間', '減少擾流', '檢查磨豆機：細粉是否太多'] },
+  { key: 'both', label: '又酸又苦', cause: '萃取不均', why: '有些粉萃取不足（酸）、有些萃取過度（苦），常見原因是通道效應、粉床不平、細粉堵塞或研磨不均。',
+    steps: ['悶蒸時確保粉全部濕潤', '穩定注水，避免直接沖在濾紙上', '注水後輕搖讓粉床平整', '檢查磨豆機的研磨均勻度'] },
+  { key: 'weak', label: '太淡，但酸甜苦比例還不錯', cause: '濃度不足', why: '味道組成好代表萃取率接近理想，問題只在濃度。磨細會改變萃取率，可能帶來苦澀。',
+    steps: ['增加粉量（調整粉水比，例如 1:16 → 1:15）', '不要靠磨細來解決'] },
+  { key: 'strong', label: '太濃，但酸甜苦比例還不錯', cause: '濃度過高', why: '萃取是對的，只是太濃。',
+    steps: ['直接加熱水稀釋', '下次減少粉量'] },
+  { key: 'flat', label: '平淡、沒有香氣', cause: '豆子不新鮮、水質不佳，或研磨後放太久', why: '香氣物質散失後無法靠沖煮參數找回來。',
+    steps: ['換新鮮的豆子', '沖煮前才現磨', '換一種水試試（純水太「空」也會扁平）'] },
+  { key: 'slow', label: '滴得非常慢', cause: '磨太細、細粉多，或注水攪動太多', why: '細粉堵住濾紙，水下不去，後段容易過度萃取。',
+    steps: ['把研磨調粗一點', '減少擾流'] },
+  { key: 'empty', label: '「沒味道」，分不出是淡還是空', cause: '可能是濃度太低，也可能是過度萃取的空洞感', why: '用加粉來分辨：加粉後變好喝是濃度問題，加粉後更苦是萃取問題。',
+    steps: ['下一杯只增加粉量，其他不變', '變好喝 → 維持，這是濃度問題', '變更苦 → 改回原粉量，把研磨調粗'] },
+];
+---
+<Base title="味道排查" description="選一個味道症狀，得到可能原因與調整順序。">
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow">工具</p>
+      <h1>味道排查</h1>
+      <p class="muted">這杯喝起來怎麼樣？選最接近的一個。在約 40–50°C 時判斷最準，太熱時酸甜不易分辨。</p>
+    </header>
+    <div class="chips" role="group" aria-label="症狀">
+      {symptoms.map((s) => <button class="chip" type="button" data-key={s.key} aria-pressed="false">{s.label}</button>)}
+    </div>
+    {symptoms.map((s) => (
+      <section class="card result" data-key={s.key} hidden style="margin-top:20px">
+        <p class="eyebrow">可能原因</p>
+        <h2 style="margin:0 0 .4em">{s.cause}</h2>
+        <p>{s.why}</p>
+        <p style="font-weight:700;margin-bottom:.3em">調整方向（依序嘗試）</p>
+        <ol style="margin:0;padding-left:1.4em">{s.steps.map((x) => <li>{x}</li>)}</ol>
+      </section>
+    ))}
+    <aside class="callout" style="margin-top:24px">
+      <span class="callout-icon" aria-hidden="true">🔬</span>
+      <div class="callout-body"><p><b>一次只改一個變數</b>，並把參數與感受記下來。同時改研磨與水溫，就不知道味道的變化來自哪裡。可以用<a href={`${base}/tools/brew-log/`}>沖煮紀錄</a>留下每一杯。</p></div>
+    </aside>
+  </div>
+</Base>
+
+<script>
+  const chips = [...document.querySelectorAll<HTMLElement>('.chip')];
+  const results = [...document.querySelectorAll<HTMLElement>('.result')];
+  chips.forEach((c) =>
+    c.addEventListener('click', () => {
+      chips.forEach((x) => x.setAttribute('aria-pressed', String(x === c)));
+      results.forEach((r) => (r.hidden = r.dataset.key !== c.dataset.key));
+    })
+  );
+</script>

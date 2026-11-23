@@ -1,0 +1,59 @@
+---
+import '../styles/global.css';
+const { title, description = '從種子到杯子：一套 11 堂的繁體中文咖啡自學課程，附自我檢核與沖煮工具。' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const full = title ? `${title}｜Seed to Cup` : 'Seed to Cup｜從種子到杯子的咖啡自學課';
+const path = Astro.url.pathname;
+const nav = [
+  { href: `${base}/`, label: '課程', on: path === `${base}/` || path.includes('/lessons/') },
+  { href: `${base}/tools/`, label: '工具', on: path.includes('/tools/') },
+  { href: `${base}/about/`, label: '關於', on: path.includes('/about/') },
+];
+---
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{full}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={full} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('stc:theme');
+        if (t) document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href={`${base}/`}><span aria-hidden="true">☕</span> Seed to Cup</a>
+        <nav aria-label="主選單">
+          {nav.map((n) => <a href={n.href} class:list={{ on: n.on }} aria-current={n.on ? 'page' : undefined}>{n.label}</a>)}
+          <button id="theme-btn" class="icon-btn" type="button" aria-label="切換深淺色"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 2a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+        </nav>
+      </div>
+    </header>
+    <main><slot /></main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>Seed to Cup 是個人的咖啡學習筆記，內容尚未逐一查證出處，數字與歷史說法請當作學習起點而非權威依據。</p>
+        <p>學習進度與沖煮紀錄只存在你的瀏覽器裡，不會上傳。</p>
+      </div>
+    </footer>
+    <script>
+      document.getElementById('theme-btn')?.addEventListener('click', () => {
+        const root = document.documentElement;
+        const dark = root.dataset.theme
+          ? root.dataset.theme === 'dark'
+          : matchMedia('(prefers-color-scheme: dark)').matches;
+        root.dataset.theme = dark ? 'light' : 'dark';
+        try { localStorage.setItem('stc:theme', root.dataset.theme); } catch {}
+      });
+    </script>
+  </body>
+</html>
