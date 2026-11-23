@@ -9,8 +9,6 @@ export const site = {
   updated: '2026-11-23',
   // Google Search Console 的「HTML 標記」驗證碼：只貼 content="…" 裡面那一串
   googleSiteVerification: '',
-  // 會員搶先登記表單的網址（Google 表單、Tally 等）。留空時，會員頁會顯示「尚未開放登記」
-  waitlistUrl: '',
 };
 
 // 名詞的網址代稱：用英文名轉成小寫加連字號

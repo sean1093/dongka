@@ -42,7 +42,6 @@ npm run build
 都在 `src/data/site.js`：
 
 - `googleSiteVerification`：Google Search Console 的 HTML 標記驗證碼。
-- `waitlistUrl`：懂咖練習室「通知我」表單的網址，留空時會員頁顯示尚未開放。
 - `updated`：內容最後查核日期，會顯示在文章頁，也寫進結構化資料與 sitemap。改過內容後記得更新。
 
 ## SEO

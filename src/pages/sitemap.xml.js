@@ -11,7 +11,7 @@ export function GET({ site: origin }) {
     ...lessons.map((l) => [`/lessons/${l.slug}/`, 0.9]),
     ['/atlas/', 0.8], ['/drinks/', 0.8], ['/glossary/', 0.8], ['/tools/', 0.7],
     ...['timer', 'troubleshoot', 'extraction', 'brew-log', 'cupping'].map((t) => [`/tools/${t}/`, 0.6]),
-    ['/practice/label/', 0.6], ['/practice/review/', 0.4], ['/practice/plan/', 0.7], ['/membership/', 0.6],
+    ['/practice/label/', 0.6], ['/practice/review/', 0.4], ['/practice/plan/', 0.7],
     ...drinks.map((d) => [`/drinks/${d.key}/`, 0.6]),
     ...glossary.map((g) => [`/glossary/${slugify(g.en)}/`, 0.5]),
     ['/about/', 0.4], ['/my-data/', 0.2], ['/privacy/', 0.2], ['/terms/', 0.2],
