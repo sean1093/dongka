@@ -2,6 +2,8 @@
 import Base from '../../layouts/Base.astro';
 import { stages, lessons, tools } from '../../data/lessons.js';
 import { renderLesson } from '../../lib/notion.js';
+import { site } from '../../data/site.js';
+import { breadcrumb, article } from '../../lib/seo.js';
 
 export function getStaticPaths() {
   return lessons.map((l) => ({ params: { slug: l.slug }, props: { lesson: l } }));
@@ -16,17 +18,27 @@ const stage = stages.find((s) => s.id === lesson.stage)!;
 const i = lessons.indexOf(lesson);
 const prev = lessons[i - 1];
 const next = lessons[i + 1];
+const origin = (Astro.site?.origin || '').replace(/\/$/, '');
+const lpath = `${base}/lessons/${lesson.slug}/`;
 const hasMermaid = html.includes('class="mermaid"');
 const hasAdv = toc.some((t) => t.adv);
 // 讀完之後可以馬上動手的工具
 const related: Record<string, string[]> = {
   '01': ['label', 'atlas'], '02': ['atlas', 'label'], '03': ['brew-log', 'review'], '04': ['cupping', 'review'],
-  '05': ['timer', 'troubleshoot', 'extraction', 'brew-log'], '06': ['drinks', 'troubleshoot'], '07': ['review', 'glossary'],
+  '05': ['plan', 'timer', 'troubleshoot', 'extraction'], '06': ['drinks', 'troubleshoot'], '07': ['review', 'glossary'],
   '08': ['drinks', 'timer'], '09': ['review', 'glossary'], '10': ['atlas', 'review'], '11': ['review', 'glossary'],
 };
 const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug === s)!);
 ---
-<Base title={`${lesson.id} ${lesson.title}`} description={lesson.lede}>
+<Base
+  fullTitle={`${lesson.seoTitle}｜懂咖`}
+  description={lesson.seoDesc}
+  ogType="article"
+  jsonld={[
+    breadcrumb(origin, [['懂咖', `${base}/`], [`階段 ${stage.id} ${stage.name}`, `${base}/`], [lesson.title, lpath]]),
+    article(origin, { headline: lesson.seoTitle, description: lesson.seoDesc, path: lpath }),
+  ]}
+>
   <div class="read-bar" aria-hidden="true"><i id="read-bar"></i></div>
   <div class="wrap">
     <header class="lesson-head">
@@ -37,6 +49,7 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
         <span>約 {minutes} 分鐘</span>
         <span>{quiz.length} 題自我檢核</span>
         {hasAdv && <span>含進階段落</span>}
+        <span>最後查核 <time datetime={site.updated}>{site.updated}</time></span>
       </p>
     </header>
     <div class="lesson-layout">
@@ -64,6 +77,9 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
           </div>
         )}
 
+        {['09', '10', '11'].includes(lesson.id) && (
+          <aside class="callout"><span class="callout-icon" aria-hidden="true">⚖️</span><div class="callout-body"><p>本篇涉及法規、金額與統計數字，資料日期與出處見文末的參考資料。內容是學習用的整理，不是法律、稅務或投資建議，實際決策請以主管機關的最新公告與專業人士的意見為準。</p></div></aside>
+        )}
         <Fragment set:html={html} />
 
         {quiz.length > 0 && (

@@ -37,6 +37,22 @@ npm run build
 ![咖啡櫻桃](/dongka/images/cherry.jpg)
 ```
 
+## 需要你填的設定
+
+都在 `src/data/site.js`：
+
+- `googleSiteVerification`：Google Search Console 的 HTML 標記驗證碼。
+- `waitlistUrl`：懂咖練習室「通知我」表單的網址，留空時會員頁顯示尚未開放。
+- `updated`：內容最後查核日期，會顯示在文章頁，也寫進結構化資料與 sitemap。改過內容後記得更新。
+
+## SEO
+
+- 每頁有獨立的 title、description、canonical 與社群分享圖（`public/og.png`）。
+- 文章、名詞頁、飲品頁輸出 Article 與 BreadcrumbList 結構化資料；首頁輸出 WebSite。
+- `/sitemap.xml` 由 `src/pages/sitemap.xml.js` 產生；新增頁面類型時要加進去。
+- 每個名詞（`/glossary/<英文名>/`）與每款飲品（`/drinks/<key>/`）都有獨立頁面。
+- `robots.txt` 只有在網域根目錄才有效，目前的專案網址（`/dongka/`）下搜尋引擎讀不到，換成自訂網域後才會生效。
+
 ## 結構
 
 | 路徑 | 說明 |

@@ -1,0 +1,68 @@
+---
+import Base from '../../layouts/Base.astro';
+import SubNav from '../../components/SubNav.astro';
+import { glossary } from '../../data/glossary.js';
+import { lessons } from '../../data/lessons.js';
+import { slugify } from '../../data/site.js';
+import { figByKey } from '../../lib/figures.js';
+import { breadcrumb, article } from '../../lib/seo.js';
+
+export function getStaticPaths() {
+  const seen = new Set();
+  return glossary.map((g) => {
+    const slug = slugify(g.en);
+    if (!slug || seen.has(slug)) throw new Error(`名詞網址重複或空白：${g.term}（${g.en}）`);
+    seen.add(slug);
+    return { params: { slug }, props: { g } };
+  });
+}
+const { g } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const origin = (Astro.site?.origin || '').replace(/\/$/, '');
+const files = import.meta.glob('../../content/lessons/*.md', { query: '?raw', import: 'default', eager: true });
+const words = [g.term, ...(g.alias || [])];
+const inLessons = lessons.filter((l) => words.some((w) => (files[`../../content/lessons/${l.id}.md`] as string).includes(w)));
+const related = (g.related || []).map((t: string) => glossary.find((x) => x.term === t)).filter(Boolean);
+const path = `${base}/glossary/${slugify(g.en)}/`;
+const desc = `${g.term}（${g.en}）是什麼？${g.def}`.slice(0, 150);
+---
+<Base
+  fullTitle={`${g.term}是什麼？${g.en} 的意思與重點｜咖啡名詞｜懂咖`}
+  description={desc}
+  ogType="article"
+  jsonld={[
+    breadcrumb(origin, [['懂咖', `${base}/`], ['名詞辭典', `${base}/glossary/`], [g.term, path]]),
+    article(origin, { headline: `${g.term}是什麼？`, description: desc, path }),
+  ]}
+>
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow"><a href={`${base}/glossary/`}>名詞辭典</a> / {g.group}</p>
+      <h1>{g.term} <small class="h1-en">{g.en}</small></h1>
+      <p class="lede">{g.def}</p>
+    </header>
+    <SubNav current="glossary" />
+    <article class="prose" data-pagefind-body>
+      {g.fig && figByKey[g.fig] && <Fragment set:html={figByKey[g.fig]()} />}
+      <h2 class="h-sm">多說一點</h2>
+      <p>{g.more}</p>
+      <h2 class="h-sm" style="margin-top:1.6em">知道這個有什麼用</h2>
+      <p>{g.why}</p>
+      {related.length > 0 && (
+        <>
+          <h2 class="h-sm" style="margin-top:1.6em">相關名詞</h2>
+          <ul class="rel-terms">
+            {related.map((r: any) => <li><a href={`${base}/glossary/${slugify(r.en)}/`}>{r.term}</a>：{r.def}</li>)}
+          </ul>
+        </>
+      )}
+      {inLessons.length > 0 && (
+        <>
+          <h2 class="h-sm" style="margin-top:1.6em">在哪一篇會讀到</h2>
+          <ul>{inLessons.map((l) => <li><a href={`${base}/lessons/${l.slug}/`}>第 {l.id} 篇　{l.title}</a></li>)}</ul>
+        </>
+      )}
+      <p style="margin-top:2em"><a href={`${base}/glossary/`}>← 回名詞辭典（共 {glossary.length} 個名詞）</a></p>
+    </article>
+  </div>
+</Base>

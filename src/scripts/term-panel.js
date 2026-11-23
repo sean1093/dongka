@@ -84,6 +84,10 @@ export async function openTerm(name) {
     }
     panel.append(el('h3', '', '出現在'), ul);
   }
+  const slug = t.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const full = el('a', 'tp-full', '開啟完整頁面 →');
+  full.href = `${base()}/glossary/${slug}/`;
+  panel.append(full);
   panel.hidden = false;
   backdrop.hidden = false;
   requestAnimationFrame(() => { panel.classList.add('on'); backdrop.classList.add('on'); });

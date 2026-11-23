@@ -1,0 +1,67 @@
+---
+import Base from '../../layouts/Base.astro';
+import SubNav from '../../components/SubNav.astro';
+import { drinks } from '../../data/drinks.js';
+import { cup, COLORS } from '../../lib/cup.js';
+import { breadcrumb, article } from '../../lib/seo.js';
+
+export function getStaticPaths() {
+  return drinks.map((d) => ({ params: { key: d.key }, props: { d } }));
+}
+const { d } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const origin = (Astro.site?.origin || '').replace(/\/$/, '');
+const lessonSlug: Record<string, string> = { '06': 'espresso', '08': 'signature-drinks' };
+const path = `${base}/drinks/${d.key}/`;
+const same = drinks.filter((x) => x.group === d.group && x.key !== d.key).slice(0, 6);
+const desc = `${d.name}（${d.en}）是什麼？${d.summary}${d.size ? ` 份量${d.size}。` : ''}附組成比例與做法。`.slice(0, 150);
+---
+<Base
+  fullTitle={`${d.name}（${d.en}）是什麼？比例、做法與由來｜懂咖`}
+  description={desc}
+  ogType="article"
+  jsonld={[
+    breadcrumb(origin, [['懂咖', `${base}/`], ['飲品配方', `${base}/drinks/`], [d.name, path]]),
+    article(origin, { headline: `${d.name}（${d.en}）是什麼？比例、做法與由來`, description: desc, path }),
+  ]}
+>
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow"><a href={`${base}/drinks/`}>飲品配方</a> / {d.group}</p>
+      <h1>{d.name} <small class="h1-en">{d.en}</small></h1>
+      <p class="lede">{d.summary}</p>
+      <p class="meta">
+        <span>{d.group}</span><span>{d.temp}飲</span>
+        {d.size && <span>{d.size}</span>}
+        <span>{d.machine ? '需要濃縮機' : '不需要濃縮機'}</span>
+        {d.alcohol && <span>含酒精</span>}
+      </p>
+    </header>
+    <SubNav current="drinks" />
+    <article class="prose" data-pagefind-body>
+      <div class="dhero">
+        <Fragment set:html={cup(d.layers)} />
+        <div>
+          <h2 class="h-sm">組成（由上到下）</h2>
+          <ul class="dlayers">
+            {[...d.layers].reverse().map((l) => <li><i style={`background:${COLORS[l.part] || COLORS.other}`}></i>{l.label}</li>)}
+          </ul>
+          <p class="muted" style="font-size:.84rem;margin:0">分層是示意比例，各店做法不同。</p>
+        </div>
+      </div>
+      <h2 class="h-sm" style="margin-top:1.6em">做法</h2>
+      <ol>{d.recipe.map((s) => <li>{s}</li>)}</ol>
+      {d.tip && <><h2 class="h-sm" style="margin-top:1.6em">成功關鍵</h2><p>{d.tip}</p></>}
+      {d.story && <><h2 class="h-sm" style="margin-top:1.6em">名稱與由來</h2><p>{d.story}</p></>}
+      {d.alcohol && <aside class="callout"><span class="callout-icon" aria-hidden="true">🍸</span><div class="callout-body"><p>含酒精飲品，請適量飲用。未滿 18 歲請勿飲酒。</p></div></aside>}
+      <p><a href={`${base}/lessons/${lessonSlug[d.lesson]}/`}>在第 {d.lesson} 篇讀完整的原理與脈絡 →</a></p>
+      {same.length > 0 && (
+        <>
+          <h2 class="h-sm" style="margin-top:1.6em">同類飲品</h2>
+          <ul class="rel-terms">{same.map((x) => <li><a href={`${base}/drinks/${x.key}/`}>{x.name}</a>：{x.summary}</li>)}</ul>
+        </>
+      )}
+      <p style="margin-top:2em"><a href={`${base}/drinks/`}>← 回飲品配方（共 {drinks.length} 款）</a></p>
+    </article>
+  </div>
+</Base>
