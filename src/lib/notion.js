@@ -2,6 +2,8 @@
 // 處理：<callout>、<toggle>、<table>（Notion 區塊表格）、mermaid 與配方程式碼區塊。
 import { Marked } from 'marked';
 import { lessons } from '../data/lessons.js';
+import { glossary } from '../data/glossary.js';
+import { placeFigures } from './figures.js';
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -10,7 +12,7 @@ const marked = new Marked({
   renderer: {
     code({ text, lang }) {
       if (lang === 'mermaid') return `<pre class="mermaid">${esc(text)}</pre>\n`;
-      return `<pre class="recipe"><code>${esc(text)}</code></pre>\n`;
+      return `<div class="recipe"><span class="recipe-tag">配方</span><pre><code>${esc(text)}</code></pre></div>\n`;
     },
   },
 });
@@ -107,24 +109,79 @@ function splitToggle(inner) {
   return { q: q.replace(/^#+\s*/, ''), a: dedent(ls).join('\n').trim() };
 }
 
-function postprocess(html, base) {
+const strip = (h) => h.replace(/<[^>]+>/g, '');
+
+// 三欄以上的表格加上 data-label，手機上改成卡片式排版
+function stackTables(html) {
+  return html.replace(/<table>([\s\S]*?)<\/table>/g, (all, inner) => {
+    const head = inner.match(/<thead>([\s\S]*?)<\/thead>/);
+    if (!head) return all;
+    const labels = [...head[1].matchAll(/<th[^>]*>([\s\S]*?)<\/th>/g)].map((m) => strip(m[1]).trim());
+    if (labels.length < 3 || /<tbody>[\s\S]*<th/.test(inner)) return all;
+    const body = inner.replace(/<tbody>[\s\S]*<\/tbody>/, (tb) =>
+      tb.replace(/<tr>([\s\S]*?)<\/tr>/g, (_, row) => {
+        let c = 0;
+        return `<tr>${row.replace(/<td([^>]*)>/g, (_m, a) => `<td${a} data-label="${esc(labels[c++] || '')}">`)}</tr>`;
+      })
+    );
+    return `<table class="stack">${body}</table>`;
+  });
+}
+
+// 每個名詞在一篇裡第一次出現時標記起來
+function markTerms(html) {
+  const terms = glossary.flatMap((g) => [g.term, ...(g.alias || [])].map((w) => ({ w, g }))).sort((a, b) => b.w.length - a.w.length);
+  const used = new Set();
+  const marks = [];
+  let skip = 0;
+  const out = html.split(/(<[^>]+>)/).map((seg) => {
+    if (seg.startsWith('<')) {
+      const m = seg.match(/^<(\/?)(h[1-4]|a|pre|code|summary|figure|svg|th|button)\b/);
+      if (m) skip += m[1] ? -1 : 1;
+      return seg;
+    }
+    if (skip > 0 || !seg.trim()) return seg;
+    for (const { w, g } of terms) {
+      if (used.has(g.term)) continue;
+      const i = seg.indexOf(w);
+      if (i < 0) continue;
+      used.add(g.term);
+      marks.push(`<button type="button" class="term" data-term="${esc(g.term)}" data-en="${esc(g.en)}" data-def="${esc(g.def)}">${w}</button>`);
+      seg = `${seg.slice(0, i)}\u0000${marks.length - 1}\u0000${seg.slice(i + w.length)}`;
+    }
+    return seg;
+  }).join('');
+  return out.replace(/\u0000(\d+)\u0000/g, (_, n) => marks[+n]);
+}
+
+function postprocess(html, base, lesson) {
   const toc = [];
   let n = 0;
+  if (lesson) html = placeFigures(html, lesson.id);
   html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_, inner) => {
     const id = `s${++n}`;
-    toc.push({ id, text: inner.replace(/<[^>]+>/g, '') });
-    return `<h2 id="${id}">${inner}</h2>`;
+    const num = +(strip(inner).match(/^(\d+)\./) || [])[1];
+    const adv = !!lesson?.advanced?.includes(num);
+    toc.push({ id, text: strip(inner), adv });
+    return `\u0001${adv ? 'adv' : 'core'}\u0001<h2 id="${id}">${inner}${adv ? ' <span class="badge">進階</span>' : ''}</h2>`;
   });
-  html = html.replace(/<table>/g, '<div class="table-wrap"><table>').replace(/<\/table>/g, '</table></div>');
-  // 「第 04 篇」→ 連到該篇
+  // 以 h2 為界包成 section，進階段落可以整段收合
+  const parts = html.split(/\u0001(adv|core)\u0001/);
+  html = parts[0];
+  for (let i = 1; i < parts.length; i += 2) {
+    html += `<section class="sec"${parts[i] === 'adv' ? ' data-adv' : ''}>${parts[i + 1]}</section>`;
+  }
+  html = stackTables(html);
+  html = html.replace(/<table/g, '<div class="table-wrap"><table').replace(/<\/table>/g, '</table></div>');
   html = html.replace(/第 (\d{2}) 篇/g, (m0, id) => {
     const l = lessons.find((x) => x.id === id);
     return l ? `<a href="${base}/lessons/${l.slug}/">${m0}</a>` : m0;
   });
+  if (lesson) html = markTerms(html);
   return { html, toc };
 }
 
-export function renderLesson(src, base = '') {
+export function renderLesson(src, base = '', lesson = null) {
   const parts = src.split(/^## 自我檢核\s*$/m);
   const main = parts[0];
   const tail = parts.slice(1).join('\n');
@@ -142,9 +199,11 @@ export function renderLesson(src, base = '') {
         quiz.push({ label: qm ? qm[1] : `Q${quiz.length + 1}`, q: inline(qm ? qm[2] : q), a: blocks(a) });
       } else restLines.push(lines[i]);
     }
-    // 檢核區塊前的提示 callout 由頁面自己呈現，其餘內容保留
     quizIntro = blocks(restLines.join('\n').replace(/<callout[^>]*>[\s\S]*?<\/callout>/, ''));
   }
-  const { html, toc } = postprocess(blocks(main) + (quiz.length ? '' : quizIntro), base);
-  return { html, toc, quiz, extra: quiz.length ? postprocess(quizIntro, base).html : '' };
+  // 開頭的「學習目標」callout 由頁首的重點區塊取代
+  const body = blocks(main).replace(/^\s*<aside class="callout callout-brown">[\s\S]*?學習目標[\s\S]*?<\/aside>/, '');
+  const { html, toc } = postprocess(body + (quiz.length ? '' : quizIntro), base, lesson);
+  const minutes = Math.max(3, Math.round(strip(html).replace(/\s+/g, '').length / 420));
+  return { html, toc, quiz, minutes, extra: quiz.length ? postprocess(quizIntro, base).html : '' };
 }

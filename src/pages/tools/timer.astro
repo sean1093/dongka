@@ -17,8 +17,9 @@ import { recipes } from '../../data/recipes.js';
         <div class="clock" id="clock" aria-live="off">0:00</div>
         <p id="now" style="min-height:3.6em;font-weight:600;margin:.6em 0"></p>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-primary" id="start" type="button">開始</button>
+          <button class="btn btn-primary btn-lg" id="start" type="button">開始</button>
           <button class="btn" id="reset" type="button">重設</button>
+          <label class="check-inline"><input id="sound" type="checkbox" checked /> 換步驟時提示音</label>
         </div>
         <hr style="border:0;border-top:1px solid var(--line);margin:18px 0" />
         <label>粉量（g）<input id="dose" type="number" inputmode="decimal" min="5" step="1" /></label>
@@ -39,7 +40,22 @@ import { recipes } from '../../data/recipes.js';
   const el = (id: string) => document.getElementById(id)!;
   const doseIn = el('dose') as HTMLInputElement;
   let r = recipes.find((x: any) => x.key === load('timer:recipe', '')) || recipes[0];
-  let started = 0, elapsed = 0, timer = 0;
+  let started = 0, elapsed = 0, timer = 0, lastStep = -1;
+  let lock: any = null, audio: AudioContext | null = null;
+  // 沖煮時手是濕的：螢幕保持恆亮，換步驟時用聲音與震動提醒
+  const awake = async (on: boolean) => {
+    try { if (on) lock = await (navigator as any).wakeLock?.request('screen'); else { await lock?.release(); lock = null; } } catch {}
+  };
+  const cue = () => {
+    if (!(document.getElementById('sound') as HTMLInputElement).checked) return;
+    try {
+      audio ||= new AudioContext();
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.value = 880; g.gain.setValueAtTime(0.15, audio.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.35);
+      o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime + 0.35);
+      navigator.vibrate?.(120);
+    } catch {}
+  };
 
   const scale = () => (+doseIn.value > 0 ? +doseIn.value / r.dose : 1);
   const g = (w: number) => `${Math.round(w * scale())}g`;
@@ -61,6 +77,8 @@ import { recipes } from '../../data/recipes.js';
     let cur = -1;
     r.steps.forEach((s: any, i: number) => { if (t >= s.t) cur = i; });
     const running = started || elapsed > 0;
+    if (started && cur !== lastStep && lastStep !== -1) cue();
+    lastStep = cur;
     document.querySelectorAll<HTMLElement>('#steps li').forEach((li, i) => {
       li.classList.toggle('now', running && i === cur);
       li.classList.toggle('past', running && i < cur);
@@ -72,11 +90,11 @@ import { recipes } from '../../data/recipes.js';
   }
 
   el('start').addEventListener('click', () => {
-    if (started) { elapsed += (Date.now() - started) / 1000; started = 0; clearInterval(timer); el('start').textContent = '繼續'; }
-    else { started = Date.now(); timer = window.setInterval(tick, 200); el('start').textContent = '暫停'; }
+    if (started) { elapsed += (Date.now() - started) / 1000; started = 0; clearInterval(timer); el('start').textContent = '繼續'; awake(false); }
+    else { started = Date.now(); timer = window.setInterval(tick, 200); el('start').textContent = '暫停'; awake(true); audio ||= new AudioContext(); }
     tick();
   });
-  const reset = () => { clearInterval(timer); started = 0; elapsed = 0; el('start').textContent = '開始'; tick(); };
+  const reset = () => { clearInterval(timer); started = 0; elapsed = 0; lastStep = -1; awake(false); el('start').textContent = '開始'; tick(); };
   el('reset').addEventListener('click', reset);
   doseIn.addEventListener('input', render);
   el('picker').addEventListener('click', (e) => {

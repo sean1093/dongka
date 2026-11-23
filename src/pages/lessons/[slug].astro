@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { stages, lessons } from '../../data/lessons.js';
+import { stages, lessons, tools } from '../../data/lessons.js';
 import { renderLesson } from '../../lib/notion.js';
 
 export function getStaticPaths() {
@@ -11,25 +11,61 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const files = import.meta.glob('../../content/lessons/*.md', { query: '?raw', import: 'default', eager: true });
 const src = files[`../../content/lessons/${lesson.id}.md`] as string;
 if (!src) throw new Error(`找不到第 ${lesson.id} 篇的內容檔`);
-const { html, toc, quiz, extra } = renderLesson(src, base);
+const { html, toc, quiz, extra, minutes } = renderLesson(src, base, lesson);
 const stage = stages.find((s) => s.id === lesson.stage)!;
 const i = lessons.indexOf(lesson);
 const prev = lessons[i - 1];
 const next = lessons[i + 1];
 const hasMermaid = html.includes('class="mermaid"');
+const hasAdv = toc.some((t) => t.adv);
+// 讀完之後可以馬上動手的工具
+const related: Record<string, string[]> = {
+  '03': ['brew-log'], '04': ['brew-log'], '05': ['timer', 'troubleshoot', 'extraction', 'brew-log'], '06': ['troubleshoot'], '08': ['timer'],
+};
+const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug === s)!);
 ---
-<Base title={`${lesson.id} ${lesson.title}`} description={`Seed to Cup 第 ${lesson.id} 篇：${lesson.title}。${stage.ability}。`}>
+<Base title={`${lesson.id} ${lesson.title}`} description={lesson.lede}>
+  <div class="read-bar" aria-hidden="true"><i id="read-bar"></i></div>
   <div class="wrap">
     <header class="lesson-head">
-      <p class="eyebrow">階段 {stage.id} · {stage.name} · 第 {lesson.id} 篇</p>
+      <p class="eyebrow"><a href={`${base}/`}>課程</a> / 階段 {stage.id} {stage.name} / 第 {lesson.id} 篇</p>
       <h1>{lesson.title}</h1>
+      <p class="lede">{lesson.lede}</p>
+      <p class="meta">
+        <span>約 {minutes} 分鐘</span>
+        <span>{quiz.length} 題自我檢核</span>
+        {hasAdv && <span>含進階段落</span>}
+      </p>
     </header>
     <div class="lesson-layout">
-      <article class="prose" data-lesson={lesson.id}>
+      <article class="prose" data-lesson={lesson.id} data-pagefind-body>
+        <div class="takeaways">
+          <strong>先記住這三件事</strong>
+          <ol>{lesson.takeaways.map((t: string) => <li>{t}</li>)}</ol>
+        </div>
+
+        <details class="toc-mobile">
+          <summary>本篇目錄</summary>
+          <nav>
+            {toc.map((t) => <a href={`#${t.id}`}>{t.text}{t.adv && <span class="badge">進階</span>}</a>)}
+            {quiz.length > 0 && <a href="#quiz">自我檢核</a>}
+          </nav>
+        </details>
+
+        {hasAdv && (
+          <div class="mode" data-pagefind-ignore>
+            <div>
+              <strong>第一次讀？</strong>
+              <span class="muted">標示「進階」的段落可以先跳過，不影響後面的理解。</span>
+            </div>
+            <button class="btn btn-sm" id="mode-btn" type="button" aria-pressed="false">收合進階段落</button>
+          </div>
+        )}
+
         <Fragment set:html={html} />
 
         {quiz.length > 0 && (
-          <section class="quiz" id="quiz">
+          <section class="quiz" id="quiz" data-pagefind-ignore>
             <div class="quiz-head">
               <h2>自我檢核</h2>
               <span class="muted" id="quiz-score">0 / {quiz.length} 題已掌握</span>
@@ -51,11 +87,26 @@ const hasMermaid = html.includes('class="mermaid"');
           </section>
         )}
 
-        <div class="lesson-end">
+        {relTools.length > 0 && (
+          <section class="next-do" data-pagefind-ignore>
+            <h2>讀完了，動手試試</h2>
+            <div class="grid grid-2">
+              {relTools.map((t) => (
+                <a class="card tool-card" href={`${base}/tools/${t.slug}/`}>
+                  <span class="ico" aria-hidden="true">{t.icon}</span>
+                  <h3>{t.title}</h3>
+                  <p>{t.desc}</p>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <div class="lesson-end" data-pagefind-ignore>
           <button class="btn btn-primary" id="done-btn" type="button">標記這篇為已完成</button>
           <a href={`${base}/`}>回課程總覽</a>
         </div>
-        <nav class="pager" aria-label="上下篇">
+        <nav class="pager" aria-label="上下篇" data-pagefind-ignore>
           {prev && <a href={`${base}/lessons/${prev.slug}/`}><small>← 上一篇</small>{prev.id} {prev.title}</a>}
           {next && <a class="next" href={`${base}/lessons/${next.slug}/`}><small>下一篇 →</small>{next.id} {next.title}</a>}
         </nav>
@@ -63,11 +114,12 @@ const hasMermaid = html.includes('class="mermaid"');
 
       <aside class="toc" aria-label="本篇目錄">
         <strong>本篇目錄</strong>
-        {toc.map((t) => <a href={`#${t.id}`}>{t.text}</a>)}
+        {toc.map((t) => <a href={`#${t.id}`}>{t.text}{t.adv && <span class="badge">進階</span>}</a>)}
         {quiz.length > 0 && <a href="#quiz">自我檢核</a>}
       </aside>
     </div>
   </div>
+  <div class="term-pop" id="term-pop" role="tooltip" hidden></div>
   {hasMermaid && (
     <script>
       import mermaid from 'mermaid';
@@ -116,7 +168,61 @@ const hasMermaid = html.includes('class="mermaid"');
   });
   paintQuiz();
 
-  // 目錄高亮
+  // 進階段落：整體收合，或逐段展開
+  const modeBtn = document.getElementById('mode-btn');
+  const setMode = (core: boolean) => {
+    article.classList.toggle('core-only', core);
+    document.querySelectorAll('.sec[data-adv]').forEach((s) => s.classList.remove('open'));
+    if (modeBtn) { modeBtn.setAttribute('aria-pressed', String(core)); modeBtn.textContent = core ? '展開進階段落' : '收合進階段落'; }
+  };
+  modeBtn?.addEventListener('click', () => { const core = !article.classList.contains('core-only'); save('coreOnly', core); setMode(core); });
+  if (modeBtn) setMode(load('coreOnly', false));
+  document.querySelectorAll<HTMLElement>('.sec[data-adv] > h2').forEach((h) =>
+    h.addEventListener('click', () => { if (article.classList.contains('core-only')) h.parentElement!.classList.toggle('open'); })
+  );
+  // 從目錄或連結跳到被收合的段落時自動展開
+  const openTarget = () => {
+    let t: Element | null = null;
+    try { if (location.hash.length > 1) t = document.querySelector(location.hash); } catch {}
+    t?.closest('.sec[data-adv]')?.classList.add('open');
+  };
+  addEventListener('hashchange', openTarget);
+  openTarget();
+  document.querySelector<HTMLDetailsElement>('.toc-mobile')?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) (e.currentTarget as HTMLDetailsElement).open = false;
+  });
+
+  // 名詞解釋
+  const pop = document.getElementById('term-pop')!;
+  let cur: HTMLElement | null = null;
+  const hide = () => { pop.hidden = true; cur = null; };
+  document.addEventListener('click', (e) => {
+    const t = (e.target as HTMLElement).closest<HTMLElement>('.term');
+    if (!t || t === cur) return hide();
+    cur = t;
+    pop.innerHTML = `<b></b> <small></small><p></p>`;
+    pop.querySelector('b')!.textContent = t.dataset.term!;
+    pop.querySelector('small')!.textContent = t.dataset.en!;
+    pop.querySelector('p')!.textContent = t.dataset.def!;
+    pop.hidden = false;
+    const r = t.getBoundingClientRect();
+    const w = pop.offsetWidth;
+    pop.style.left = `${Math.max(12, Math.min(innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + scrollX}px`;
+    const above = r.top > pop.offsetHeight + 16;
+    pop.style.top = `${(above ? r.top - pop.offsetHeight - 8 : r.bottom + 8) + scrollY}px`;
+  });
+  addEventListener('keydown', (e) => e.key === 'Escape' && hide());
+  addEventListener('resize', hide);
+
+  // 閱讀進度與目錄高亮
+  const bar = document.getElementById('read-bar')!;
+  const onScroll = () => {
+    const r = article.getBoundingClientRect();
+    const p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
+    bar.style.width = `${p * 100}%`;
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
   const links = [...document.querySelectorAll<HTMLAnchorElement>('.toc a')];
   const io = new IntersectionObserver(
     (es) => es.forEach((e) => {

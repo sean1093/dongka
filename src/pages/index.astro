@@ -1,26 +1,51 @@
 ---
 import Base from '../layouts/Base.astro';
 import { stages, lessons, tools } from '../data/lessons.js';
+import { journey } from '../lib/figures.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const L = (id: string) => lessons.find((l) => l.id === id)!;
+const paths = [
+  { icon: '🏠', want: '我想在家沖出好喝的咖啡', how: '先讀萃取原理，照一套配方沖，再用排查表修正。', links: [[`/lessons/${L('05').slug}/`, '05 萃取與手沖'], ['/tools/timer/', '沖煮計時器'], ['/tools/troubleshoot/', '味道排查']] },
+  { icon: '🫘', want: '我想看懂豆子、學會挑豆', how: '從標籤上的品種、處理法、產區與烘焙度開始。', links: [[`/lessons/${L('01').slug}/`, '01 咖啡豆'], [`/lessons/${L('02').slug}/`, '02 產區'], [`/lessons/${L('03').slug}/`, '03 烘焙']] },
+  { icon: '👃', want: '我想喝得出、說得出風味', how: '學一套描述的語言，再用杯測訓練感官。', links: [[`/lessons/${L('04').slug}/`, '04 風味與品飲'], ['/glossary/', '名詞小辭典']] },
+  { icon: '🥛', want: '我想看懂咖啡店的菜單', how: '拿鐵、馥列白、Dirty、冷萃，到底差在哪。', links: [[`/lessons/${L('06').slug}/`, '06 義式與經典飲品'], [`/lessons/${L('08').slug}/`, '08 現代特調']] },
+  { icon: '💼', want: '我想往專業走，或是開店', how: '供應鏈、法規、台灣產業現況與開店的數字。', links: [[`/lessons/${L('09').slug}/`, '09 貿易與衛生'], [`/lessons/${L('10').slug}/`, '10 台灣咖啡'], [`/lessons/${L('11').slug}/`, '11 職涯與經營']] },
+];
 ---
 <Base>
   <section class="hero wrap">
-    <p class="eyebrow">咖啡自學課 · 11 堂</p>
+    <p class="eyebrow">咖啡自學課 · 11 堂 · 繁體中文</p>
     <h1>從種子到杯子，理解一杯咖啡的每一個環節</h1>
-    <p class="lead">從「喜歡喝咖啡」走到能自己挑豆、沖煮、調整、描述風味，也能說出每種飲品背後的故事。每篇都是獨立單元，照順序讀效果最好。</p>
+    <p class="lead">給喜歡喝咖啡、想知道「為什麼」的人。每一篇都從你喝得到的差異講起，附上可以照做的配方、名詞解釋與自我檢核。</p>
     <div class="hero-actions">
       <a class="btn btn-primary" id="resume" href={`${base}/lessons/${lessons[0].slug}/`}>從第 01 篇開始</a>
-      <a class="btn" href={`${base}/tools/`}>沖煮工具</a>
+      <a class="btn" href="#paths">不知道從哪開始？</a>
     </div>
     <div class="progress">
       <div class="progress-bar"><i id="pbar"></i></div>
       <small id="ptext">已完成 0 / {lessons.length} 篇</small>
     </div>
+    <div class="journey-wrap" set:html={journey()} />
+  </section>
+
+  <section class="wrap" id="paths">
+    <h2 class="section-title">依你想做的事開始</h2>
+    <p class="muted" style="margin:0 0 20px">不一定要從第一篇讀起。挑一個最接近你現在想做的事。</p>
+    <div class="grid paths">
+      {paths.map((p) => (
+        <div class="card path">
+          <span class="ico" aria-hidden="true">{p.icon}</span>
+          <h3>{p.want}</h3>
+          <p>{p.how}</p>
+          <div class="path-links">{p.links.map(([href, label]) => <a href={`${base}${href}`}>{label}</a>)}</div>
+        </div>
+      ))}
+    </div>
   </section>
 
   <section class="wrap">
-    <h2 class="section-title">學習路線</h2>
-    <p class="muted" style="margin:0 0 20px">每篇包含核心知識、實作與配方、故事與脈絡，以及收合答案的自我檢核題。</p>
+    <h2 class="section-title">完整課程</h2>
+    <p class="muted" style="margin:0 0 20px">照順序讀效果最好。每篇開頭有三個重點，標示「進階」的段落第一次可以先跳過。</p>
     {stages.map((s) => (
       <div class="stage">
         <div class="stage-head">
@@ -32,7 +57,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           {lessons.filter((l) => l.stage === s.id).map((l) => (
             <a class="lesson-link" data-lesson={l.id} href={`${base}/lessons/${l.slug}/`}>
               <span class="no">{l.id}</span>
-              <span class="t">{l.title}</span>
+              <span class="t">{l.title}<small>{l.lede}</small></span>
               <span class="check" aria-hidden="true">✓</span>
             </a>
           ))}
@@ -43,7 +68,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   <section class="wrap">
     <h2 class="section-title">沖煮工具</h2>
-    <p class="muted" style="margin:0 0 20px">把課程裡的公式、排查表與配方變成可以直接用的工具。</p>
+    <p class="muted" style="margin:0 0 20px">站在秤和水壺旁邊就能用。</p>
     <div class="grid grid-2">
       {tools.map((t) => (
         <a class="card tool-card" href={`${base}/tools/${t.slug}/`}>

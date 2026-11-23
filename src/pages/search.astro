@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base title="搜尋" description="搜尋全部課程與名詞。">
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow">搜尋</p>
+      <h1>搜尋課程內容</h1>
+    </header>
+    <link href={`${base}/pagefind/pagefind-ui.css`} rel="stylesheet" />
+    <div id="search" data-base={base}></div>
+    <noscript>搜尋需要開啟 JavaScript。</noscript>
+  </div>
+  <script is:inline src={`${base}/pagefind/pagefind-ui.js`}></script>
+  <script is:inline>
+    addEventListener('DOMContentLoaded', () => {
+      if (!window.PagefindUI) {
+        document.getElementById('search').textContent = '搜尋索引只在正式建置後產生（npm run build）。';
+        return;
+      }
+      new PagefindUI({
+        element: '#search', showImages: false, showSubResults: true, excerptLength: 24, autofocus: true,
+        translations: { placeholder: '例如：悶蒸、日曬、卡布奇諾', zero_results: '找不到「[SEARCH_TERM]」', clear_search: '清除' },
+      });
+    });
+  </script>
+</Base>

@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import { glossary } from '../data/glossary.js';
+const groups = [...new Set(glossary.map((g) => g.group))];
+---
+<Base title="名詞小辭典" description="咖啡常見名詞的白話解釋：處理法、烘焙、品飲、沖煮與義式。">
+  <div class="wrap narrow" data-pagefind-body>
+    <header class="tool-head">
+      <p class="eyebrow">名詞</p>
+      <h1>名詞小辭典</h1>
+      <p class="muted">文章裡帶虛線的詞，點一下就會出現這裡的解釋。</p>
+    </header>
+    <label class="filter">篩選<input id="gq" type="search" placeholder="輸入中文或英文，例如：萃取、bloom" autocomplete="off" /></label>
+    {groups.map((grp) => (
+      <section class="gloss-group">
+        <h2>{grp}</h2>
+        <dl>
+          {glossary.filter((g) => g.group === grp).map((g) => (
+            <div class="gloss" data-k={`${g.term} ${g.en} ${(g.alias || []).join(' ')}`.toLowerCase()}>
+              <dt>{g.term} <small>{g.en}</small></dt>
+              <dd>{g.def}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    ))}
+    <p class="empty" id="gnone" hidden>找不到符合的名詞。</p>
+  </div>
+</Base>
+
+<script>
+  const q = document.getElementById('gq') as HTMLInputElement;
+  q.addEventListener('input', () => {
+    const v = q.value.trim().toLowerCase();
+    let any = false;
+    document.querySelectorAll<HTMLElement>('.gloss-group').forEach((g) => {
+      let n = 0;
+      g.querySelectorAll<HTMLElement>('.gloss').forEach((d) => { const ok = !v || d.dataset.k!.includes(v); d.hidden = !ok; if (ok) n++; });
+      g.hidden = n === 0;
+      any ||= n > 0;
+    });
+    document.getElementById('gnone')!.hidden = any;
+  });
+</script>
