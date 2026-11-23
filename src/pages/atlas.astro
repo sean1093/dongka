@@ -1,0 +1,147 @@
+---
+import Base from '../layouts/Base.astro';
+import SubNav from '../components/SubNav.astro';
+import { flavorTags, origins, varieties, processes } from '../data/atlas.js';
+import { originMapSvg } from '../lib/figures.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const tag = Object.fromEntries(flavorTags.map((t) => [t.key, t.label]));
+const proc = Object.fromEntries(processes.map((p) => [p.key, p.name]));
+const known = origins.filter((o) => o.flavors.length);
+const regions = [...new Set(origins.map((o) => o.region))];
+const bar = (label: string, v: number) => `<span class="mbar"><i>${label}</i><b style="--v:${v}"></b></span>`;
+---
+<Base title="豆子圖鑑" description="依風味偏好找適合的產區，查詢咖啡產區、品種與處理法。">
+  <div class="wrap">
+    <header class="tool-head">
+      <p class="eyebrow">查詢</p>
+      <h1>豆子圖鑑</h1>
+      <p class="muted">資料整理自<a href={`${base}/lessons/beans/`}>第 01 篇</a>與<a href={`${base}/lessons/origins/`}>第 02 篇</a>。這裡寫的是「典型印象」，同一個產區換了處理法與烘焙度，味道會差很多。</p>
+    </header>
+    <SubNav current="atlas" />
+
+    <section class="card" id="rec">
+      <h2 class="h-sm">你喜歡什麼味道？</h2>
+      <p class="muted" style="margin:0 0 12px">選一到三個，我幫你找該從哪些產區和處理法下手。</p>
+      <div class="chips" id="rec-tags">
+        {flavorTags.map((t) => <button class="chip" type="button" data-k={t.key} aria-pressed="false">{t.label}</button>)}
+      </div>
+      <div class="grid grid-form" style="margin-top:14px;max-width:520px">
+        <label>酸質<select id="rec-acid"><option value="">不拘</option><option value="hi">喜歡明亮的酸</option><option value="lo">不太能接受酸</option></select></label>
+        <label>口感<select id="rec-body"><option value="">不拘</option><option value="lo">輕盈像茶</option><option value="hi">厚實濃郁</option></select></label>
+      </div>
+      <div id="rec-out" class="rec-out" aria-live="polite"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">產區的酸質與醇厚度</h2>
+      <p class="muted" style="margin:0 0 12px">點一個產區看說明。課文沒有給出明確風味描述的產區不在圖上。</p>
+      <div class="fig" style="margin-top:0"><Fragment set:html={originMapSvg(known, true)} /></div>
+    </section>
+
+    {regions.map((r) => (
+      <section>
+        <h2 class="section-title">{r}</h2>
+        <div class="grid atlas-grid">
+          {origins.filter((o) => o.region === r).map((o) => (
+            <article class="card acard" id={`o-${o.key}`} data-key={o.key}>
+              <h3>{o.name}</h3>
+              <p class="asum">{o.summary}</p>
+              <div class="tags">{o.flavors.map((f) => <span>{tag[f]}</span>)}</div>
+              {o.flavors.length > 0 && <div class="mbars" set:html={bar('酸質', o.acidity) + bar('醇厚', o.body) + bar('甜感', o.sweetness)} />}
+              <p class="anote">{o.notes}</p>
+              <dl class="afacts">
+                {o.areas.length > 0 && <><dt>著名產區</dt><dd>{o.areas.join('、')}</dd></>}
+                {o.processes.length > 0 && <><dt>常見處理</dt><dd>{o.processes.map((p) => proc[p]).join('、')}</dd></>}
+                {o.varieties.length > 0 && <><dt>品種</dt><dd>{o.varieties.join('、')}</dd></>}
+                {o.altitude && <><dt>海拔</dt><dd>{o.altitude}</dd></>}
+              </dl>
+            </article>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <section id="processes">
+      <h2 class="section-title">處理法</h2>
+      <div class="grid atlas-grid">
+        {processes.map((p) => (
+          <article class="card acard">
+            <h3>{p.name} <small>{p.en}</small></h3>
+            <p class="asum">{p.effect}</p>
+            <div class="mbars" set:html={bar('乾淨度', p.clean) + bar('果香發酵', p.fruit) + bar('醇厚', p.body)} />
+            <p class="anote">{p.how}</p>
+            {p.caution && <p class="anote" style="color:var(--accent)">{p.caution}</p>}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="varieties">
+      <h2 class="section-title">品種</h2>
+      <div class="grid atlas-grid">
+        {varieties.map((v) => (
+          <article class="card acard">
+            <h3>{v.name} <small>{v.en}</small></h3>
+            <div class="tags">{v.flavors.map((f) => <span>{tag[f]}</span>)}</div>
+            <p class="anote">{v.lineage}</p>
+            <p class="anote">{v.note}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  </div>
+  <script type="application/json" id="atlas-data" set:html={JSON.stringify({ origins: known, processes, tag })} />
+</Base>
+
+<script>
+  const { origins, processes, tag } = JSON.parse(document.getElementById('atlas-data')!.textContent!);
+  const out = document.getElementById('rec-out')!;
+  const picked = new Set<string>();
+  const sel = (id: string) => (document.getElementById(id) as HTMLSelectElement).value;
+
+  function recommend() {
+    if (!picked.size) { out.innerHTML = ''; return; }
+    const acid = sel('rec-acid'), body = sel('rec-body');
+    const scored = origins.map((o: any) => {
+      let s = 0;
+      o.flavors.forEach((f: string, i: number) => { if (picked.has(f)) s += 3 - i * 0.5; });
+      if (acid === 'hi') s += (o.acidity - 3) * 0.6; if (acid === 'lo') s += (3 - o.acidity) * 0.6;
+      if (body === 'hi') s += (o.body - 3) * 0.6; if (body === 'lo') s += (3 - o.body) * 0.6;
+      return { o, s, hit: o.flavors.some((f: string) => picked.has(f)) };
+    }).filter((x: any) => x.hit).sort((a: any, b: any) => b.s - a.s).slice(0, 4);
+    const procs = processes.filter((p: any) => p.flavors.some((f: string) => picked.has(f))).slice(0, 3);
+    const roast = picked.has('nutty') || picked.has('spice') || body === 'hi' || acid === 'lo' ? '中焙到中深焙' : '淺焙到中淺焙';
+    out.innerHTML = scored.length
+      ? `<p class="rec-h">先試這幾個產區</p><div class="rec-list">${scored.map(({ o }: any) =>
+          `<a href="#o-${o.key}" class="rec-item"><b>${o.name}</b><span>${o.summary}</span><small>${o.flavors.map((f: string) => tag[f]).join(' · ')}</small></a>`).join('')}</div>
+         <p class="rec-h">挑豆時看這兩個欄位</p>
+         <ul class="rec-ul"><li>處理法：${procs.length ? procs.map((p: any) => `<b>${p.name}</b>`).join('、') : '不限'}</li><li>烘焙度：<b>${roast}</b></li></ul>`
+      : '<p class="muted">課文裡沒有符合這個組合的產區，試著少選一個條件。</p>';
+  }
+  document.getElementById('rec-tags')!.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('.chip');
+    if (!b) return;
+    const k = b.dataset.k!;
+    if (picked.has(k)) picked.delete(k); else if (picked.size < 3) picked.add(k); else return;
+    b.setAttribute('aria-pressed', String(picked.has(k)));
+    recommend();
+  });
+  ['rec-acid', 'rec-body'].forEach((id) => document.getElementById(id)!.addEventListener('change', recommend));
+
+  // 分布圖上的點 → 捲到對應的卡片
+  const go = (k: string) => {
+    const card = document.getElementById(`o-${k}`);
+    if (!card) return;
+    card.scrollIntoView({ block: 'center' });
+    card.classList.add('flash');
+    setTimeout(() => card.classList.remove('flash'), 1600);
+  };
+  document.querySelectorAll<SVGGElement>('.om-pt').forEach((g) => {
+    g.addEventListener('click', () => go(g.dataset.key!));
+    g.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') go(g.dataset.key!); });
+  });
+  document.addEventListener('click', (e) => {
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('.rec-item');
+    if (a) { e.preventDefault(); go(a.hash.slice(3)); }
+  });
+</script>

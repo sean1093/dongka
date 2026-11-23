@@ -6,9 +6,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const L = (id: string) => lessons.find((l) => l.id === id)!;
 const paths = [
   { icon: '🏠', want: '我想在家沖出好喝的咖啡', how: '先讀萃取原理，照一套配方沖，再用排查表修正。', links: [[`/lessons/${L('05').slug}/`, '05 萃取與手沖'], ['/tools/timer/', '沖煮計時器'], ['/tools/troubleshoot/', '味道排查']] },
-  { icon: '🫘', want: '我想看懂豆子、學會挑豆', how: '從標籤上的品種、處理法、產區與烘焙度開始。', links: [[`/lessons/${L('01').slug}/`, '01 咖啡豆'], [`/lessons/${L('02').slug}/`, '02 產區'], [`/lessons/${L('03').slug}/`, '03 烘焙']] },
-  { icon: '👃', want: '我想喝得出、說得出風味', how: '學一套描述的語言，再用杯測訓練感官。', links: [[`/lessons/${L('04').slug}/`, '04 風味與品飲'], ['/glossary/', '名詞小辭典']] },
-  { icon: '🥛', want: '我想看懂咖啡店的菜單', how: '拿鐵、馥列白、Dirty、冷萃，到底差在哪。', links: [[`/lessons/${L('06').slug}/`, '06 義式與經典飲品'], [`/lessons/${L('08').slug}/`, '08 現代特調']] },
+  { icon: '🫘', want: '我想看懂豆子、學會挑豆', how: '從標籤上的品種、處理法、產區與烘焙度開始。', links: [[`/lessons/${L('01').slug}/`, '01 咖啡豆'], [`/lessons/${L('02').slug}/`, '02 產區'], ['/atlas/', '豆子圖鑑'], ['/practice/label/', '標籤練習']] },
+  { icon: '👃', want: '我想喝得出、說得出風味', how: '學一套描述的語言，再用杯測訓練感官。', links: [[`/lessons/${L('04').slug}/`, '04 風味與品飲'], ['/tools/cupping/', '杯測紀錄表'], ['/glossary/', '名詞辭典']] },
+  { icon: '🥛', want: '我想看懂咖啡店的菜單', how: '拿鐵、馥列白、Dirty、冷萃，到底差在哪。', links: [[`/lessons/${L('06').slug}/`, '06 義式與經典飲品'], [`/lessons/${L('08').slug}/`, '08 現代特調'], ['/drinks/', '飲品配方']] },
   { icon: '💼', want: '我想往專業走，或是開店', how: '供應鏈、法規、台灣產業現況與開店的數字。', links: [[`/lessons/${L('09').slug}/`, '09 貿易與衛生'], [`/lessons/${L('10').slug}/`, '10 台灣咖啡'], [`/lessons/${L('11').slug}/`, '11 職涯與經營']] },
 ];
 ---
@@ -70,8 +70,22 @@ const paths = [
     <h2 class="section-title">沖煮工具</h2>
     <p class="muted" style="margin:0 0 20px">站在秤和水壺旁邊就能用。</p>
     <div class="grid grid-2">
-      {tools.map((t) => (
-        <a class="card tool-card" href={`${base}/tools/${t.slug}/`}>
+      {tools.filter((t) => t.kind === 'tool').map((t) => (
+        <a class="card tool-card" href={`${base}${t.path}`}>
+          <span class="ico" aria-hidden="true">{t.icon}</span>
+          <h3>{t.title}</h3>
+          <p>{t.desc}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap">
+    <h2 class="section-title">查詢與練習</h2>
+    <p class="muted" style="margin:0 0 20px">不想讀長文的時候，直接查、直接練。</p>
+    <div class="grid grid-2">
+      {tools.filter((t) => t.kind !== 'tool').map((t) => (
+        <a class="card tool-card" href={`${base}${t.path}`}>
           <span class="ico" aria-hidden="true">{t.icon}</span>
           <h3>{t.title}</h3>
           <p>{t.desc}</p>

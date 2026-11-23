@@ -6,13 +6,13 @@ const full = title ? `${title}｜Seed to Cup` : 'Seed to Cup｜從種子到杯�
 const path = Astro.url.pathname;
 const nav = [
   { href: `${base}/`, label: '課程', on: path === `${base}/` || path.includes('/lessons/') },
-  { href: `${base}/tools/`, label: '工具', on: path.includes('/tools/') },
-  { href: `${base}/glossary/`, label: '名詞', on: path.includes('/glossary/') },
+  { href: `${base}/atlas/`, label: '圖鑑', on: /\/(atlas|drinks|glossary)\//.test(path) },
+  { href: `${base}/tools/`, label: '工具', on: /\/(tools|practice)\//.test(path) },
   { href: `${base}/about/`, label: '關於', on: path.includes('/about/') },
 ];
 ---
 <!doctype html>
-<html lang="zh-Hant-TW">
+<html lang="zh-Hant-TW" data-base={base}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

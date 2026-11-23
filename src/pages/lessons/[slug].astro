@@ -20,7 +20,9 @@ const hasMermaid = html.includes('class="mermaid"');
 const hasAdv = toc.some((t) => t.adv);
 // 讀完之後可以馬上動手的工具
 const related: Record<string, string[]> = {
-  '03': ['brew-log'], '04': ['brew-log'], '05': ['timer', 'troubleshoot', 'extraction', 'brew-log'], '06': ['troubleshoot'], '08': ['timer'],
+  '01': ['label', 'atlas'], '02': ['atlas', 'label'], '03': ['brew-log', 'review'], '04': ['cupping', 'review'],
+  '05': ['timer', 'troubleshoot', 'extraction', 'brew-log'], '06': ['drinks', 'troubleshoot'], '07': ['review', 'glossary'],
+  '08': ['drinks', 'timer'], '09': ['review', 'glossary'], '10': ['atlas', 'review'], '11': ['review', 'glossary'],
 };
 const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug === s)!);
 ---
@@ -89,10 +91,10 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
 
         {relTools.length > 0 && (
           <section class="next-do" data-pagefind-ignore>
-            <h2>讀完了，動手試試</h2>
+            <h2>讀完了，接著做</h2>
             <div class="grid grid-2">
               {relTools.map((t) => (
-                <a class="card tool-card" href={`${base}/tools/${t.slug}/`}>
+                <a class="card tool-card" href={`${base}${t.path}`}>
                   <span class="ico" aria-hidden="true">{t.icon}</span>
                   <h3>{t.title}</h3>
                   <p>{t.desc}</p>
@@ -134,6 +136,7 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
 
 <script>
   import { load, save, getDone, setDone } from '../../scripts/store.js';
+  import { openTerm } from '../../scripts/term-panel.js';
   const article = document.querySelector<HTMLElement>('article[data-lesson]')!;
   const id = article.dataset.lesson!;
 
@@ -198,9 +201,12 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
   const hide = () => { pop.hidden = true; cur = null; };
   document.addEventListener('click', (e) => {
     const t = (e.target as HTMLElement).closest<HTMLElement>('.term');
+    if ((e.target as HTMLElement).closest('.tp-more')) { const name = cur?.dataset.term; hide(); if (name) openTerm(name); return; }
     if (!t || t === cur) return hide();
+    // 桌機：直接開右側面板（不遮內文）；手機：先給一句話，想看再展開
+    if (matchMedia('(min-width: 961px)').matches) { hide(); openTerm(t.dataset.term); return; }
     cur = t;
-    pop.innerHTML = `<b></b> <small></small><p></p>`;
+    pop.innerHTML = `<b></b> <small></small><p></p><button type="button" class="tp-more">完整說明 →</button>`;
     pop.querySelector('b')!.textContent = t.dataset.term!;
     pop.querySelector('small')!.textContent = t.dataset.en!;
     pop.querySelector('p')!.textContent = t.dataset.def!;

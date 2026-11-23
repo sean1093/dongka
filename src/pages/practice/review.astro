@@ -1,0 +1,82 @@
+---
+import Base from '../../layouts/Base.astro';
+import { lessons } from '../../data/lessons.js';
+import { renderLesson } from '../../lib/notion.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const files = import.meta.glob('../../content/lessons/*.md', { query: '?raw', import: 'default', eager: true });
+const all = lessons.flatMap((l) => {
+  const { quiz } = renderLesson(files[`../../content/lessons/${l.id}.md`] as string, base);
+  return quiz.map((q, n) => ({ id: l.id, slug: l.slug, title: l.title, n, label: q.label, q: q.q, a: q.a }));
+});
+---
+<Base title="錯題複習" description="把各篇自我檢核中標記「還要再練」的題目集中起來重做，或隨機抽題。">
+  <div class="wrap narrow">
+    <header class="tool-head">
+      <p class="eyebrow">練習</p>
+      <h1>錯題複習</h1>
+      <p class="muted">各篇自我檢核中你標記「還要再練」的題目會集中在這裡。全站共 {all.length} 題。</p>
+    </header>
+    <div class="chips" id="rv-mode" role="group" aria-label="模式">
+      <button class="chip" type="button" data-m="again" aria-pressed="true">還要再練的題目</button>
+      <button class="chip" type="button" data-m="random" aria-pressed="false">隨機抽 10 題</button>
+      <button class="chip" type="button" data-m="new" aria-pressed="false">還沒做過的題目</button>
+    </div>
+    <p class="muted" id="rv-count" style="margin:12px 0 0"></p>
+    <div id="rv-list" class="quiz" style="margin-top:8px;border:0;padding:0"></div>
+    <p class="empty" id="rv-empty" hidden></p>
+  </div>
+  <script type="application/json" id="rv-data" set:html={JSON.stringify(all)} />
+  <span id="rv-base" data-base={base} hidden></span>
+</Base>
+
+<script>
+  import { load, save } from '../../scripts/store.js';
+  const all = JSON.parse(document.getElementById('rv-data')!.textContent!);
+  const base = document.getElementById('rv-base')!.dataset.base;
+  const list = document.getElementById('rv-list')!;
+  const stateOf = (id: string): Record<string, string> => load(`quiz:${id}`, {});
+  let mode = 'again';
+
+  function pick() {
+    const st: Record<string, Record<string, string>> = {};
+    const s = (q: any) => (st[q.id] ||= stateOf(q.id))[q.n] || '';
+    if (mode === 'again') return all.filter((q: any) => s(q) === 'again');
+    if (mode === 'new') return all.filter((q: any) => !s(q)).slice(0, 20);
+    return [...all].sort(() => Math.random() - 0.5).slice(0, 10);
+  }
+
+  function render() {
+    const qs = pick();
+    const empty = document.getElementById('rv-empty')!;
+    document.getElementById('rv-count')!.textContent = qs.length ? `${qs.length} 題` : '';
+    empty.hidden = qs.length > 0;
+    empty.textContent = mode === 'again' ? '目前沒有標記「還要再練」的題目。到任何一篇的自我檢核作答後，答不好的題目會出現在這裡。' : '每一題你都做過了。';
+    list.innerHTML = qs.map((q: any, i: number) => `<div class="qcard" data-i="${i}">
+      <p class="rv-src"><a href="${base}/lessons/${q.slug}/#quiz">第 ${q.id} 篇　${q.title}</a></p>
+      <p class="q"><span>${q.label}</span><span style="color:inherit;font-family:inherit;flex:1">${q.q}</span></p>
+      <div class="a">${q.a}</div>
+      <button class="btn btn-sm reveal" type="button">看參考答案</button>
+      <div class="rate"><button class="btn btn-sm" type="button" data-rate="ok">✓ 我答對了</button><button class="btn btn-sm" type="button" data-rate="again">↻ 還要再練</button></div>
+    </div>`).join('');
+    list.querySelectorAll<HTMLElement>('.qcard').forEach((c) => {
+      const q = qs[+c.dataset.i!];
+      c.querySelector('.reveal')!.addEventListener('click', () => c.classList.add('open'));
+      c.querySelectorAll<HTMLElement>('[data-rate]').forEach((b) => b.addEventListener('click', () => {
+        const st = stateOf(q.id);
+        st[q.n] = b.dataset.rate!;
+        save(`quiz:${q.id}`, st);
+        c.classList.remove('open');
+        c.dataset.state = b.dataset.rate!;
+        if (mode === 'again' && b.dataset.rate === 'ok') { c.style.opacity = '.45'; }
+      }));
+    });
+  }
+  document.getElementById('rv-mode')!.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('.chip');
+    if (!b) return;
+    mode = b.dataset.m!;
+    document.querySelectorAll('#rv-mode .chip').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  });
+  render();
+</script>

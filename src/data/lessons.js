@@ -22,8 +22,14 @@ export const lessons = [
 ];
 
 export const tools = [
-  { slug: 'extraction', icon: '📈', title: '萃取率計算機', desc: '輸入粉重、液重與 TDS，在沖煮控制圖上看這杯落在哪一格。' },
-  { slug: 'troubleshoot', icon: '🩺', title: '味道排查', desc: '選一個症狀，得到可能原因與調整順序。' },
-  { slug: 'timer', icon: '⏱️', title: '沖煮計時器', desc: '六套配方依粉量換算，跟著時間點注水。' },
-  { slug: 'brew-log', icon: '📝', title: '沖煮紀錄', desc: '記下每一杯的參數與感受，存在你的瀏覽器裡，可匯出 CSV。' },
+  { slug: 'timer', kind: 'tool', path: '/tools/timer/', icon: '⏱️', title: '沖煮計時器', desc: '六套配方依粉量換算，跟著時間點注水。' },
+  { slug: 'troubleshoot', kind: 'tool', path: '/tools/troubleshoot/', icon: '🩺', title: '味道排查', desc: '選一個症狀，得到可能原因與調整順序。' },
+  { slug: 'extraction', kind: 'tool', path: '/tools/extraction/', icon: '📈', title: '萃取率計算機', desc: '輸入粉重、液重與 TDS，在沖煮控制圖上看這杯落在哪一格。' },
+  { slug: 'brew-log', kind: 'tool', path: '/tools/brew-log/', icon: '📝', title: '沖煮紀錄', desc: '記下每一杯的參數與感受，存在你的瀏覽器裡，可匯出 CSV。' },
+  { slug: 'cupping', kind: 'tool', path: '/tools/cupping/', icon: '🥄', title: '杯測紀錄表', desc: '照 100 分制杯測表打分數，自動加總並畫出雷達圖。' },
+  { slug: 'label', kind: 'practice', path: '/practice/label/', icon: '🏷️', title: '讀懂豆袋標籤', desc: '看標籤先預測風味，再對答案，共八題。' },
+  { slug: 'review', kind: 'practice', path: '/practice/review/', icon: '🔁', title: '錯題複習', desc: '把各篇標記「還要再練」的題目集中重做，或隨機抽題。' },
+  { slug: 'atlas', kind: 'explore', path: '/atlas/', icon: '🌍', title: '豆子圖鑑', desc: '依喜歡的味道找產區，查詢產區、品種與處理法。' },
+  { slug: 'drinks', kind: 'explore', path: '/drinks/', icon: '🥛', title: '飲品配方', desc: '三十多款飲品的組成與做法，可依器材、冷熱、酒精篩選。' },
+  { slug: 'glossary', kind: 'explore', path: '/glossary/', icon: '📖', title: '名詞辭典', desc: '白話解釋加延伸說明，點一下看完整內容。' },
 ];
