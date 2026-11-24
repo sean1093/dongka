@@ -6,10 +6,10 @@ export const drinks = [
     key: 'espresso',
     name: '義式濃縮', en: 'Espresso',
     group: '濃縮', temp: '熱', machine: true, alcohol: false,
-    size: '單份約 25–30ml，雙份約 50–60ml',
+    size: '單份約 25–35ml，雙份約加倍',
     summary: '高壓快速萃出的一小杯濃郁咖啡，其他奶咖的基底。',
     layers: [
-      { part: 'espresso', label: '單份濃縮 25–30ml', amount: 3 },
+      { part: 'espresso', label: '單份濃縮 25–35ml', amount: 3 },
     ],
     recipe: [
       '雙份用粉 18 至 20g，萃出約 2 倍重的液體（例如 18g 粉萃出 36g）。',
