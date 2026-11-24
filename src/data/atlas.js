@@ -196,7 +196,7 @@ export const origins = [
   {
     key: 'peru', name: '祕魯', region: '南美洲',
     areas: ['Cajamarca', 'San Martín', 'Junín', 'Amazonas'],
-    altitude: '約 900–2,100 m',
+    altitude: '精品多在 1,000 m 以上',
     processes: [],
     varieties: ['鐵比卡', '波旁', '卡杜拉', 'Pache', 'Catimor'],
     flavors: ['nutty', 'sweet', 'floral'],
