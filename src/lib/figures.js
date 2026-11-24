@@ -415,3 +415,27 @@ Object.assign(placements, {
 
 // 名詞面板可用的插圖
 export const figByKey = { cherry, processing, roast, extraction, wheel, drippers, drinks, chart: controlChart, grind: grindScale, curve: roastCurve, cupping: cuppingTimeline, shot: espressoShot, cold: coldMethods };
+
+// 第 12 篇：各國官方的每日咖啡因參考值
+const caffeineGuide = () => {
+  const rows = [
+    ['EFSA（歐盟）', '健康成人', 400, 'var(--accent)'], ['美國 FDA', '多數成人', 400, 'var(--accent)'], ['加拿大衛生部', '成人', 400, 'var(--accent)'], ['台灣食藥署', '一般民眾', 300, 'var(--accent)'],
+    ['加拿大衛生部', '懷孕、備孕、哺乳', 300, '#c9973a'], ['EFSA（歐盟）', '孕婦、哺乳者', 200, '#c9973a'], ['台灣國健署', '孕婦', 200, '#c9973a'],
+  ];
+  const X = (v) => 250 + (v / 400) * 330;
+  return wrap(
+    `<svg viewBox="0 0 640 330" role="img" aria-label="各國官方的每日咖啡因參考值">
+      ${[0, 100, 200, 300, 400].map((v) => `<path d="M${X(v)} 20 V266" class="lead" stroke-dasharray="3 4" opacity=".5"/><text x="${X(v)}" y="284" text-anchor="middle" class="t-s">${v}</text>`).join('')}
+      ${rows.map(([who, grp, v, c], i) => {
+        const y = 26 + i * 34;
+        return `<text x="240" y="${y + 9}" text-anchor="end" class="t-b" style="font-size:13px">${who}</text><text x="240" y="${y + 24}" text-anchor="end" class="t-s" style="font-size:11px">${grp}</text>
+          <rect x="250" y="${y}" width="${X(v) - 250}" height="22" rx="5" fill="${c}"/><text x="${X(v) - 8}" y="${y + 16}" text-anchor="end" style="fill:#fff;font:700 13px var(--sans)">${v}</text>`;
+      }).join('')}
+      <text x="415" y="306" text-anchor="middle" class="t-s">每天的咖啡因（毫克）</text>
+      <rect x="250" y="314" width="12" height="12" rx="3" fill="var(--accent)"/><text x="268" y="324" class="t-s">一般成人</text>
+      <rect x="350" y="314" width="12" height="12" rx="3" fill="#c9973a"/><text x="368" y="324" class="t-s">懷孕或哺乳</text>
+    </svg>`,
+    '各國主管機關公布的每日咖啡因參考值，數字與年份見下表。這是參考值，不是醫療建議；個人狀況請諮詢醫師。'
+  );
+};
+Object.assign(placements, { '12': [['2. 每天可以喝多少', caffeineGuide]] });

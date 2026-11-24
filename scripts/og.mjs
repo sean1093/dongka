@@ -16,7 +16,7 @@ const cards = [
   { key: 'drinks', kicker: '懂咖 · 圖鑑', title: '咖啡飲品配方', sub: '拿鐵、馥列白、冷萃、Dirty 的比例與做法' },
   { key: 'glossary', kicker: '懂咖 · 圖鑑', title: '咖啡名詞辭典', sub: '七十個術語，白話解釋' },
   { key: 'tools', kicker: '懂咖 · 工具', title: '沖煮工具', sub: '計時器、味道排查、萃取率計算機' },
-  { key: 'start', kicker: '懂咖 · 新手入口', title: '咖啡從哪裡開始學', sub: '五條不用從頭讀到尾的入門路線' },
+  { key: 'start', kicker: '懂咖 · 新手入口', title: '咖啡從哪裡開始學', sub: '六條不用從頭讀到尾的入門路線' },
 ];
 // 類別共用：這些路徑開頭的頁面都用同一張
 const shared = { faq: 'faq', compare: 'compare', cheatsheets: 'cheatsheets', atlas: 'atlas', drinks: 'drinks', glossary: 'glossary', tools: 'tools', practice: 'tools' };
