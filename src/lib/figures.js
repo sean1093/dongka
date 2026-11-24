@@ -369,11 +369,11 @@ const taiwanSupply = () => {
   return wrap(
     `<svg viewBox="0 0 640 215" role="img" aria-label="台灣咖啡自給率約百分之二">
       ${dots}
-      <circle cx="500" cy="62" r="8" fill="var(--accent)"/><text x="516" y="67" class="t-b">國產：約 2%</text><text x="516" y="86" class="t-s">2024 年約 905 公噸</text>
-      <circle cx="500" cy="118" r="8" fill="#b98d5f" opacity=".45"/><text x="516" y="123" class="t-b">進口：約 98%</text><text x="516" y="142" class="t-s">2024 年約 4.5 萬公噸</text>
+      <circle cx="500" cy="62" r="8" fill="var(--accent)"/><text x="516" y="67" class="t-b">國產：不到 2%</text><text x="516" y="86" class="t-s">2025 年約 907 公噸</text>
+      <circle cx="500" cy="118" r="8" fill="#b98d5f" opacity=".45"/><text x="516" y="123" class="t-b">進口：超過 98%</text><text x="516" y="142" class="t-s">每年超過 5 萬公噸</text>
       <text x="42" y="182" class="t-s">每一點代表台灣一年咖啡供應量的 1%。</text>
     </svg>`,
-    '台灣人喝的咖啡，一百杯裡大約只有兩杯是台灣種的。數字依課文引用的年度資料，各年不同。'
+    '台灣人喝的咖啡，一百杯裡不到兩杯是台灣種的。產量為農業部 2025 年統計，進口量為農業部農試所 2025 年的說法。'
   );
 };
 
