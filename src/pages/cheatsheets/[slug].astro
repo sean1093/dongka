@@ -28,6 +28,7 @@ const path = `${base}/cheatsheets/${s.slug}/`;
       <h1 data-pagefind-weight="8">{s.title}</h1>
       <p class="lede">{s.question}</p>
       <p class="muted">{s.intro}</p>
+      {s.slug === 'pour-over-parameters' && <p class="muted no-print">第一次沖、或是沒有秤？先看<a href={`${base}/first-cup/`}>第一杯手沖：照著做就好</a>。</p>}
       <button type="button" class="btn btn-sm no-print" onclick="window.print()">列印這一頁</button>
     </header>
     <article class="prose sheet">

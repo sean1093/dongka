@@ -1,0 +1,205 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const tastes = [
+  ['sour', '偏酸'], ['bitter', '偏苦'], ['both', '又酸又苦'], ['weak', '水水的（太淡）'], ['strong', '太濃'], ['ok', '平衡'],
+];
+---
+<Base fullTitle="濃縮太酸、太苦或流太快？義式萃取先調哪一個｜懂咖" description="輸入粉量、液重、萃取時間和嚐起來的味道，算出萃取比例，對照你設定的目標時間，依第 06 篇的調整原則告訴你下一杯只要先改哪一個變數，每條建議都附上出處。">
+  <div class="wrap" data-pagefind-body>
+    <header class="tool-head">
+      <p class="eyebrow">工具</p>
+      <h1>義式萃取調整</h1>
+      <p class="muted">先看時間，再看味道；一次只動一個變數。規則來自<a href={`${base}/lessons/espresso/#s1`}>第 06 篇〈調整（Dial-in）〉</a>與<a href={`${base}/lessons/brewing/#s6`}>第 05 篇〈味道問題排查〉</a>。只給通則，不給磨豆機的刻度。</p>
+    </header>
+    <div class="tool-layout es">
+      <form class="card grid" id="f" onsubmit="return false" novalidate>
+        <div class="grid grid-form">
+          <label>粉量（g）<input id="d" type="number" inputmode="decimal" min="1" step="0.1" placeholder="18" aria-describedby="d-err" /></label>
+          <label>液重（g）<input id="y" type="number" inputmode="decimal" min="1" step="0.1" placeholder="36" aria-describedby="y-err" /></label>
+          <label>萃取時間（秒）<input id="t" type="number" inputmode="decimal" min="1" step="1" placeholder="28" aria-describedby="t-err" /></label>
+        </div>
+        <p class="err" id="d-err"></p><p class="err" id="y-err"></p><p class="err" id="t-err"></p>
+        <fieldset>
+          <legend>嚐起來</legend>
+          <div class="chips">
+            {tastes.map(([v, l]) => <label class="chip-radio"><input type="radio" name="s" value={v} /> {l}</label>)}
+          </div>
+        </fieldset>
+        <fieldset class="es-target">
+          <legend>我的目標 <span class="muted" style="font-weight:600;font-size:.85rem">常見起點，不是標準，可以自己改</span></legend>
+          <div class="grid grid-form">
+            <label>目標比例 1 :（倍）<input id="r" type="number" inputmode="decimal" min="0.5" step="0.1" value="2" aria-describedby="tg-err" /></label>
+            <label>目標時間下限（秒）<input id="lo" type="number" inputmode="decimal" min="1" step="1" value="25" aria-describedby="tg-err" /></label>
+            <label>目標時間上限（秒）<input id="hi" type="number" inputmode="decimal" min="1" step="1" value="30" aria-describedby="tg-err" /></label>
+          </div>
+          <p class="err" id="tg-err"></p>
+          <p class="muted note">預設值是第 06 篇〈基本參數〉的常見起點：約 1:2、25 至 30 秒。第 06 篇也說明，這組數字不是國際統一的標準，各地與各店的定義不完全相同。</p>
+        </fieldset>
+      </form>
+      <div class="card">
+        <div class="stat">
+          <div><b id="o-r">–</b><span>萃取比例</span></div>
+          <div><b id="o-t">–</b><span>時間和你的目標比</span></div>
+        </div>
+        <div class="verdict" id="out" aria-live="polite"></div>
+        <p class="muted note" id="src"></p>
+        <p class="note" style="margin-top:12px">每次只調一個變數，調完記錄。可以用<a href={`${base}/tools/brew-log/`}>沖煮紀錄</a>留下每一杯。</p>
+        <div class="chips" style="margin-top:12px">
+          <button class="btn btn-sm" type="button" id="copy">複製這組數字的連結</button>
+        </div>
+        <p class="muted note" id="copy-msg" role="status">網址裡就是你填的數字，沒有任何資料上傳。</p>
+      </div>
+    </div>
+    <details class="card es-rules" style="margin-top:24px">
+      <summary><b>這個工具用的規則（由上往下，只採用第一條成立的）</b></summary>
+      <ol>
+        <li>粉量不在 14 至 22g，或比例不在 1:1 至 1:3.5：超出常見範圍，只說明比例的意義（短萃、標準、長萃），不下判斷。</li>
+        <li>又酸又苦：先檢查布粉和填壓（通道效應），研磨先不動。</li>
+        <li>時間比目標短，卻偏苦：流得快卻苦是矛盾的，懷疑通道效應，先檢查粉餅準備。</li>
+        <li>時間比目標短：粉量和液重不變，把研磨調細一小格。</li>
+        <li>時間比目標長：把研磨調粗一小格。</li>
+        <li>時間在目標內、偏酸：拉長液重。</li>
+        <li>時間在目標內、偏苦：縮短液重。</li>
+        <li>時間在目標內、水水的：濃度問題，縮短液重；或在粉碗容量內加粉，比例不變。</li>
+        <li>時間在目標內、太濃：拉長液重。</li>
+        <li>時間在目標內、平衡：不要動，記錄這組參數。</li>
+      </ol>
+    </details>
+  </div>
+</Base>
+
+<style is:global>
+  .es fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .es legend { font-weight: 700; padding: 0; margin-bottom: 8px; }
+  .es .note { font-size: .84rem; margin: 6px 0 0; }
+  .es .err { color: var(--accent); font-size: .85rem; font-weight: 600; margin: 0; }
+  .es .err:empty { display: none; }
+  .es .chip-radio { position: relative; display: inline-flex; align-items: center; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: .92rem; font-weight: 600; padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+  .es .chip-radio input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+  .es .chip-radio:has(input:checked) { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .es .chip-radio:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .es .verdict p { margin: .4em 0 0; }
+  .es-rules summary { cursor: pointer; }
+  .es-rules ol { margin: 12px 0 0; padding-left: 1.4em; }
+  .es-rules li { margin: .35em 0; }
+</style>
+
+<script>
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const form = document.getElementById('f') as HTMLFormElement;
+  const base = document.documentElement.dataset.base || '';
+  const L06 = `${base}/lessons/espresso/#s1`;
+  const L05 = `${base}/lessons/brewing/`;
+  const SRC: Record<string, [string, string]> = {
+    params: ['第 06 篇〈基本參數〉的短萃／標準／長萃表與〈定義〉的傳統定義', L06],
+    puck: ['第 06 篇〈粉餅準備〉', L06],
+    puck05: ['第 05 篇第 6 節〈味道問題排查〉「萃取不均」', `${L05}#s6`],
+    adjust: ['第 06 篇〈調整（Dial-in）〉第 2 步', L06],
+    q2: ['第 06 篇自我檢核 Q2', `${base}/lessons/espresso/#quiz`],
+    slow05: ['第 05 篇第 6 節「滴得非常慢：細粉多」', `${L05}#s6`],
+    adjust3: ['第 06 篇〈調整（Dial-in）〉第 3 步', L06],
+    order05: ['第 05 篇〈萃取順序〉', `${L05}#s1`],
+    conc05: ['第 05 篇〈兩個關鍵數字〉「太淡要加粉」', `${L05}#s1`],
+    ratio06: ['第 06 篇〈基本參數〉比例表「萃得越少越濃稠」', L06],
+    log05: ['第 05 篇第 8 節〈沖煮紀錄表〉', `${L05}#s8`],
+  };
+  const TAIL = '調完再萃一杯，只看這一項有沒有改善。';
+  const r1 = (x: number) => (Math.round(x * 10) / 10).toString();
+
+  function ratioMeaning(R: number) {
+    if (R < 1) return '比短萃（約 1:1 至 1:1.5）還短';
+    if (R <= 1.5) return '落在短萃（Ristretto，約 1:1 至 1:1.5）：濃稠、甜、酸較明顯';
+    if (R < 2.5) return '接近標準（Normale，約 1:2）：平衡';
+    if (R < 3) return '介於標準（約 1:2）和長萃（約 1:3 以上）之間';
+    return '落在長萃（Lungo，約 1:3 以上）：較淡、苦味增加';
+  }
+
+  // 規則表（panel-coffee 第 3 點），由上往下只採用第一條成立的
+  function decide(d: number, y: number, t: number, s: string, R: number, lo: number, hi: number) {
+    const short = t < lo, long = t > hi;
+    if (d < 14 || d > 22 || R < 1 || R > 3.5)
+      return { no: 0, h: '超出常見範圍，先不下判斷', p: `粉量 ${d}g、比例 1:${r1(R)}，${ratioMeaning(R)}。粉量常見起點是雙份 18 至 20g（舊的傳統定義是雙份 14 至 18g）。這個範圍以外，本工具的規則不一定適用。`, src: ['params'], tail: false };
+    if (s === 'both')
+      return { no: 1, h: '先檢查布粉和填壓，研磨先不動', p: '又酸又苦通常是通道效應：水從粉餅的縫隙竄過，部分粉萃取過度、部分不足。先讓粉在粉碗裡分布均勻（例如用 WDT 攪散結塊），再水平、一致地填壓。', src: ['puck', 'puck05'] };
+    if (short && s === 'bitter')
+      return { no: 2, h: '流得快卻苦，先檢查粉餅準備', p: `時間比你的目標短，照理應該偏酸；卻是苦的，兩者矛盾，常見原因是通道效應。先檢查布粉和填壓，研磨先不動。`, src: ['puck'] };
+    if (short)
+      return { no: 3, h: '把研磨調細一小格', p: `時間 ${t} 秒，比你的目標下限 ${lo} 秒短。粉量 ${d}g 和液重 ${y}g 都不變，只把研磨往細的方向調一小格（或你的磨豆機最小的一段），讓時間回到目標內再看味道。`, src: ['adjust', 'q2'] };
+    if (long)
+      return { no: 4, h: '把研磨調粗一小格', p: `時間 ${t} 秒，比你的目標上限 ${hi} 秒長。粉量和液重不變，只把研磨往粗的方向調一小格。`, src: ['adjust', 'slow05'] };
+    if (!s) return { no: -1, h: '時間在目標內，選一個味道', p: '時間已經在你的目標內。接下來看味道，選「嚐起來」的其中一個，才知道下一步。', src: ['adjust3'], tail: false };
+    if (s === 'sour')
+      return { no: 5, h: '拉長液重', p: `偏酸通常是萃取不足。粉量和研磨不變，下一杯多萃一點，例如 ${y}g → ${r1(y + 2)}g（約多 2g，這是示範幅度，不是規定）。`, src: ['adjust3', 'order05'] };
+    if (s === 'bitter')
+      return { no: 6, h: '縮短液重', p: `偏苦就縮短比例。粉量和研磨不變，下一杯少萃一點，例如 ${y}g → ${r1(y - 2)}g（約少 2g，示範幅度）。`, src: ['adjust3'] };
+    if (s === 'weak')
+      return { no: 7, h: '縮短液重（這是濃度問題）', p: `水水的是濃度不夠，不是萃取方向的問題。下一杯少萃一點，例如 ${y}g → ${r1(y - 2)}g（示範幅度）。如果不想讓量變少，另一個做法是在粉碗容量內加粉，同時維持比例 1:${r1(R)}；兩個做法一次只選一個。`, src: ['conc05', 'ratio06'] };
+    if (s === 'strong')
+      return { no: 8, h: '拉長液重', p: `太濃就讓比例拉長，例如 ${y}g → ${r1(y + 2)}g（示範幅度），粉量和研磨不變。`, src: ['ratio06', 'conc05'] };
+    return { no: 9, h: '不要動，記錄這組參數', p: `時間在目標內，味道平衡。把粉量 ${d}g、液重 ${y}g、${t} 秒和研磨刻度記下來，下次從這裡開始。`, src: ['log05'], tail: false };
+  }
+
+  function err(id: string, msg: string) {
+    document.getElementById(`${id}-err`)!.textContent = msg;
+    $(id).setAttribute('aria-invalid', String(!!msg));
+  }
+
+  function update() {
+    const num = (id: string) => ($(id).value.trim() === '' ? NaN : +$(id).value);
+    const d = num('d'), y = num('y'), t = num('t'), R0 = num('r'), lo = num('lo'), hi = num('hi');
+    const s = form.querySelector<HTMLInputElement>('input[name=s]:checked')?.value || '';
+    // 不阻止輸出，只提示確認
+    err('d', d > 0 && (d < 5 || d > 30) ? `粉量 ${d}g 不太常見，請確認數字` : $('d').value && !(d > 0) ? '請輸入大於 0 的數字' : '');
+    err('y', $('y').value && !(y > 0) ? '請輸入大於 0 的數字' : '');
+    err('t', t > 0 && (t < 5 || t > 90) ? `${t} 秒不太常見，請確認數字` : $('t').value && !(t > 0) ? '請輸入大於 0 的數字' : '');
+    const tgBad = !(R0 > 0) || !(lo > 0) || !(hi > 0) || lo > hi;
+    document.getElementById('tg-err')!.textContent = tgBad ? '目標比例和秒數要大於 0，下限不能大於上限' : '';
+    ['r', 'lo', 'hi'].forEach((id) => $(id).setAttribute('aria-invalid', String(tgBad)));
+    sync(s);
+
+    const out = document.getElementById('out')!, src = document.getElementById('src')!;
+    const oR = document.getElementById('o-r')!, oT = document.getElementById('o-t')!;
+    if (!(d > 0 && y > 0 && t > 0)) {
+      oR.textContent = d > 0 && y > 0 ? `1 : ${r1(y / d)}` : '–'; oT.textContent = '–';
+      out.textContent = '填入粉量、液重、秒數。';
+      src.textContent = '';
+      return;
+    }
+    const R = y / d;
+    oR.textContent = `1 : ${r1(R)}`;
+    if (tgBad) { oT.textContent = '–'; out.textContent = '請先修正目標比例或秒數。'; src.textContent = ''; return; }
+    oT.textContent = t < lo ? `短 ${r1(lo - t)} 秒` : t > hi ? `長 ${r1(t - hi)} 秒` : '在目標內';
+    const res = decide(d, y, t, s, R, lo, hi);
+    const vsRatio = Math.abs(R - R0) < 0.05 ? `和你的目標 1:${r1(R0)} 相同` : `你的目標是 1:${r1(R0)}`;
+    out.innerHTML = `<b>下一步：${res.h}</b><p>${res.p}</p>${res.tail === false ? '' : `<p>${TAIL}</p>`}<p class="muted" style="font-size:.85rem">比例 1:${r1(R)}（${vsRatio}）；時間 ${t} 秒，目標 ${lo} 至 ${hi} 秒。</p>`;
+    src.innerHTML = '出處：' + res.src.map((k) => `<a href="${SRC[k][1]}">${SRC[k][0]}</a>`).join('、');
+    out.dataset.rule = String(res.no);
+  }
+
+  function sync(s: string) {
+    const p = new URLSearchParams();
+    for (const id of ['d', 'y', 't']) if ($(id).value) p.set(id, $(id).value);
+    if (s) p.set('s', s);
+    if ($('r').value !== '2') p.set('r', $('r').value);
+    if ($('lo').value !== '25') p.set('lo', $('lo').value);
+    if ($('hi').value !== '30') p.set('hi', $('hi').value);
+    const q = p.toString();
+    history.replaceState(null, '', q ? `?${q}` : location.pathname);
+  }
+
+  // 從網址還原：?d=18&y=36&t=28&s=sour（目標改過時加 r、lo、hi）
+  const qs = new URLSearchParams(location.search);
+  for (const id of ['d', 'y', 't', 'r', 'lo', 'hi']) { const v = parseFloat(qs.get(id) || ''); if (v > 0) $(id).value = String(v); }
+  const s0 = qs.get('s');
+  const radio = s0 && form.querySelector<HTMLInputElement>(`input[name=s][value="${CSS.escape(s0)}"]`);
+  if (radio) radio.checked = true;
+  form.addEventListener('input', update);
+  form.addEventListener('change', update);
+  document.getElementById('copy')!.addEventListener('click', async () => {
+    const msg = document.getElementById('copy-msg')!;
+    try { await navigator.clipboard.writeText(location.href); msg.textContent = '已複製連結。網址裡就是你填的數字，沒有任何資料上傳。'; }
+    catch { msg.textContent = '無法自動複製，請直接複製瀏覽器網址列。網址裡就是你填的數字，沒有任何資料上傳。'; }
+  });
+  update();
+</script>

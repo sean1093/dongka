@@ -26,6 +26,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           <div><b id="ratio-out">–</b><span>實際液粉比</span></div>
         </div>
         <div class="verdict" id="verdict" aria-live="polite"></div>
+        <p style="margin:10px 0 0"><a class="btn btn-sm" id="to-log" href={`${base}/tools/brew-log/`}>存進沖煮紀錄</a> <span class="muted" style="font-size:.82rem">帶入粉重、液重與 TDS，到紀錄頁再補上豆子和味道。</span></p>
         <svg class="chart" id="chart" viewBox="0 0 520 380" role="img" aria-label="沖煮控制圖" style="margin-top:16px"></svg>
         <p class="muted" style="font-size:.82rem;margin:8px 0 0">金杯區採 SCA 參考範圍（萃取率 18–22%、TDS 1.15–1.35%）；歐洲版控制圖的濃度範圍較高，約 1.30–1.55%。不同地區與個人偏好不同，數字只是平均值，萃取是否均勻仍要靠嘴巴判斷。</p>
       </div>
@@ -81,8 +82,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     const dose = +$('dose').value, bev = +$('bev').value, tds = +$('tds').value, ratio = +$('ratio').value;
     const ey = (tds * bev) / dose;
     const valid = dose > 0 && bev > 0 && tds > 0;
-    $('ey').textContent = valid ? `${ey.toFixed(1)}%` : '–';
-    $('tds-out').textContent = valid ? `${tds.toFixed(2)}%` : '–';
+    // 判斷用畫面上顯示的值（萃取率一位小數、TDS 兩位小數），18.0% 與 22.0% 算在範圍內
+    const eyR = Math.round(ey * 10) / 10, tdsR = Math.round(tds * 100) / 100;
+    $('ey').textContent = valid ? `${eyR.toFixed(1)}%` : '–';
+    $('tds-out').textContent = valid ? `${tdsR.toFixed(2)}%` : '–';
     $('ratio-out').textContent = valid ? `1 : ${(bev / dose).toFixed(1)}` : '–';
     const v = document.getElementById('verdict')!;
     // 這張圖只適用濾泡式咖啡；數字離譜時不下判斷，免得給出錯的建議
@@ -92,11 +95,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     ['dose', 'bev', 'tds'].forEach((id) => $(id).setAttribute('aria-invalid', String(!(+$(id).value > 0) || ((espresso || odd) && id !== 'dose'))));
     const chart = document.getElementById('chart')!;
     if (plot) {
-      const row = tds > 1.35 ? 'strong' : tds < 1.15 ? 'weak' : 'ideal';
-      const col = ey < 18 ? 'under' : ey > 22 ? 'over' : 'ideal';
+      const row = tdsR > 1.35 ? 'strong' : tdsR < 1.15 ? 'weak' : 'ideal';
+      const col = eyR < 18 ? 'under' : eyR > 22 ? 'over' : 'ideal';
       const [h, p] = grid[`${row}-${col}`];
-      v.innerHTML = `<b>${h}</b>${p}`;
-      chart.setAttribute('aria-label', `沖煮控制圖：萃取率 ${ey.toFixed(1)}%、濃度 ${tds.toFixed(2)}%，${h}`);
+      const near = (eyR >= 17.5 && eyR <= 17.9) || (eyR >= 22.1 && eyR <= 22.5);
+      v.innerHTML = `<b>${h}</b>${p}${near ? '<br>接近邊界，數字的差別不大，用嘴巴判斷。' : ''}`;
+      chart.setAttribute('aria-label', `沖煮控制圖：萃取率 ${eyR.toFixed(1)}%、濃度 ${tdsR.toFixed(2)}%，${h}`);
     } else {
       v.innerHTML = espresso
         ? '<b>這張圖只適用濾泡式咖啡</b>義式濃縮的 TDS 通常在 8 到 12% 左右，不能用金杯區判斷。濃縮看萃取率就好。'
@@ -108,6 +112,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     document.getElementById('water-out')!.innerHTML =
       dose > 0 && ratio > 0 ? `粉水比 1:${ratio} → <b>${dose}g 粉配 ${Math.round(dose * ratio)}g 水</b>` : '';
     draw(plot ? ey : NaN, plot ? tds : NaN, dose, bev);
+    // 「存進沖煮紀錄」：把目前的數字帶到紀錄頁預填，不會自動存檔
+    const log = document.getElementById('to-log') as HTMLAnchorElement;
+    const p = new URLSearchParams({ from: 'extraction' });
+    if (dose > 0) p.set('dose', String(dose));
+    if (bev > 0) p.set('bev', String(bev));
+    if (tds > 0) p.set('tds', String(tds));
+    log.href = `${log.href.split('?')[0]}?${p}`;
   }
   // 用網址帶入與分享計算結果：?d=15&b=225&t=1.35&r=16
   const qs = new URLSearchParams(location.search);
