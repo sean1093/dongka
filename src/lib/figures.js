@@ -204,13 +204,14 @@ export const journey = () => {
     ['烘焙', '03', `<ellipse cx="30" cy="30" rx="15" ry="21" fill="#63391c" transform="rotate(25 30 30)"/><path d="M26 12 q10 18 0 36" fill="none" stroke="#2f1a0d" stroke-width="2.5" transform="rotate(25 30 30)"/>`],
     ['品飲', '04', `<path d="M14 18 h32 l-4 26 a8 8 0 0 1 -8 6 h-8 a8 8 0 0 1 -8 -6 z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18 26 h24 l-2.5 16 a6 6 0 0 1 -6 4 h-7 a6 6 0 0 1 -6 -4 z" fill="#63391c"/>`],
     ['沖煮', '05–06', `<path d="M10 10 L27 36 h6 L50 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 22 L27 36 h6 L41 22 Z" fill="#6b4226"/><path d="M30 40 v5" stroke="#6b4226" stroke-width="2.5" stroke-linecap="round"/><path d="M18 48 h24 v4 a6 6 0 0 1 -6 6 h-12 a6 6 0 0 1 -6 -6 z" fill="none" stroke="currentColor" stroke-width="2.5"/>`],
-    ['文化與產業', '07–11', `<path d="M12 22 h30 v14 a12 12 0 0 1 -12 12 h-6 a12 12 0 0 1 -12 -12 z" fill="#a8481f"/><path d="M42 26 h4 a6 6 0 0 1 0 12 h-5" fill="none" stroke="#a8481f" stroke-width="3"/><path d="M20 16 q-4 -5 0 -10 M30 16 q-4 -5 0 -10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".5"/>`],
+    ['文化與產業', '07–11', `<circle cx="30" cy="30" r="17" fill="none" stroke="currentColor" stroke-width="2.5"/><ellipse cx="30" cy="30" rx="7" ry="17" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 30 h34 M16 21 h28 M16 39 h28" stroke="currentColor" stroke-width="2"/>`],
+    ['日常', '12', `<path d="M12 22 h30 v14 a12 12 0 0 1 -12 12 h-6 a12 12 0 0 1 -12 -12 z" fill="#a8481f"/><path d="M42 26 h4 a6 6 0 0 1 0 12 h-5" fill="none" stroke="#a8481f" stroke-width="3"/><path d="M20 16 q-4 -5 0 -10 M30 16 q-4 -5 0 -10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".5"/>`],
   ];
-  return `<svg class="journey" viewBox="0 0 660 110" role="img" aria-label="從種子到杯子的六個階段：種植（第 01 到 02 篇）、處理（第 01 篇）、烘焙（第 03 篇）、品飲（第 04 篇）、沖煮（第 05 到 06 篇）、文化與產業（第 07 到 11 篇）">
+  return `<svg class="journey" viewBox="0 0 770 110" role="img" aria-label="從種子到杯子的七個階段：種植（第 01 到 02 篇）、處理（第 01 篇）、烘焙（第 03 篇）、品飲（第 04 篇）、沖煮（第 05 到 06 篇）、文化與產業（第 07 到 11 篇）、日常（第 12 篇）\">
     ${steps.map(([name, no, icon], i) => `<g transform="translate(${20 + i * 108} 6)">${icon}
       <text x="30" y="78" text-anchor="middle" class="t-b" style="font-size:14px">${name}</text>
       <text x="30" y="96" text-anchor="middle" class="t-a" style="font-size:12px">${no}</text>
-      ${i < 5 ? '<path d="M72 30 h22 m-7 -6 l7 6 l-7 6" class="lead" style="stroke-width:2"/>' : ''}</g>`).join('')}
+      ${i < steps.length - 1 ? '<path d="M72 30 h22 m-7 -6 l7 6 l-7 6" class="lead" style="stroke-width:2"/>' : ''}</g>`).join('')}
   </svg>`;
 };
 

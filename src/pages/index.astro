@@ -6,50 +6,50 @@ import { website } from '../lib/seo.js';
 const origin = (Astro.site?.origin || '').replace(/\/$/, '');
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const L = (id: string) => lessons.find((l) => l.id === id)!;
-const paths = [
-  { icon: '🏠', want: '我想在家沖出好喝的咖啡', how: '先讀萃取原理，照一套配方沖，再用排查表修正。', links: [[`/lessons/${L('05').slug}/`, '05 萃取與手沖'], ['/tools/timer/', '沖煮計時器'], ['/tools/troubleshoot/', '味道排查']] },
-  { icon: '🫘', want: '我想看懂豆子、學會挑豆', how: '從標籤上的品種、處理法、產區與烘焙度開始。', links: [[`/lessons/${L('01').slug}/`, '01 咖啡豆'], [`/lessons/${L('02').slug}/`, '02 產區'], ['/atlas/', '豆子圖鑑'], ['/practice/label/', '標籤練習']] },
-  { icon: '👃', want: '我想喝得出、說得出風味', how: '學一套描述的語言，再用杯測訓練感官。', links: [[`/lessons/${L('04').slug}/`, '04 風味與品飲'], ['/tools/cupping/', '杯測紀錄表'], ['/glossary/', '名詞辭典']] },
-  { icon: '🥛', want: '我想看懂咖啡店的菜單', how: '拿鐵、馥列白、Dirty、冷萃，到底差在哪。', links: [[`/lessons/${L('06').slug}/`, '06 義式與經典飲品'], [`/lessons/${L('08').slug}/`, '08 現代特調'], ['/drinks/', '飲品配方']] },
-  { icon: '💼', want: '我想往專業走，或是開店', how: '供應鏈、法規、台灣產業現況與開店的數字。', links: [[`/lessons/${L('09').slug}/`, '09 貿易與衛生'], [`/lessons/${L('10').slug}/`, '10 台灣咖啡'], [`/lessons/${L('11').slug}/`, '11 職涯與經營']] },
+// 依使用者需求排的入口（#15）：用讀者自己的話當標籤
+const entries = [
+  ['☕', '我剛拿到手沖器材，想沖第一杯', '一頁照著做，沒有秤也可以', '/first-cup/'],
+  ['🎯', '我在吧台工作，義式味道不對', '輸入粉量、液重、秒數，告訴你先調什麼', '/tools/espresso/'],
+  ['🌙', '我每天喝，想知道喝了多少咖啡因', '把今天喝的加起來，和官方參考值並列', '/tools/caffeine/'],
+  ['📈', '我想把豆子沖得更準', '萃取率、沖煮紀錄、杯測與計時器', '/tools/'],
+  ['🏪', '我想開咖啡館，先算會不會賺', '損益平衡試算與開店前的法規清單', '/tools/break-even/'],
+  ['🫘', '我想看懂豆子標籤與咖啡店菜單', '六條不用從頭讀到尾的入門路線', '/start/'],
+  ['❓', '我有具體的問題，直接查', '每題先用一兩句話回答', '/faq/'],
 ];
+
 ---
 <Base jsonld={website(origin, import.meta.env.BASE_URL.replace(/\/$/, ''))}>
   <section class="hero wrap">
     <p class="eyebrow">懂咖 Dongka · 咖啡自學課 12 篇</p>
     <h1>從喜歡喝，到喝得懂</h1>
-    <p class="lead">給喜歡喝咖啡、想知道「為什麼」的人。從種子到杯子，每一篇都從你喝得到的差異講起，附上可以照做的配方、名詞解釋與自我檢核。</p>
+    <p class="lead">給喜歡喝咖啡、想知道「為什麼」的人。從種子到杯子，每一篇都從你喝得到的差異講起。</p>
     <div class="hero-actions">
-      <a class="btn btn-primary" id="resume" href={`${base}/lessons/${lessons[0].slug}/`}>從第 01 篇開始</a>
+      <a class="btn btn-primary" href={`${base}/first-cup/`}>照著做第一杯手沖</a>
       <a class="btn" href={`${base}/start/`}>不知道從哪開始？</a>
     </div>
-    <div class="progress">
+    <p class="hero-sub"><a id="resume" href={`${base}/lessons/${lessons[0].slug}/`}>或從第 01 篇開始讀完整課程</a></p>
+    <div class="progress" id="progress" hidden>
       <div class="progress-bar"><i id="pbar"></i></div>
       <small id="ptext">已完成 0 / {lessons.length} 篇</small>
     </div>
-    <div class="journey-wrap" set:html={journey()} />
   </section>
 
   <section class="wrap" id="paths">
-    <h2 class="section-title">依你想做的事開始</h2>
-    <p class="muted" style="margin:0 0 20px">不一定要從第一篇讀起。挑一個最接近你現在想做的事。</p>
-    <div class="grid paths">
-      {paths.map((p) => (
-        <div class="card path">
-          <span class="ico" aria-hidden="true">{p.icon}</span>
-          <h3>{p.want}</h3>
-          <p>{p.how}</p>
-          <div class="path-links">{p.links.map(([href, label]) => <a href={`${base}${href}`}>{label}</a>)}</div>
-        </div>
-      ))}
-    </div>
+    <h2 class="section-title">我想……</h2>
+    <nav aria-label="我想做什麼">
+      <ul class="want-list">
+        {entries.map(([icon, label, hint, href]) => (
+          <li><a href={`${base}${href}`}><span class="ico" aria-hidden="true">{icon}</span><span><b>{label}</b><small>{hint}</small></span></a></li>
+        ))}
+      </ul>
+    </nav>
   </section>
 
   <section class="wrap">
     <h2 class="section-title">有問題，先查</h2>
     <p class="muted" style="margin:0 0 20px">不想讀長文的時候，直接看答案。</p>
     <div class="grid grid-2">
-      {[['❓', '常見問題', '養豆幾天、水溫幾度、太酸太苦怎麼辦。每題先用一兩句話回答。', '/faq/'], ['⚖️', '比一比', '水洗和日曬、淺焙和深焙、拿鐵和馥列白，一張表並排看。', '/compare/'], ['📋', '速查表', '手沖參數、味道排查、養豆保存、飲品比例，一頁一張可列印。', '/cheatsheets/'], ['🧭', '從這裡開始', '依你想做的事，六條不用從頭讀到尾的入門路線。', '/start/']].map(([icon, t, d, href]) => (
+      {[['❓', '常見問題', '養豆幾天、水溫幾度、太酸太苦怎麼辦。每題先用一兩句話回答。', '/faq/'], ['⚖️', '比一比', '水洗和日曬、淺焙和深焙、拿鐵和馥列白，一張表並排看。', '/compare/'], ['📋', '速查表', '手沖參數、味道排查、養豆保存、飲品比例，一頁一張可列印。', '/cheatsheets/']].map(([icon, t, d, href]) => (
         <a class="card tool-card" href={`${base}${href}`}>
           <span class="ico" aria-hidden="true">{icon}</span>
           <h3>{t}</h3>
@@ -62,6 +62,7 @@ const paths = [
   <section class="wrap">
     <h2 class="section-title">完整課程</h2>
     <p class="muted" style="margin:0 0 20px">照順序讀效果最好。每篇開頭有三個重點，標示「進階」的段落第一次可以先跳過。</p>
+    <div class="journey-wrap" set:html={journey()} />
     {stages.map((s) => (
       <div class="stage">
         <div class="stage-head">
@@ -74,7 +75,7 @@ const paths = [
             <a class="lesson-link" data-lesson={l.id} href={`${base}/lessons/${l.slug}/`}>
               <span class="no">{l.id}</span>
               <span class="t">{l.title}<small>{l.lede}</small></span>
-              <span class="check" aria-hidden="true">✓</span>
+              <span class="check" aria-hidden="true"></span>
             </a>
           ))}
         </div>
@@ -124,11 +125,16 @@ const paths = [
   import { getDone } from '../scripts/store.js';
   const done = getDone();
   const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-lesson]')];
-  links.forEach((a) => a.classList.toggle('done', done.includes(a.dataset.lesson!)));
+  links.forEach((a) => {
+    const on = done.includes(a.dataset.lesson!);
+    a.classList.toggle('done', on);
+    a.querySelector('.check')!.textContent = on ? '✓' : ''; // 未完成時不輸出 ✓，高對比模式才不會全部顯示
+  });
   const n = links.filter((a) => a.classList.contains('done')).length;
   (document.getElementById('pbar') as HTMLElement).style.width = `${(n / links.length) * 100}%`;
   document.getElementById('ptext')!.textContent = `已完成 ${n} / ${links.length} 篇`;
   const next = links.find((a) => !a.classList.contains('done'));
+  if (n > 0) (document.getElementById('progress') as HTMLElement).hidden = false;
   const resume = document.getElementById('resume') as HTMLAnchorElement;
   if (n > 0 && next) {
     resume.href = next.href;

@@ -35,7 +35,11 @@ const path = `${base}/faq/${f.slug}/`;
     <article class="prose">
       <div class="answer">
         <p>{f.short}</p>
-        <button type="button" class="btn btn-sm" data-copy={`${f.q}\n${f.short}`}>複製這段回答</button>
+        <div class="answer-share" data-pagefind-ignore>
+          <button type="button" class="btn btn-sm" data-share="native" hidden>分享這一題</button>
+          <button type="button" class="btn btn-sm" data-share="line">傳這一題到 LINE</button>
+          <button type="button" class="btn btn-sm" data-copy={`${f.q}\n${f.short}`}>複製回答與連結</button>
+        </div>
       </div>
       {f.body.map((p: string) => <p>{p}</p>)}
       {f.points.length > 0 && <ul class="points">{f.points.map((p: string) => <li>{p}</li>)}</ul>}

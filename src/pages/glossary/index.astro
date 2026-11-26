@@ -6,7 +6,7 @@ import { slugify } from '../../data/site.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const groups = [...new Set(glossary.map((g) => g.group))];
 ---
-<Base fullTitle="咖啡名詞辭典：70 個咖啡術語白話解釋｜懂咖" description="咖啡名詞白話解釋：悶蒸、萃取率、TDS、水洗、日曬、蜜處理、一爆、杯測、crema 等 70 個術語，每個都有延伸說明與相關名詞。">
+<Base fullTitle={`咖啡名詞辭典：${glossary.length} 個咖啡術語白話解釋｜懂咖`} description={`咖啡名詞白話解釋：悶蒸、萃取率、TDS、水洗、日曬、蜜處理、一爆、杯測、crema 等 ${glossary.length} 個術語，每個都有延伸說明與相關名詞。`}>
   <div class="wrap" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow">查詢</p>

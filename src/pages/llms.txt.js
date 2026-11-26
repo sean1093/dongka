@@ -11,7 +11,7 @@ export function GET({ site: origin }) {
   const txt = [
     `# ${site.name} ${site.nameEn}`,
     '',
-    `> 繁體中文（台灣）的咖啡自學網站：${site.tagline}。內容整理自學習筆記，做過一輪事實查核並在各篇附參考資料；最後查核 ${site.updated}。全部免費。`,
+    `> 繁體中文（台灣）的咖啡自學網站：${site.tagline}。內容整理自學習筆記。${site.checkLong}最近一次整體查核 ${site.updated}。全部免費。`,
     '',
     '## 課程',
     ...lessons.map((l) => li(`第 ${l.id} 篇 ${l.title}`, `/lessons/${l.slug}/`, l.seoDesc)),

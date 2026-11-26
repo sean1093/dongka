@@ -25,6 +25,8 @@ document.addEventListener('click', (e) => {
   }
   const c = e.target.closest('[data-copy]');
   if (c) copy(`${c.dataset.copy}\n（出處：懂咖 ${location.href.split('#')[0]}）`, c);
+  const sec = e.target.closest('[data-section-share]');
+  if (sec) shareSection(sec);
   const s = e.target.closest('.fig-save');
   if (s) saveFigure(s.closest('.fig'), s);
 });
@@ -97,4 +99,19 @@ async function saveFigure(fig, btn) {
   } catch {
     toast(btn, '這個瀏覽器不支援，請直接截圖');
   }
+}
+
+// 速查表的單一段落：分享標題、內容摘要與指向該段的網址（#16）
+async function shareSection(btn) {
+  const id = btn.dataset.sectionShare;
+  const el = document.getElementById(id);
+  if (!el) return;
+  const url = `${location.href.split('#')[0]}#${id}`;
+  const title = `${el.querySelector('h2')?.textContent.trim() || ''}｜${document.querySelector('h1')?.textContent.trim() || ''}`;
+  const body = [...el.querySelectorAll('tr, li')].map((n) => n.innerText.replace(/\s+/g, ' ').trim()).filter(Boolean).slice(0, 8).join('\n');
+  const text = `${title}\n${body}`;
+  if (navigator.share) {
+    try { await navigator.share({ title, text, url }); return; } catch { return; }
+  }
+  copy(`${text}\n（出處：懂咖 ${url}）`, btn);
 }

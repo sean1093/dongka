@@ -1,0 +1,307 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// 預設值只用第 12 篇與咖啡因速查表已引用的來源，數字照抄，不另外估計。
+const drinks = [
+  { id: 'filter', name: '濾泡咖啡', serving: '200ml', mg: 90, src: 'EFSA 參考值' },
+  { id: 'esp', name: '濃縮咖啡', serving: '一份 60ml', mg: 80, src: 'EFSA 參考值' },
+  { id: 'decaf', name: '低因咖啡', serving: '8 液量盎司（約 240ml）', mg: 15, src: '美國 FDA 寫 2 至 15 毫克，這裡取上限 15，偏保守' },
+  { id: 'tea', name: '紅茶', serving: '220ml', mg: 50, src: 'EFSA 參考值' },
+  { id: 'cola', name: '可樂', serving: '355ml', mg: 40, src: 'EFSA 參考值' },
+  { id: 'energy', name: '能量飲料', serving: '250ml', mg: 80, src: 'EFSA 參考值' },
+  { id: 'choc', name: '黑巧克力', serving: '50g', mg: 25, src: 'EFSA 咖啡因主題頁' },
+];
+---
+<Base fullTitle="今天喝的咖啡因加起來有多少？每日咖啡因加總器｜懂咖" description="把今天喝的咖啡、茶、可樂、能量飲料和店家紅黃綠標示的飲品加總，估算咖啡因約幾毫克，並和台灣食藥署、國健署、EFSA、FDA、加拿大的官方參考值並列對照。">
+  <div class="wrap" data-pagefind-body>
+    <header class="tool-head">
+      <p class="eyebrow">工具</p>
+      <h1>每日咖啡因加總器</h1>
+      <p class="muted">把今天喝的都加起來，再和各國官方的參考值並列。數字和出處都來自<a href={`${base}/lessons/everyday/`}>第 12 篇</a>與<a href={`${base}/cheatsheets/caffeine-quick-reference/`}>咖啡因速查表</a>。</p>
+    </header>
+    <div class="tool-layout cf">
+      <form class="card grid" id="f" onsubmit="return false">
+        <fieldset>
+          <legend>我是</legend>
+          <div class="chips">
+            <label class="chip-radio"><input type="radio" name="g" value="adult" checked /> 一般成人</label>
+            <label class="chip-radio"><input type="radio" name="g" value="preg" /> 懷孕或哺乳</label>
+            <label class="chip-radio"><input type="radio" name="g" value="kid" /> 兒童與青少年</label>
+          </div>
+          <label id="w-wrap" hidden style="margin-top:10px">體重（公斤）<input id="w" type="number" inputmode="decimal" min="1" step="0.1" aria-describedby="w-err" /></label>
+          <p class="err" id="w-err"></p>
+        </fieldset>
+
+        <fieldset>
+          <legend>一般飲品（每份的數字是參考值）</legend>
+          <ul class="cf-drinks">
+            {drinks.map((d) => (
+              <li>
+                <div class="cf-name"><b>{d.name}</b> <span class="muted">{d.serving}・約 {d.mg} 毫克</span><small class="muted">{d.src}</small></div>
+                <div class="stepper">
+                  <button class="btn btn-sm" type="button" data-step={d.id} data-d="-1" aria-label={`${d.name}少一份`}>−</button>
+                  <label class="sr-only" for={`n-${d.id}`}>{d.name}份數（份）</label>
+                  <input id={`n-${d.id}`} data-drink={d.id} data-mg={d.mg} type="number" inputmode="numeric" min="0" step="1" value="0" />
+                  <button class="btn btn-sm" type="button" data-step={d.id} data-d="1" aria-label={`${d.name}多一份`}>＋</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <label style="margin-top:12px">自己在家沖的濾泡咖啡，今天共幾 ml（毫升）<input id="ml" type="number" inputmode="decimal" min="0" step="10" placeholder="例如 300" aria-describedby="ml-err ml-note" /></label>
+          <p class="muted note" id="ml-note">用 EFSA 的 200ml 約 90 毫克換算（每 ml 約 0.45 毫克），是估計。美式、拿鐵請不要用 ml 換算，咖啡因看放了幾份濃縮，不看杯子大小。</p>
+          <p class="err" id="ml-err"></p>
+        </fieldset>
+
+        <fieldset>
+          <legend>超商、連鎖店的現調飲料</legend>
+          <p class="muted note" style="margin-top:0">看杯身或店內的咖啡因標示。台灣現行規定（2022 年公告、2023 年起適用）：紅標每杯 201 毫克以上、黃標 101 至 200 毫克、綠標 100 毫克以下。</p>
+          <div class="chips">
+            <button class="btn btn-sm" type="button" data-add="n">＋ 有標示最高值（自己填）</button>
+            <button class="btn btn-sm" type="button" data-add="g">＋ 綠標（以 100 毫克計）</button>
+            <button class="btn btn-sm" type="button" data-add="y">＋ 黃標（以 200 毫克計）</button>
+            <button class="btn btn-sm" type="button" data-add="r">＋ 紅標（要填毫克數）</button>
+          </div>
+          <p class="muted note">綠標、黃標用級距的上限計算，偏保守。紅標沒有上限，請填店內標示的數字。</p>
+          <ul class="cf-store" id="store"></ul>
+        </fieldset>
+
+        <label>其他（自己填毫克）<input id="other" type="number" inputmode="decimal" min="0" step="1" placeholder="例如包裝上寫的毫克數" aria-describedby="other-err" /></label>
+        <p class="err" id="other-err"></p>
+      </form>
+
+      <div class="card">
+        <div class="stat"><div><b id="total">–</b><span>今天的咖啡因估計</span></div></div>
+        <div class="verdict" id="out" aria-live="polite"></div>
+        <h2 class="h-sm" style="margin-top:18px" id="ref-h">官方參考值（一般成人）</h2>
+        <ul class="cf-refs" id="refs"></ul>
+        <p class="muted note">這些數字的意思是「在這個量以下，評估沒有發現安全疑慮」，不是建議喝到這個量，也不是人人適用的上限。每個人對咖啡因的敏感度和代謝速度差很多。</p>
+        <div class="chips" style="margin-top:12px">
+          <button class="btn btn-sm" type="button" id="copy">複製這組數字的連結</button>
+          <button class="btn btn-sm" type="button" id="reset">全部歸零</button>
+        </div>
+        <p class="muted note" id="copy-msg" role="status">網址裡就是你填的數字，沒有任何資料上傳。</p>
+      </div>
+    </div>
+    <aside class="callout" style="margin-top:24px">
+      <span class="callout-icon" aria-hidden="true">⚖️</span>
+      <div class="callout-body"><p>這是估計值，不是醫療建議；懷孕、哺乳、服藥或有健康狀況者請依醫師建議。完整說明見<a href={`${base}/lessons/everyday/`}>第 12 篇：日常喝咖啡</a>與<a href={`${base}/cheatsheets/caffeine-quick-reference/`}>咖啡因速查表</a>。</p></div>
+    </aside>
+  </div>
+</Base>
+
+<style is:global>
+  .cf fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .cf legend { font-weight: 700; padding: 0; margin-bottom: 8px; }
+  .cf .note { font-size: .84rem; margin: 6px 0 0; }
+  .cf .err { color: var(--accent); font-size: .85rem; font-weight: 600; margin: 4px 0 0; }
+  .cf .err:empty { display: none; }
+  .cf .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .chip-radio { position: relative; display: inline-flex; align-items: center; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: .92rem; font-weight: 600; padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+  .chip-radio input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+  .chip-radio:has(input:checked) { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip-radio:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cf-drinks, .cf-store, .cf-refs { list-style: none; padding: 0; margin: 0; }
+  .cf-drinks li, .cf-store li { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--line); }
+  .cf-drinks li:first-child { border-top: 0; }
+  .cf-name { min-width: 0; flex: 1 1 160px; }
+  .cf-name small { display: block; font-size: .78rem; }
+  .stepper { display: flex; align-items: center; gap: 4px; flex: none; }
+  .stepper input { width: 3.6em; text-align: center; margin: 0; padding: 6px 4px; }
+  .stepper .btn { min-width: 36px; justify-content: center; }
+  .cf-store li label { flex: 1 1 180px; }
+  .cf-refs li { padding: 10px 0; border-top: 1px solid var(--line); }
+  .cf-refs li:first-child { border-top: 0; }
+  .cf-refs .cmp { display: block; font-weight: 600; margin-top: 2px; }
+  .cf-refs small { color: var(--muted); }
+</style>
+
+<script>
+  type Group = 'adult' | 'preg' | 'kid';
+  type Ref = { auth: string; year: string; text: string; mg?: number; perKg?: number; single?: boolean };
+  // 第 12 篇〈各國官方建議〉表格，照抄機關、年份與數字
+  const REFS: Record<Group, Ref[]> = {
+    adult: [
+      { auth: '台灣食藥署', year: '2013（衛福部新聞稿）', mg: 300, text: '依歐盟食品科學專家委員會的評估，一天 300 毫克以下對健康不致造成影響' },
+      { auth: 'EFSA', year: '2015', mg: 400, text: '健康成人一天 400 毫克以內不構成安全疑慮' },
+      { auth: '美國 FDA', year: '2024 頁面更新', mg: 400, text: '多數成人一天 400 毫克一般不會帶來負面影響' },
+      { auth: 'Health Canada', year: '現行頁面', mg: 400, text: '成人一天 400 毫克' },
+      { auth: 'EFSA', year: '2015', mg: 200, single: true, text: '單次 200 毫克（約每公斤體重 3 毫克）以內不構成安全疑慮。這是「一次」喝下的量，不和一天的總量比較' },
+    ],
+    preg: [
+      { auth: '台灣國健署', year: '2021（衛福部新聞稿）', mg: 200, text: '孕婦一般建議一天最多不超過 200 毫克，懷孕最初 3 個月減少咖啡或茶的量；能不能喝、喝多少先請教醫師' },
+      { auth: 'EFSA', year: '2015', mg: 200, text: '孕婦、哺乳者一天 200 毫克以內不構成對胎兒的安全疑慮' },
+      { auth: 'Health Canada', year: '現行頁面', mg: 300, text: '懷孕、備孕、哺乳者一天 300 毫克' },
+      { auth: '美國 FDA', year: '2024 頁面更新', text: '未給數字，建議與醫療人員討論是否需要限制' },
+      { auth: '台灣食藥署', year: '2013（衛福部新聞稿）', text: '孕婦最好避免或減少' },
+    ],
+    kid: [
+      { auth: 'EFSA', year: '2015', perKg: 3, text: '兒童與青少年每公斤體重每天 3 毫克' },
+      { auth: 'Health Canada', year: '現行頁面', perKg: 2.5, text: '18 歲以下每公斤體重每天 2.5 毫克' },
+      { auth: '美國膳食指南（FDA 引用）', year: '2024 頁面更新', text: '2 歲以下兒童應避免含咖啡因飲料' },
+      { auth: '台灣食藥署', year: '2013（衛福部新聞稿）', text: '孩童最好避免或減少' },
+    ],
+  };
+  const GROUP_NAME: Record<Group, string> = { adult: '一般成人', preg: '懷孕或哺乳', kid: '兒童與青少年' };
+  const LABEL: Record<string, string> = { n: '標示最高值', g: '綠標', y: '黃標', r: '紅標' };
+  const FIXED: Record<string, number> = { g: 100, y: 200 };
+
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const form = document.getElementById('f') as HTMLFormElement;
+  const drinkInputs = [...document.querySelectorAll<HTMLInputElement>('input[data-drink]')];
+  const storeEl = document.getElementById('store')!;
+  let store: { c: string; mg: string }[] = [];
+
+  const group = (): Group => (form.querySelector<HTMLInputElement>('input[name=g]:checked')?.value as Group) || 'adult';
+  const num = (s: string) => (s.trim() === '' ? NaN : +s);
+  const fmt = (n: number) => Math.round(n).toLocaleString('zh-TW');
+  function setErr(input: HTMLInputElement, errId: string, msg: string) {
+    document.getElementById(errId)!.textContent = msg;
+    input.setAttribute('aria-invalid', String(!!msg));
+  }
+
+  function renderStore() {
+    storeEl.innerHTML = store.map((s, i) => {
+      const fixed = FIXED[s.c];
+      const id = `st-${i}`;
+      return `<li>${fixed
+        ? `<span><b>第 ${i + 1} 杯：${LABEL[s.c]}</b> <span class="muted">以 ${fixed} 毫克計（級距上限）</span></span>`
+        : `<label for="${id}">第 ${i + 1} 杯：${LABEL[s.c]}，標示的毫克數（毫克）<input id="${id}" data-st="${i}" type="number" inputmode="decimal" min="${s.c === 'r' ? 201 : 0}" step="1" value="${s.mg}" aria-describedby="${id}-err" /></label><p class="err" id="${id}-err" style="flex-basis:100%"></p>`}
+        <button class="btn btn-sm" type="button" data-rm="${i}" aria-label="移除第 ${i + 1} 杯店家飲品">移除</button></li>`;
+    }).join('');
+  }
+
+  function update() {
+    const g = group();
+    let total = 0, parts = 0;
+    const notes: string[] = [];
+    let upper = false;
+    drinkInputs.forEach((inp) => {
+      const n = Math.max(0, Math.floor(+inp.value || 0));
+      if (n) { total += n * +inp.dataset.mg!; parts++; if (inp.dataset.drink === 'decaf') upper = true; }
+    });
+    const ml = num($('ml').value);
+    if ($('ml').value && !(ml >= 0)) setErr($('ml'), 'ml-err', '請輸入 0 以上的數字');
+    else {
+      setErr($('ml'), 'ml-err', ml > 5000 ? '請確認是不是輸入錯了' : '');
+      if (ml > 0) { total += ml * 0.45; parts++; }
+    }
+    let missing = 0;
+    store.forEach((s, i) => {
+      if (FIXED[s.c]) { total += FIXED[s.c]; parts++; upper = true; return; }
+      const inp = document.getElementById(`st-${i}`) as HTMLInputElement | null;
+      const v = num(s.mg);
+      let msg = '';
+      if (!(v >= 0)) msg = s.c === 'r' ? '紅標沒有上限，請填店內標示的毫克數（201 以上）' : '請填店內標示的毫克數';
+      else if (s.c === 'r' && v < 201) msg = '紅標是每杯 201 毫克以上，請確認數字';
+      else if (v > 2000) msg = '請確認是不是輸入錯了';
+      if (inp) setErr(inp, `st-${i}-err`, msg);
+      if (v >= 0) { total += v; parts++; } else missing++;
+    });
+    const o = num($('other').value);
+    if ($('other').value && !(o >= 0)) setErr($('other'), 'other-err', '自填的毫克數不能是負數');
+    else {
+      setErr($('other'), 'other-err', o > 2000 ? '超過 2000 毫克，請確認是不是輸入錯了' : '');
+      if (o > 0) { total += o; parts++; }
+    }
+
+    // 體重（只用在兒童與青少年）
+    const wWrap = document.getElementById('w-wrap')!;
+    wWrap.hidden = g !== 'kid';
+    const w = num($('w').value);
+    const wOk = w > 0 && w <= 200;
+    setErr($('w'), 'w-err', g === 'kid' && $('w').value && !wOk ? '請輸入 1 到 200 之間的公斤數' : '');
+
+    total = Math.round(total);
+    $('total').textContent = parts || missing ? `約 ${fmt(total)} 毫克` : '–';
+    if (missing) notes.push(`還有 ${missing} 杯店家飲品沒填毫克數，沒有算進去。`);
+    if (upper) notes.push('綠標、黃標與低因咖啡用上限計算，總量可能偏高。');
+    const out = document.getElementById('out')!;
+    out.innerHTML = parts || missing
+      ? `<b>今天約 ${fmt(total)} 毫克（估計）</b>${notes.join('')}下面是${GROUP_NAME[g]}的官方參考值，並列給你對照。`
+      : '選一杯飲品開始加總。';
+
+    // 參考值並列
+    document.getElementById('ref-h')!.textContent = `官方參考值（${GROUP_NAME[g]}）`;
+    const cmp = (name: string, ref: number) => {
+      const r = Math.round(ref), d = total - r;
+      if (!(parts || missing)) return '';
+      return d > 0 ? `比${name}的參考值 ${fmt(r)} 毫克多 ${fmt(d)} 毫克` : d < 0 ? `比${name}的參考值 ${fmt(r)} 毫克少 ${fmt(-d)} 毫克` : `和${name}的參考值 ${fmt(r)} 毫克相同`;
+    };
+    document.getElementById('refs')!.innerHTML = REFS[g].map((r) => {
+      let line = '';
+      if (r.perKg) line = wOk ? `${r.perKg} × ${w} 公斤 = ${fmt(r.perKg * w)} 毫克。${cmp(r.auth, r.perKg * w)}` : '填入體重，就能換算成毫克';
+      else if (r.mg && !r.single) line = cmp(r.auth, r.mg);
+      return `<li><b>${r.auth}</b> <small>${r.year}</small><br>${r.text}${line ? `<span class="cmp">${line}</span>` : ''}</li>`;
+    }).join('');
+    sync();
+  }
+
+  function sync() {
+    const p = new URLSearchParams();
+    const a = drinkInputs.filter((i) => +i.value > 0).map((i) => `${i.dataset.drink}${Math.floor(+i.value)}`);
+    if (a.length) p.set('a', a.join('_'));
+    if (store.length) p.set('s', store.map((s) => s.c + (FIXED[s.c] ? '' : s.mg.replace(/[^\d.]/g, ''))).join('_'));
+    if (+$('ml').value > 0) p.set('ml', $('ml').value);
+    if (+$('other').value > 0) p.set('o', $('other').value);
+    const g = group();
+    if (g !== 'adult') p.set('g', g);
+    if (g === 'kid' && +$('w').value > 0) p.set('w', $('w').value);
+    const q = p.toString();
+    history.replaceState(null, '', q ? `?${q}` : location.pathname);
+  }
+
+  // 從網址還原：?a=filter2_esp1&s=g_r250&ml=300&o=50&g=kid&w=40
+  const qs = new URLSearchParams(location.search);
+  (qs.get('a') || '').split('_').forEach((x) => {
+    const m = x.match(/^([a-z]+)(\d{1,2})$/);
+    const inp = m && drinkInputs.find((i) => i.dataset.drink === m[1]);
+    if (inp) inp.value = String(+m![2]);
+  });
+  (qs.get('s') || '').split('_').forEach((x) => {
+    const m = x.match(/^([ngyr])(\d{0,4}(?:\.\d+)?)$/);
+    if (m && store.length < 20) store.push({ c: m[1], mg: FIXED[m[1]] ? '' : m[2] });
+  });
+  for (const [k, id] of [['ml', 'ml'], ['o', 'other'], ['w', 'w']]) { const v = parseFloat(qs.get(k) || ''); if (v > 0) $(id).value = String(v); }
+  const g0 = qs.get('g');
+  if (g0 === 'preg' || g0 === 'kid') form.querySelector<HTMLInputElement>(`input[name=g][value=${g0}]`)!.checked = true;
+  renderStore();
+
+  form.addEventListener('input', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.dataset.st) store[+t.dataset.st].mg = t.value;
+    update();
+  });
+  form.addEventListener('click', (e) => {
+    const t = (e.target as HTMLElement).closest('button');
+    if (!t) return;
+    if (t.dataset.step) {
+      const inp = $(`n-${t.dataset.step}`);
+      inp.value = String(Math.max(0, Math.min(99, (Math.floor(+inp.value) || 0) + +t.dataset.d!)));
+      update();
+    } else if (t.dataset.add) {
+      if (store.length >= 20) return;
+      store.push({ c: t.dataset.add, mg: '' });
+      renderStore();
+      update();
+      if (!FIXED[t.dataset.add]) (document.getElementById(`st-${store.length - 1}`) as HTMLInputElement)?.focus();
+    } else if (t.dataset.rm) {
+      store.splice(+t.dataset.rm, 1);
+      renderStore();
+      update();
+    }
+  });
+  document.getElementById('reset')!.addEventListener('click', () => {
+    drinkInputs.forEach((i) => (i.value = '0'));
+    store = [];
+    $('ml').value = '';
+    $('other').value = '';
+    renderStore();
+    update();
+  });
+  document.getElementById('copy')!.addEventListener('click', async () => {
+    const msg = document.getElementById('copy-msg')!;
+    try { await navigator.clipboard.writeText(location.href); msg.textContent = '已複製連結。網址裡就是你填的數字，沒有任何資料上傳。'; }
+    catch { msg.textContent = '無法自動複製，請直接複製瀏覽器網址列。網址裡就是你填的數字，沒有任何資料上傳。'; }
+  });
+  update();
+</script>

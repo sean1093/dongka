@@ -19,7 +19,7 @@ export const lessons = [
   { id: '08', slug: 'signature-drinks', stage: 5, title: '現代特調與咖啡創意飲品' , lede: '冷萃、氣泡、檸檬、通寧水、調酒。當咖啡變成一種材料，重點是讓其他東西放大它，而不是蓋掉它。', takeaways: ["冷萃、冰滴、冰手沖是三種不同原理的冷咖啡", "幾款經典特調與咖啡調酒的配方和成功關鍵", "用「呼應、對比、補完」設計自己的飲品"], advanced: [], seoTitle: '冷萃、冰滴、冰手沖差在哪？西西里、Dirty 與咖啡調酒做法', seoDesc: '冷萃咖啡怎麼做？冷萃、冰滴、冰手沖的差別，以及西西里咖啡、Dirty、Espresso Tonic、愛爾蘭咖啡、Espresso Martini 的配方與成功關鍵。' },
   { id: '09', slug: 'trade', stage: 6, title: '生豆貿易、包裝運輸與食品衛生' , lede: '一杯咖啡背後是一條橫跨半個地球的供應鏈。這一篇偏專業：生豆怎麼買賣、怎麼運、怎麼保存，以及做吃的該守的衛生規矩。', takeaways: ["生豆從農場到烘豆廠要經過哪些人、哪些環節", "包裝、運輸與倉儲如何決定豆子到手時的狀態", "咖啡價格的形成，以及食品衛生的基本要求"], advanced: [2, 5, 6], seoTitle: '咖啡生豆貿易與食品衛生：進口、包裝、倉儲與台灣法規重點', seoDesc: '咖啡生豆怎麼從產地到烘豆廠？整理供應鏈、生豆包裝與運輸、咖啡價格怎麼形成，以及台灣咖啡進口與食品衛生法規的重點。' },
   { id: '10', slug: 'taiwan', stage: 6, title: '台灣咖啡：產業的過去與未來' , lede: '台灣種咖啡已經超過一百年，產量很小、價格很高。它為什麼值得認識，又面對什麼樣的難題？', takeaways: ["台灣咖啡從日治時期到今天的發展脈絡", "主要產區、風味特色與產業的挑戰", "怎麼實際去拜訪、品嚐台灣咖啡"], advanced: [6], seoTitle: '台灣咖啡產區與歷史：阿里山、古坑、屏東，產量、特色與挑戰', seoDesc: '台灣咖啡有哪些產區？從日治時期到今天的發展、主要產區與風味特色、產量與自給率、評鑑制度，以及怎麼拜訪台灣咖啡莊園。' },
-  { id: '11', slug: 'career', stage: 6, title: '咖啡職涯與咖啡館經營' , lede: '想把興趣變成工作，或是開一間自己的店？先看清楚這個產業有哪些位置，以及一間咖啡館的帳怎麼算。', takeaways: ["咖啡產業有哪些職位與發展路徑", "證照、課程與比賽各自能帶給你什麼", "開店前該算清楚的數字"], advanced: [3, 6], seoTitle: '咖啡師職涯與開咖啡館：證照、比賽、成本與損益怎麼算', seoDesc: '想當咖啡師或開咖啡館（咖啡廳）？整理咖啡產業的職位、SCA 與 Q Grader 等證照、咖啡比賽，以及開店前要算清楚的成本與損益平衡。' },
+  { id: '11', slug: 'career', stage: 6, title: '咖啡職涯與咖啡館經營' , lede: '想把興趣變成工作，或是開一間自己的店？先看清楚這個產業有哪些位置，以及一間咖啡館的帳怎麼算。', takeaways: ["咖啡產業有哪些職位與發展路徑", "證照、課程與比賽各自能帶給你什麼", "開店前該算清楚的數字"], advanced: [6], seoTitle: '咖啡師職涯與開咖啡館：證照、比賽、成本與損益怎麼算', seoDesc: '想當咖啡師或開咖啡館（咖啡廳）？整理咖啡產業的職位、SCA 與 Q Grader 等證照、咖啡比賽，以及開店前要算清楚的成本與損益平衡。' },
   { id: '12', slug: 'everyday', stage: 7, title: '日常喝咖啡：咖啡因、低因、濾掛與保養', lede: '同樣是「一杯咖啡」，便利商店、手沖和膠囊的咖啡因可以差到好幾倍。這篇用官方數字告訴你怎麼估、喝多少算多、低因到底剩多少。', takeaways: ["一杯咖啡的咖啡因主要看粉量與粉水比", "官方每日參考：EFSA 400 毫克、台灣 300 毫克", "低因不等於零，器材的油脂與水垢要定期清"], advanced: [], seoTitle: '一杯咖啡有多少咖啡因？每天喝幾杯、低因與濾掛怎麼泡', seoDesc: '整理 EFSA、美國 FDA、加拿大與台灣食藥署的咖啡因建議量，說明一杯咖啡、濃縮、膠囊各含多少咖啡因、半衰期多久、低因咖啡還剩多少，以及濾掛水量怎麼算和咖啡器材的清潔保養。' },
 ];
 
@@ -29,6 +29,9 @@ export const tools = [
   { slug: 'extraction', kind: 'tool', path: '/tools/extraction/', icon: '📈', title: '萃取率計算機', desc: '輸入粉重、液重與 TDS，在沖煮控制圖上看這杯落在哪一格。' },
   { slug: 'brew-log', kind: 'tool', path: '/tools/brew-log/', icon: '📝', title: '沖煮紀錄', desc: '記下每一杯的參數與感受，存在你的瀏覽器裡，可匯出 CSV。' },
   { slug: 'cupping', kind: 'tool', path: '/tools/cupping/', icon: '🥄', title: '杯測紀錄表', desc: '照 100 分制杯測表打分數，自動加總並畫出雷達圖。' },
+  { slug: 'caffeine', kind: 'tool', path: '/tools/caffeine/', icon: '☕', title: '每日咖啡因加總', desc: '把今天喝的加起來，和各國官方的參考值並列。' },
+  { slug: 'espresso', kind: 'tool', path: '/tools/espresso/', icon: '🎯', title: '義式萃取調整', desc: '輸入粉量、液重、秒數與味道，告訴你下一步先調什麼。' },
+  { slug: 'break-even', kind: 'tool', path: '/tools/break-even/', icon: '🧮', title: '開店損益平衡試算', desc: '填入租金、人事與客單價，算出每天要多少客人才打平。' },
   { slug: 'plan', kind: 'practice', path: '/practice/plan/', icon: '🗓️', title: '手沖練習計畫 第 1 週', desc: '七天把通用配方練穩，找到你的基準配方。' },
   { slug: 'label', kind: 'practice', path: '/practice/label/', icon: '🏷️', title: '讀懂豆袋標籤', desc: '看標籤先預測風味，再對答案，共八題。' },
   { slug: 'review', kind: 'practice', path: '/practice/review/', icon: '🔁', title: '錯題複習', desc: '把各篇標記「還要再練」的題目集中重做，或隨機抽題。' },
