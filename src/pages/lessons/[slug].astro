@@ -216,22 +216,45 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
 
   // 進階段落：整體收合，或逐段展開
   const modeBtn = document.getElementById('mode-btn');
+  // 進階段落的標題包成按鈕，鍵盤與螢幕閱讀器也能展開（#7）
+  const advHeads = [...document.querySelectorAll<HTMLElement>('.sec[data-adv] > h2')];
+  const syncAdv = () => advHeads.forEach((h) => {
+    const b = h.querySelector('.adv-toggle');
+    if (!b) return;
+    const core = article.classList.contains('core-only');
+    b.setAttribute('aria-expanded', String(!core || h.parentElement!.classList.contains('open')));
+    if (core) b.removeAttribute('tabindex'); else b.setAttribute('tabindex', '-1');
+  });
+  advHeads.forEach((h) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'adv-toggle';
+    while (h.firstChild) b.append(h.firstChild);
+    h.append(b);
+    // 標題列其他地方（包括「點一下展開」提示）也能點
+    h.addEventListener('click', (e) => { if (e.target === h) b.click(); });
+    b.addEventListener('click', () => {
+      if (!article.classList.contains('core-only')) return;
+      h.parentElement!.classList.toggle('open');
+      syncAdv();
+    });
+  });
   const setMode = (core: boolean) => {
     article.classList.toggle('core-only', core);
     document.querySelectorAll('.sec[data-adv]').forEach((s) => s.classList.remove('open'));
     if (modeBtn) { modeBtn.setAttribute('aria-pressed', String(core)); modeBtn.textContent = core ? '展開進階段落' : '收合進階段落'; }
+    syncAdv();
   };
   modeBtn?.addEventListener('click', () => { const core = !article.classList.contains('core-only'); save('coreOnly', core); setMode(core); });
   // 手機上第一次造訪時預設收合進階段落，文章短很多；選擇過就照使用者的
   if (modeBtn) setMode(load('coreOnly', matchMedia('(max-width: 960px)').matches));
-  document.querySelectorAll<HTMLElement>('.sec[data-adv] > h2').forEach((h) =>
-    h.addEventListener('click', () => { if (article.classList.contains('core-only')) h.parentElement!.classList.toggle('open'); })
-  );
+  syncAdv();
   // 從目錄或連結跳到被收合的段落時自動展開
   const openTarget = () => {
     let t: Element | null = null;
     try { if (location.hash.length > 1) t = document.querySelector(location.hash); } catch {}
     t?.closest('.sec[data-adv]')?.classList.add('open');
+    syncAdv();
   };
   addEventListener('hashchange', openTarget);
   openTarget();

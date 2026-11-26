@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// 數字全部取自第 05 篇配方 A（15g、240g、1:16）；沒有秤的做法取自常見問題 no-scale-pour-over，不放未實測的湯匙克數
+const steps = [
+  ['0:00', '悶蒸', '注水 40g（沒有秤就倒到粉全部濕潤），輕搖濾杯。'],
+  ['0:40', '分段注水', '小水柱畫圓注到 140g，1:15 再注到 240g。'],
+  ['1:45', '等待', '輕搖一下讓粉面平整，等水滴完。'],
+  ['2:30', '完成', '2:30 至 3:00 滴完，移開濾杯，搖勻再喝。'],
+];
+---
+<Base fullTitle="第一杯手沖：照著做就好｜懂咖" description="第一次手沖照這張卡做：15g 咖啡粉配 240g 水，悶蒸、分段注水、等待，約三分鐘完成。沒有秤也有替代做法，太酸或太苦時知道下一杯該改什麼。">
+  <div class="wrap narrow" data-pagefind-body>
+    <header class="tool-head">
+      <p class="eyebrow">新手入口</p>
+      <h1>第一杯手沖：照著做就好</h1>
+      <p class="lede">照著做，沖不好也沒關係，下面有修正的方法。</p>
+    </header>
+
+    <h2 class="h-sm">準備</h2>
+    <section class="recipe" aria-labelledby="has-scale">
+      <h3 id="has-scale" class="h-sm">有秤</h3>
+      <ul class="points">
+        <li>咖啡粉 15g，中細研磨</li>
+        <li>水 240g（粉水比 1:16），淺焙 93°C、中焙 90°C</li>
+        <li>V60 濾杯與濾紙，先用熱水沖濕濾紙、溫杯</li>
+      </ul>
+    </section>
+    <section class="recipe" aria-labelledby="no-scale">
+      <h3 id="no-scale" class="h-sm">沒有秤</h3>
+      <ul class="points">
+        <li>水：1ml 約 1g，用量杯或壺上的刻度量 240ml。</li>
+        <li>粉：一般湯匙沒有可靠的克數。拿一包知道淨重的豆子，平匙舀完數匙數，淨重除以匙數就是一匙約幾克，再算 15g 要幾匙。</li>
+        <li>沒有溫度計：淺焙在煮滾的水倒進手沖壺後就沖，中焙、深焙多放一會兒。</li>
+      </ul>
+      <p><a href={`${base}/faq/no-scale-pour-over/`}>沒有秤怎麼沖：完整說明</a></p>
+    </section>
+
+    <h2 class="h-sm">四個步驟</h2>
+    <ol class="steps">
+      {steps.map(([t, name, text]) => <li><span class="time">{t}</span><span><b>{name}</b>：{text}</span></li>)}
+    </ol>
+    <p>想要有人幫你看時間，用<a href={`${base}/tools/timer/`}>沖煮計時器</a>的「V60 通用入門」，就是這組配方。</p>
+
+    <h2 class="h-sm">味道不對時</h2>
+    <ul class="points">
+      <li><b>太酸</b>（尖酸、單薄）：下一杯磨細一點，或把水溫提高。</li>
+      <li><b>太苦</b>（苦、澀、口腔乾）：下一杯磨粗一點，或把水溫降低。</li>
+    </ul>
+    <aside class="callout">
+      <span class="callout-icon" aria-hidden="true">🔬</span>
+      <div class="callout-body"><p>一次只改一項，記下來再沖一杯比較。其他症狀用<a href={`${base}/tools/troubleshoot/`}>味道排查</a>。</p></div>
+    </aside>
+
+    <p>想知道每一步為什麼這樣做，讀<a href={`${base}/lessons/brewing/`}>第 05 篇：萃取原理與手沖技巧</a>。</p>
+  </div>
+</Base>

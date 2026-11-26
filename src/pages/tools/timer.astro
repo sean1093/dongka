@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { recipes } from '../../data/recipes.js';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 <Base fullTitle="手沖咖啡計時器：V60、4:6 法、聰明濾杯配方，依粉量換算注水量｜懂咖" description="線上手沖咖啡計時器：內建 V60 通用配方、4:6 法、聰明濾杯、法式濾壓與冰手沖，輸入粉量自動換算每段注水量，跟著時間點操作。">
   <div class="wrap" data-pagefind-body>
@@ -8,6 +9,7 @@ import { recipes } from '../../data/recipes.js';
       <p class="eyebrow">工具</p>
       <h1>沖煮計時器</h1>
       <p class="muted">選配方、調粉量，注水量會等比例換算。秤上看到的是「累計水量」。</p>
+      <p class="muted">第一次手沖、手邊沒有秤？先看<a href={`${base}/first-cup/`}>第一杯手沖：照著做就好</a>。</p>
     </header>
     <div class="chips" id="picker" role="group" aria-label="配方">
       {recipes.map((r, i) => <button class="chip" type="button" data-key={r.key} aria-pressed={i === 0 ? 'true' : 'false'}>{r.name}</button>)}

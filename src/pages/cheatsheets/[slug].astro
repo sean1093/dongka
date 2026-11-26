@@ -28,12 +28,17 @@ const path = `${base}/cheatsheets/${s.slug}/`;
       <h1 data-pagefind-weight="8">{s.title}</h1>
       <p class="lede">{s.question}</p>
       <p class="muted">{s.intro}</p>
+      {s.slug === 'pour-over-parameters' && <p class="muted no-print">第一次沖、或是沒有秤？先看<a href={`${base}/first-cup/`}>第一杯手沖：照著做就好</a>。</p>}
       <button type="button" class="btn btn-sm no-print" onclick="window.print()">列印這一頁</button>
     </header>
     <article class="prose sheet">
-      {s.blocks.map((b: any) => (
-        <section>
-          <h2 class="h-sm">{b.heading}</h2>
+      {s.blocks.length > 3 && <p class="path-links sheet-jump" data-pagefind-ignore>{s.blocks.map((b: any, i: number) => <a href={`#b${i + 1}`}>{b.heading}</a>)}</p>}
+      {s.blocks.map((b: any, i: number) => (
+        <section id={`b${i + 1}`} class="sheet-sec">
+          <div class="sheet-head">
+            <h2 class="h-sm">{b.heading}</h2>
+            <button type="button" class="btn btn-sm" data-section-share={`b${i + 1}`} aria-label={`傳這一段：${b.heading}`} data-pagefind-ignore>傳這一段</button>
+          </div>
           {b.type === 'table' && (
             <div class="table-wrap">
               <table class:list={{ stack: b.head.length >= 3 }}>

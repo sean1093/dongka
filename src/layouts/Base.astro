@@ -11,11 +11,12 @@ const path = Astro.url.pathname;
 const origin = (Astro.site?.origin || '').replace(/\/$/, '');
 const canonical = `${origin}${path.endsWith('/') || path.includes('.') ? path : path + '/'}`;
 // 分享圖（scripts/og.mjs 產生）：這一頁自己的 → 所屬類別共用的 → 全站共用的
-const ogKey = path.slice(base.length).replace(/^\/|\/$/g, '').replace(/\//g, '--');
+const ogKey = path.slice(base.length).replace(/^\/|\/$/g, '').replace(/\//g, '--') || 'home';
 const ogPages: string[] = (ogList as any).pages || [];
 const ogShared: Record<string, string> = (ogList as any).shared || {};
 const ogName = ogPages.includes(ogKey) ? ogKey : ogShared[ogKey.split('--')[0]];
-const ogImage = `${origin}${base}/${ogName ? `og/${ogName}.jpg` : 'og.png'}`;
+// 沒有專屬圖的頁面用首頁那張（og.png 由同一支腳本產生，內容和首頁卡片一致）
+const ogImage = `${origin}${base}/og/${ogName || 'home'}.jpg`;
 const ld = (Array.isArray(jsonld) ? jsonld : [jsonld]).filter(Boolean);
 const nav = [
   { href: `${base}/`, label: '課程', on: path === `${base}/` || path.includes('/lessons/') },
@@ -89,7 +90,7 @@ const nav = [
           <a href={`${base}/privacy/`}>隱私權政策</a>
           <a href={`${base}/terms/`}>使用條款</a>
         </nav>
-        <p>懂咖（Dongka）從個人的咖啡學習筆記整理而成。內容做過一輪查核並附上參考資料，但不是經過審訂的教材；法規、價格與標準請以官方最新公告為準。</p>
+        <p>懂咖（Dongka）從個人的咖啡學習筆記整理而成。{site.checkShort}法規、價格與標準請以官方最新公告為準。</p>
         <p>學習進度與紀錄只存在你的瀏覽器裡，不會上傳。含酒精飲品請適量飲用，未滿 18 歲請勿飲酒。</p>
       </div>
     </footer>

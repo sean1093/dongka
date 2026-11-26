@@ -40,7 +40,7 @@ import Base from '../layouts/Base.astro';
   function summary() {
     const done = get(P + 'done') || [];
     const quiz = keys().filter((k) => k.startsWith(P + 'quiz:')).reduce((n, k) => n + Object.keys(get(k) || {}).length, 0);
-    const rows = [`已完成的課程：${done.length} 篇`, `作答過的自我檢核題：${quiz} 題`, `沖煮紀錄：${(get(P + 'brewlog') || []).length} 筆`, `杯測紀錄：${(get(P + 'cupping') || []).length} 筆`];
+    const rows = [`已完成的課程：${done.length} 篇`, `作答過的自我檢核題：${quiz} 題`, `沖煮紀錄：${(get(P + 'brewlog') || []).length} 筆`, `杯測紀錄：${(get(P + 'cupping') || []).length} 筆`, `損益平衡情境：${(get(P + 'breakeven') || []).length} 組`];
     document.getElementById('md-summary')!.innerHTML = rows.map(() => '<li></li>').join('');
     document.querySelectorAll('#md-summary li').forEach((li, i) => (li.textContent = rows[i]));
   }
@@ -68,10 +68,12 @@ import Base from '../layouts/Base.astro';
         const cur = get(P + k);
         let next = v;
         if (k === 'done') next = [...new Set([...(cur || []), ...(Array.isArray(v) ? v : [])])].sort();
-        else if (k === 'brewlog' || k === 'cupping') {
+        else if (k === 'brewlog' || k === 'cupping' || k === 'breakeven') {
           // 依每筆紀錄的 id 取聯集，不覆蓋現有的
           const ids = new Set((cur || []).map((x: any) => x.id));
           next = [...(cur || []), ...(Array.isArray(v) ? v : []).filter((x: any) => x && !ids.has(x.id))].sort((a: any, b: any) => String(b.at).localeCompare(String(a.at)));
+          // 損益平衡情境最多存 10 組（和試算頁一致），保留最新的
+          if (k === 'breakeven') next = next.slice(0, 10);
         } else if (k.startsWith('quiz:')) next = { ...(v || {}), ...(cur || {}) };
         else if (cur != null) continue; // 其他設定保留這台裝置現有的
         localStorage.setItem(P + k, JSON.stringify(next));
