@@ -430,6 +430,7 @@ export const originTable = (list = _origins.filter((o) => o.flavors.length), bas
     ${[...list].sort((a, b) => b.acidity - a.acidity || a.body - b.body).map((o) => `<div class="om-row" role="row">
       <span role="cell"><i class="om-c" style="background:${REGION_COLORS[o.region] || '#888'}"></i>${base === null ? o.name : `<a href="${base}/atlas/#o-${o.key}">${o.name}</a>`}</span>
       <span role="cell">${dots(o.acidity)}</span><span role="cell">${dots(o.body)}</span></div>`).join('')}
+    <p class="om-legend">${Object.entries(REGION_COLORS).map(([r, c]) => `<span><i class="om-c" style="background:${c}"></i>${r}</span>`).join('')}</p>
   </div>`;
 const originMap = () => wrap(originMapSvg() + originTable(), '各產區的典型印象（示意）：位置依課文的描述給分，同一個產區不同處理法與烘焙度會差很多。', 'fig-om');
 

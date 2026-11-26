@@ -466,3 +466,4 @@ details.adv-h3[open] > summary::after { content: "收合"; }
   .tp-fig .fig svg { min-width: 0; }
   .tp-fig .fig::before { content: none; }
 }
+.om-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .78rem; color: var(--muted); margin: 10px 0 0; }
