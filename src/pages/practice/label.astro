@@ -24,14 +24,14 @@ const labels = [
     why: ['蜜處理：保留果膠層乾燥，甜感與醇厚介於水洗和日曬之間', '中美洲水洗系的底子：平衡、乾淨', '中淺焙：酸甜平衡，甜感明顯'] },
   { title: '衣索比亞 古吉 G1', rows: [['產區', 'Guji'], ['品種', '原生種'], ['海拔', '2,000 m 以上'], ['處理', '日曬'], ['烘焙度', '淺焙']],
     acid: 'mid', body: 'mid', flavors: ['berry', 'floral'],
-    why: ['同樣是衣索比亞原生種，換成日曬：莓果與酒香變濃，乾淨度降低', '日曬讓甜感與醇厚提高，酸沒有水洗那麼銳利', '和第一題對照，就是「同產區、不同處理法」的差別'] },
+    why: ['同樣是衣索比亞原生種，換成日曬：莓果與酒香變濃，乾淨度降低', '日曬讓甜感與醇厚提高，酸沒有水洗那麼銳利', '和第一題對照：同一個國家、同樣是原生種，換成日曬。產區也不同（古吉不是耶加雪菲），所以不是嚴格的對照'] },
   { title: '哥倫比亞 薇拉', rows: [['產區', 'Huila'], ['品種', 'Caturra'], ['海拔', '1,600–1,900 m'], ['處理', '厭氧日曬'], ['烘焙度', '淺焙']],
     acid: 'mid', body: 'hi', flavors: ['berry', 'stone', 'spice'],
     why: ['厭氧發酵：濃郁的熱帶水果、酒香，有時帶肉桂般的香料感', '強度高，醇厚明顯', '這類豆子的風味有很大一部分來自發酵，而不是產地本身'] },
 ];
 ---
 <Base fullTitle="咖啡豆標籤怎麼看？八題互動練習：看標籤猜風味｜懂咖" description="咖啡豆包裝上的產區、品種、處理法、海拔、烘焙度怎麼看？八題互動練習，先看標籤預測酸質、口感與風味，再對答案看原因。">
-  <div class="wrap narrow">
+  <div class="wrap narrow" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow">練習</p>
       <h1>讀懂豆袋標籤</h1>
@@ -51,8 +51,8 @@ const labels = [
       <button class="btn btn-primary" id="lp-check" type="button" disabled>對答案</button>
     </form>
 
-    <div class="card" id="lp-result" hidden>
-      <h2 class="h-sm" id="lp-verdict"></h2>
+    <div class="card" id="lp-result" role="status" hidden>
+      <h2 class="h-sm" id="lp-verdict" tabindex="-1"></h2>
       <div id="lp-answer"></div>
       <p style="font-weight:700;margin:14px 0 4px">為什麼</p>
       <ul id="lp-why" style="margin:0;padding-left:1.3em"></ul>
@@ -124,6 +124,7 @@ const labels = [
     $('lp-next').textContent = i === labels.length - 1 ? '看結果' : '下一題';
     $('lp-score').textContent = `目前 ${score} 分`;
     $('lp-result').scrollIntoView({ block: 'nearest' });
+    $('lp-verdict').focus({ preventScroll: true }); // 鍵盤與螢幕閱讀器使用者直接落在結果上
   });
 
   $('lp-next').addEventListener('click', () => {

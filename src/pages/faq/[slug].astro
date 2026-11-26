@@ -27,36 +27,36 @@ const path = `${base}/faq/${f.slug}/`;
   shareText={`${f.q} ${f.short}`}
   jsonld={[breadcrumb(origin, [['懂咖', `${base}/`], ['常見問題', `${base}/faq/`], [f.q, path]]), article(origin, { headline: f.q, description: f.short, path })]}
 >
-  <div class="wrap narrow">
+  <div class="wrap narrow" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow"><a href={`${base}/faq/`}>常見問題</a> / {f.group}</p>
-      <h1>{f.q}</h1>
+      <h1 data-pagefind-weight="8">{f.q}</h1>
     </header>
-    <article class="prose" data-pagefind-body>
+    <article class="prose">
       <div class="answer">
         <p>{f.short}</p>
         <button type="button" class="btn btn-sm" data-copy={`${f.q}\n${f.short}`}>複製這段回答</button>
       </div>
       {f.body.map((p: string) => <p>{p}</p>)}
       {f.points.length > 0 && <ul class="points">{f.points.map((p: string) => <li>{p}</li>)}</ul>}
-      <p class="src">依據：<a href={`${base}/lessons/${lesson.slug}/`}>第 {lesson.id} 篇　{lesson.title}</a>「{f.section.replace(/^\d+\.\s*/, '')}」一節。最後查核 {site.updated}。</p>
+      <p class="src" data-pagefind-ignore>依據：<a href={`${base}/lessons/${lesson.slug}/`}>第 {lesson.id} 篇　{lesson.title}</a>「{f.section.replace(/^\d+\.\s*/, '')}」一節。最後查核 {site.updated}。</p>
 
       {terms.length > 0 && (
         <>
-          <h2 class="h-sm" style="margin-top:1.8em">提到的名詞</h2>
-          <ul class="rel-terms">{terms.map((t: any) => <li><a href={`${base}/glossary/${slugify(t.en)}/`}>{t.term}</a>：{t.def}</li>)}</ul>
+          <h2 class="h-sm" style="margin-top:1.8em" data-pagefind-ignore>提到的名詞</h2>
+          <ul class="rel-terms" data-pagefind-ignore>{terms.map((t: any) => <li><a href={`${base}/glossary/${slugify(t.en)}/`}>{t.term}</a>：{t.def}</li>)}</ul>
         </>
       )}
       {related.length > 0 && (
         <>
-          <h2 class="h-sm" style="margin-top:1.8em">接著可能想問</h2>
-          <ul class="rel-terms">{related.map((r: any) => <li><a href={`${base}/faq/${r.slug}/`}>{r.q}</a></li>)}</ul>
+          <h2 class="h-sm" style="margin-top:1.8em" data-pagefind-ignore>接著可能想問</h2>
+          <ul class="rel-terms" data-pagefind-ignore>{related.map((r: any) => <li><a href={`${base}/faq/${r.slug}/`}>{r.q}</a></li>)}</ul>
         </>
       )}
       {comps.length > 0 && (
         <>
-          <h2 class="h-sm" style="margin-top:1.8em">相關比較</h2>
-          <ul class="rel-terms">{comps.map((c) => <li><a href={`${base}/compare/${c.slug}/`}>{c.title}</a></li>)}</ul>
+          <h2 class="h-sm" style="margin-top:1.8em" data-pagefind-ignore>相關比較</h2>
+          <ul class="rel-terms" data-pagefind-ignore>{comps.map((c) => <li><a href={`${base}/compare/${c.slug}/`}>{c.title}</a></li>)}</ul>
         </>
       )}
     </article>

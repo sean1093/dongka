@@ -35,15 +35,15 @@ const desc = `${g.term}（${g.en}）是什麼？${g.def}${g.def.length < 40 ? ` 
     article(origin, { headline: `${g.term}是什麼？`, description: desc, path }),
   ]}
 >
-  <div class="wrap narrow">
+  <div class="wrap narrow" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow"><a href={`${base}/glossary/`}>名詞辭典</a> / {g.group}</p>
-      <h1>{g.term} <small class="h1-en">{g.en}</small></h1>
+      <h1 data-pagefind-weight="8">{g.term} <small class="h1-en">{g.en}</small></h1>
       <p class="lede">{g.def}</p>
       <button type="button" class="btn btn-sm" data-copy={`${g.term}（${g.en}）：${g.def}`}>複製這段解釋</button>
     </header>
     <SubNav current="glossary" />
-    <article class="prose" data-pagefind-body>
+    <article class="prose">
       {g.fig && figByKey[g.fig] && <Fragment set:html={figByKey[g.fig]()} />}
       <h2 class="h-sm">多說一點</h2>
       <p>{g.more}</p>
@@ -51,15 +51,15 @@ const desc = `${g.term}（${g.en}）是什麼？${g.def}${g.def.length < 40 ? ` 
       <p>{g.why}</p>
       {related.length > 0 && (
         <>
-          <h2 class="h-sm" style="margin-top:1.6em">相關名詞</h2>
-          <ul class="rel-terms">
+          <h2 class="h-sm" style="margin-top:1.6em" data-pagefind-ignore>相關名詞</h2>
+          <ul class="rel-terms" data-pagefind-ignore>
             {related.map((r: any) => <li><a href={`${base}/glossary/${slugify(r.en)}/`}>{r.term}</a>：{r.def}</li>)}
           </ul>
         </>
       )}
       {inLessons.length > 0 && (
         <>
-          <h2 class="h-sm" style="margin-top:1.6em">在哪一篇會讀到</h2>
+          <h2 class="h-sm" style="margin-top:1.6em" data-pagefind-ignore>在哪一篇會讀到</h2>
           <ul>{inLessons.map((l) => <li><a href={`${base}/lessons/${l.slug}/`}>第 {l.id} 篇　{l.title}</a></li>)}</ul>
         </>
       )}

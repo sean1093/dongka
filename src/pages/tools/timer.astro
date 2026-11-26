@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import { recipes } from '../../data/recipes.js';
 ---
 <Base fullTitle="手沖咖啡計時器：V60、4:6 法、聰明濾杯配方，依粉量換算注水量｜懂咖" description="線上手沖咖啡計時器：內建 V60 通用配方、4:6 法、聰明濾杯、法式濾壓與冰手沖，輸入粉量自動換算每段注水量，跟著時間點操作。">
-  <div class="wrap">
+  <div class="wrap" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow">工具</p>
       <h1>沖煮計時器</h1>
@@ -15,14 +15,15 @@ import { recipes } from '../../data/recipes.js';
     <div class="tool-layout" style="margin-top:20px">
       <div class="card">
         <div class="clock" id="clock" aria-live="off">0:00</div>
-        <p id="now" style="min-height:3.6em;font-weight:600;margin:.6em 0"></p>
+        <p id="now" aria-live="polite" style="min-height:3.6em;font-weight:600;margin:.6em 0"></p>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-primary btn-lg" id="start" type="button">開始</button>
           <button class="btn" id="reset" type="button">重設</button>
           <label class="check-inline"><input id="sound" type="checkbox" checked /> 換步驟時提示音</label>
         </div>
         <hr style="border:0;border-top:1px solid var(--line);margin:18px 0" />
-        <label>粉量（g）<input id="dose" type="number" inputmode="decimal" min="5" step="1" /></label>
+        <label>粉量（g）<input id="dose" type="number" inputmode="decimal" min="5" max="60" step="1" aria-describedby="dose-warn" /></label>
+        <p id="dose-warn" class="muted" role="status" style="font-size:.86rem;margin:6px 0 0"></p>
         <dl id="meta" style="font-size:.92rem;margin:14px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px"></dl>
       </div>
       <div class="card">
@@ -96,13 +97,20 @@ import { recipes } from '../../data/recipes.js';
   });
   const reset = () => { clearInterval(timer); started = 0; elapsed = 0; lastStep = -1; awake(false); el('start').textContent = '開始'; tick(); };
   el('reset').addEventListener('click', reset);
-  doseIn.addEventListener('input', render);
+  // 粉量離配方的基準太遠時，時間點就不準了
+  const warn = () => {
+    const k = +doseIn.value / r.dose;
+    el('dose-warn').textContent = k > 1.25 ? `比這個配方的基準（${r.dose}g）多很多：水量已換算，但滴完會變慢，研磨要調粗一點，時間點只能當參考。`
+      : k > 0 && k < 0.75 ? `比這個配方的基準（${r.dose}g）少很多：水量已換算，但滴完會變快，研磨要調細一點，時間點只能當參考。` : '';
+  };
+  doseIn.addEventListener('input', () => { render(); warn(); });
   el('picker').addEventListener('click', (e) => {
     const k = (e.target as HTMLElement).dataset.key;
     if (!k) return;
     r = recipes.find((x: any) => x.key === k);
     save('timer:recipe', k);
     doseIn.value = r.dose;
+    warn();
     reset();
     render();
   });

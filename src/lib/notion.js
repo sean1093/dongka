@@ -159,6 +159,14 @@ function postprocess(html, base, lesson) {
   const toc = [];
   let n = 0;
   if (lesson) html = placeFigures(html, lesson.id);
+  // 小節層級的進階內容：收成可展開的區塊，預設收合
+  if (lesson?.advancedH3?.length) {
+    html = html.replace(/<h3>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3>|<h2>|$)/g, (all, title, body) =>
+      lesson.advancedH3.some((k) => strip(title).includes(k))
+        ? `<details class="adv-h3"><summary><span class="adv-h3-t">${title}</span> <span class="badge">進階</span></summary>${body}</details>`
+        : all
+    );
+  }
   html = html.replace(/<h2>([\s\S]*?)<\/h2>/g, (_, inner) => {
     const id = `s${++n}`;
     const num = +(strip(inner).match(/^(\d+)\./) || [])[1];
@@ -205,6 +213,13 @@ export function renderLesson(src, base = '', lesson = null) {
   // 開頭的「學習目標」callout 由頁首的重點區塊取代
   const body = blocks(main).replace(/^\s*<aside class="callout callout-brown">[\s\S]*?學習目標[\s\S]*?<\/aside>/, '');
   const { html, toc } = postprocess(body + (quiz.length ? '' : quizIntro), base, lesson);
-  const minutes = Math.max(3, Math.round(strip(html).replace(/\s+/g, '').length / 420));
-  return { html, toc, quiz, minutes, extra: quiz.length ? postprocess(quizIntro, base).html : '' };
+  const len = (h) => strip(h).replace(/\s+/g, '').length;
+  const minutes = Math.max(3, Math.round(len(html) / 420));
+  // 核心閱讀時間：不含進階段落與參考資料
+  const core = html
+    .replace(/<section class="sec" data-adv>[\s\S]*?<\/section>/g, '')
+    .replace(/<section class="sec refs">[\s\S]*?<\/section>/g, '')
+    .replace(/<details class="adv-h3">[\s\S]*?<\/details>/g, '');
+  const coreMinutes = Math.max(3, Math.round(len(core) / 420));
+  return { html, toc, quiz, minutes, coreMinutes, extra: quiz.length ? postprocess(quizIntro, base).html : '' };
 }

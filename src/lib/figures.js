@@ -72,8 +72,8 @@ const roast = () => {
           <path d="M${x - 3} 22 q8 14 -2 28" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2" transform="rotate(20 ${x} 36)"/>
           <text x="${x}" y="128" text-anchor="middle" class="t-b">${n}</text>`;
       }).join('')}
-      <path d="M205 62 V112" class="lead" stroke-dasharray="4 3"/><text x="205" y="150" text-anchor="middle" class="t-a">一爆</text>
-      <path d="M470 62 V112" class="lead" stroke-dasharray="4 3"/><text x="470" y="150" text-anchor="middle" class="t-a">二爆</text>
+      <path d="M78 136 V141 H190 V136" class="lead"/><text x="134" y="158" text-anchor="middle" class="t-a">一爆（開始到結束）</text>
+      <path d="M470 62 V112" class="lead" stroke-dasharray="4 3"/><text x="470" y="158" text-anchor="middle" class="t-a">二爆</text>
       <path d="M40 186 H590" class="arrow"/><path d="M40 186 l10 -5 v10 z" class="arrowhead"/>
       <text x="40" y="176" class="t-s">← 越淺：酸質、花果香、產地特色越明顯</text>
       <path d="M50 226 H600" class="arrow"/><path d="M600 226 l-10 -5 v10 z" class="arrowhead"/>
@@ -128,8 +128,8 @@ const drinks = () => {
     ['Espresso', '濃縮', [[E, 18]]],
     ['瑪奇朵', '濃縮＋一匙奶泡', [[E, 18], [F, 7]]],
     ['可塔朵', '濃縮：牛奶 1:1', [[E, 30], [M, 30], [F, 3]]],
-    ['馥列白', '雙份濃縮、極薄奶泡', [[E, 30], [M, 52], [F, 4]]],
-    ['卡布奇諾', '奶泡厚', [[E, 28], [M, 34], [F, 24]]],
+    ['馥列白', '雙份濃縮、極薄奶泡', [[E, 36], [M, 46], [F, 4]]],
+    ['卡布奇諾', '奶泡厚', [[E, 36], [M, 28], [F, 22]]],
     ['拿鐵', '牛奶多、奶泡薄', [[E, 26], [M, 86], [F, 8]]],
     ['美式', '濃縮＋熱水', [[W, 80]]],
     ['摩卡', '加巧克力', [[C, 14], [E, 22], [M, 70], [F, 14]]],
@@ -253,7 +253,7 @@ const cuppingTimeline = () => {
 };
 
 const grindScale = () => {
-  const levels = [['粗', '法式濾壓、冷萃', 7, 5.5], ['中粗', '聰明濾杯、4:6 法', 12, 4.2], ['中細', '一般手沖', 20, 3.1], ['細', '摩卡壺、愛樂壓', 36, 2.1], ['極細', '義式濃縮', 70, 1.3]];
+  const levels = [['粗', '冷萃、4:6 法', 7, 5.5], ['中', '聰明濾杯、法式濾壓', 12, 4.2], ['中細', '一般手沖', 20, 3.1], ['細', '摩卡壺、愛樂壓', 36, 2.1], ['極細', '義式濃縮', 70, 1.3]];
   let seed = 7;
   const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
   return wrap(

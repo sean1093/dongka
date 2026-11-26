@@ -6,7 +6,7 @@ const cups = [['uniform', '一致性'], ['clean', '乾淨度'], ['sweet', '甜�
 const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料', '堅果可可', '甜', '其他'];
 ---
 <Base fullTitle="咖啡杯測表線上版：100 分制評分、自動加總與雷達圖｜懂咖" description="線上咖啡杯測表：依 100 分制為香氣、風味、餘韻、酸質、醇厚度打分數，自動加總、畫出雷達圖並存下紀錄，適合在家練習杯測。">
-  <div class="wrap">
+  <div class="wrap" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow">工具</p>
       <h1>杯測紀錄表</h1>
@@ -22,7 +22,7 @@ const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料
           </label>
         ))}
         <h2 class="h-sm" style="margin-top:18px">五杯檢查（每杯 2 分）</h2>
-        <p class="muted" style="font-size:.86rem;margin:0 0 8px">同一支豆子沖五杯。有問題的那一杯就取消勾選。只沖一杯練習時維持全勾即可。</p>
+        <p class="muted" style="font-size:.86rem;margin:0 0 8px">同一支豆子沖五杯。有問題的那一杯就取消勾選。只沖一杯練習時，一致性維持全勾；乾淨度與甜度仍照這一杯的表現判斷，有問題就取消一格。</p>
         {cups.map(([k, l]) => (
           <div class="cuprow"><span>{l}</span>
             {[0, 1, 2, 3, 4].map((n) => <input type="checkbox" class={`cup-${k}`} checked aria-label={`${l} 第 ${n + 1} 杯`} />)}
@@ -40,7 +40,7 @@ const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料
       </form>
       <div>
         <div class="card" style="position:sticky;top:76px">
-          <div class="stat"><div><b id="c-total">–</b><span>總分</span></div><div><b id="c-grade" style="font-size:1.15rem;line-height:2.4rem">–</b><span>參考等級</span></div></div>
+          <div class="stat"><div><b id="c-total">–</b><span>總分</span></div><div><b id="c-grade" style="font-size:1.15rem;line-height:2.4rem">–</b><span>參考等級（傳統 100 分制）</span></div></div>
           <svg id="c-radar" viewBox="0 0 300 260" class="chart" role="img" aria-label="七項評分雷達圖"></svg>
         </div>
         <div class="card" style="margin-top:16px">
@@ -69,7 +69,9 @@ const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料
     const total = Object.values(s).reduce((a, b) => a + b, 0) + Object.values(c).reduce((a, b) => a + b, 0) - defects;
     return { s, c, defects, total };
   }
-  const grade = (t: number) => (t >= 90 ? '傑出' : t >= 85 ? '極佳' : t >= 80 ? '精品等級' : '未達精品門檻');
+  // 分級名稱依第 04 篇：出自傳統 100 分制與 Q 體系，SCA 現行的 CVA 沒有這些分界
+  const grade = (t: number) => (t >= 90 ? '傑出' : t >= 85 ? '優秀' : t >= 80 ? '很好' : '未達 80 分');
+  let touched = false;
 
   function radar(s: Record<string, number>) {
     const cx = 150, cy = 128, R = 92, n = attrs.length;
@@ -87,8 +89,9 @@ const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料
   function update() {
     const { s, total } = read();
     attrs.forEach(([k]: string[]) => (document.getElementById(`o-${k}`)!.textContent = s[k].toFixed(2)));
-    $('c-total').textContent = total.toFixed(2);
-    $('c-grade').textContent = grade(total);
+    // 還沒動過任何評分之前不顯示總分，避免預設值看起來像一個評價
+    $('c-total').textContent = touched ? total.toFixed(2) : '–';
+    $('c-grade').textContent = touched ? grade(total) : '–';
     radar(s);
   }
 
@@ -101,7 +104,7 @@ const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料
       ${l.notes ? `<div>${esc(l.notes)}</div>` : ''}</div>`).join('') : '<p class="empty">還沒有紀錄。</p>';
   }
 
-  document.getElementById('cf')!.addEventListener('input', update);
+  document.getElementById('cf')!.addEventListener('input', (e) => { if ((e.target as HTMLElement).matches('input[type=range], input[type=checkbox], input[type=number]')) touched = true; update(); });
   document.getElementById('c-cats')!.addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest('.chip');
     if (b) b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));

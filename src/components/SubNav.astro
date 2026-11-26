@@ -7,6 +7,6 @@ const tabs = [
   ['glossary', '名詞辭典', '/glossary/'],
 ];
 ---
-<nav class="subnav" aria-label="查詢">
+<nav class="subnav" data-pagefind-ignore aria-label="查詢">
   {tabs.map(([k, label, href]) => <a href={`${base}${href}`} class:list={{ on: k === current }} aria-current={k === current ? 'page' : undefined}>{label}</a>)}
 </nav>

@@ -4,6 +4,9 @@ import { stages, lessons, tools } from '../../data/lessons.js';
 import { renderLesson } from '../../lib/notion.js';
 import { site } from '../../data/site.js';
 import { breadcrumb, article } from '../../lib/seo.js';
+import { faqs } from '../../data/faq.js';
+import { comparisons } from '../../data/compare.js';
+import { sheets } from '../../data/cheatsheets.js';
 
 export function getStaticPaths() {
   return lessons.map((l) => ({ params: { slug: l.slug }, props: { lesson: l } }));
@@ -13,13 +16,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const files = import.meta.glob('../../content/lessons/*.md', { query: '?raw', import: 'default', eager: true });
 const src = files[`../../content/lessons/${lesson.id}.md`] as string;
 if (!src) throw new Error(`找不到第 ${lesson.id} 篇的內容檔`);
-const { html, toc, quiz, extra, minutes } = renderLesson(src, base, lesson);
+const { html, toc, quiz, extra, minutes, coreMinutes } = renderLesson(src, base, lesson);
 const stage = stages.find((s) => s.id === lesson.stage)!;
 const i = lessons.indexOf(lesson);
 const prev = lessons[i - 1];
 const next = lessons[i + 1];
 const origin = (Astro.site?.origin || '').replace(/\/$/, '');
 const lpath = `${base}/lessons/${lesson.slug}/`;
+const relSheets = sheets.filter((x) => x.lessons.includes(lesson.id));
+const relFaqs = faqs.filter((x) => x.lesson === lesson.id).slice(0, 8);
+const relCmps = comparisons.filter((x) => x.lessons.includes(lesson.id)).slice(0, 5);
+const advQ: number[] = lesson.advancedQuiz || [];
 const hasMermaid = html.includes('class="mermaid"');
 const hasAdv = toc.some((t) => t.adv);
 // 讀完之後可以馬上動手的工具
@@ -35,32 +42,32 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
   description={lesson.seoDesc}
   ogType="article"
   jsonld={[
-    breadcrumb(origin, [['懂咖', `${base}/`], [`階段 ${stage.id} ${stage.name}`, `${base}/`], [lesson.title, lpath]]),
+    breadcrumb(origin, [['懂咖', `${base}/`], [lesson.title, lpath]]),
     article(origin, { headline: lesson.seoTitle, description: lesson.seoDesc, path: lpath }),
   ]}
 >
   <div class="read-bar" aria-hidden="true"><i id="read-bar"></i></div>
-  <div class="wrap">
+  <div class="wrap" data-pagefind-body>
     <header class="lesson-head">
       <p class="eyebrow"><a href={`${base}/`}>課程</a> / 階段 {stage.id} {stage.name} / 第 {lesson.id} 篇</p>
       <h1>{lesson.title}</h1>
       <p class="lede">{lesson.lede}</p>
       <p class="meta">
-        <span>約 {minutes} 分鐘</span>
+        {coreMinutes < minutes - 2 ? <span>核心約 {coreMinutes} 分鐘，全文約 {minutes} 分鐘</span> : <span>約 {minutes} 分鐘</span>}
         <span>{quiz.length} 題自我檢核</span>
         {hasAdv && <span>含進階段落</span>}
         <span>最後查核 <time datetime={site.updated}>{site.updated}</time></span>
       </p>
     </header>
     <div class="lesson-layout">
-      <article class="prose" data-lesson={lesson.id} data-pagefind-body>
-        <div class="takeaways">
+      <article class="prose" data-lesson={lesson.id}>
+        <div class="takeaways" data-pagefind-ignore>
           <strong>先記住這三件事</strong>
           <ol>{lesson.takeaways.map((t: string) => <li>{t}</li>)}</ol>
         </div>
 
-        <details class="toc-mobile">
-          <summary>本篇目錄</summary>
+        <details class="toc-mobile" data-pagefind-ignore>
+          <summary>本篇目錄<span id="toc-now"></span></summary>
           <nav>
             {toc.map((t) => <a href={`#${t.id}`}>{t.text}{t.adv && <span class="badge">進階</span>}</a>)}
             {quiz.length > 0 && <a href="#quiz">自我檢核</a>}
@@ -91,7 +98,7 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
             <p class="muted">先在心裡（或說出口）回答，再看參考答案，然後誠實標記自己答得如何。</p>
             {quiz.map((q, n) => (
               <div class="qcard" data-q={n}>
-                <p class="q"><span>{q.label}</span><span style="color:inherit;font-family:inherit;flex:1" set:html={q.q} /></p>
+                <p class="q"><span>{q.label}</span>{advQ.includes(n + 1) && <span class="badge" style="align-self:center;margin:0">進階</span>}<span style="color:inherit;font-family:inherit;flex:1" set:html={q.q} /></p>
                 <div class="a" set:html={q.a} />
                 <button class="btn btn-sm reveal" type="button">看參考答案</button>
                 <div class="rate">
@@ -102,6 +109,15 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
               </div>
             ))}
             <Fragment set:html={extra} />
+          </section>
+        )}
+
+        {(relSheets.length + relFaqs.length + relCmps.length) > 0 && (
+          <section class="next-do rel-quick" data-pagefind-ignore>
+            <h2>這一篇的速查頁</h2>
+            {relSheets.length > 0 && <p class="path-links">{relSheets.map((x) => <a href={`${base}/cheatsheets/${x.slug}/`}>{x.title}</a>)}</p>}
+            {relCmps.length > 0 && <p class="path-links">{relCmps.map((x) => <a href={`${base}/compare/${x.slug}/`}>{x.title.replace(/？$/, '')}</a>)}</p>}
+            {relFaqs.length > 0 && <ul class="rel-terms">{relFaqs.map((x) => <li><a href={`${base}/faq/${x.slug}/`}>{x.q}</a></li>)}</ul>}
           </section>
         )}
 
@@ -130,7 +146,7 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
         </nav>
       </article>
 
-      <aside class="toc" aria-label="本篇目錄">
+      <aside class="toc" aria-label="本篇目錄" data-pagefind-ignore>
         <strong>本篇目錄</strong>
         {toc.map((t) => <a href={`#${t.id}`}>{t.text}{t.adv && <span class="badge">進階</span>}</a>)}
         {quiz.length > 0 && <a href="#quiz">自我檢核</a>}
@@ -140,12 +156,23 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
   <div class="term-pop" id="term-pop" role="tooltip" hidden></div>
   {hasMermaid && (
     <script>
-      import mermaid from 'mermaid';
-      const dark = document.documentElement.dataset.theme
+      // 流程圖用到的程式很大：等圖快進入畫面才載入，並跟著深淺色重畫
+      const pres = [...document.querySelectorAll<HTMLElement>('pre.mermaid')];
+      pres.forEach((p) => (p.dataset.src = p.textContent || ''));
+      const isDark = () => document.documentElement.dataset.theme
         ? document.documentElement.dataset.theme === 'dark'
         : matchMedia('(prefers-color-scheme: dark)').matches;
-      mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'neutral', securityLevel: 'strict', fontFamily: 'system-ui, sans-serif' });
-      mermaid.run({ querySelector: 'pre.mermaid' });
+      let lib: any = null;
+      async function draw() {
+        lib ||= (await import('mermaid')).default;
+        pres.forEach((p) => { p.textContent = p.dataset.src!; p.removeAttribute('data-processed'); });
+        lib.initialize({ startOnLoad: false, theme: isDark() ? 'dark' : 'neutral', securityLevel: 'strict', fontFamily: 'system-ui, sans-serif' });
+        await lib.run({ nodes: pres });
+        pres.forEach((p) => p.querySelector('svg')?.setAttribute('aria-label', '流程圖：' + p.dataset.src!.replace(/<br\s*\/?>/g, ' ').match(/"[^"]+"/g)?.map((x) => x.slice(1, -1)).join('、')));
+      }
+      const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); draw(); } }, { rootMargin: '800px' });
+      pres.forEach((p) => io.observe(p));
+      document.addEventListener('themechange', () => { if (lib) draw(); });
     </script>
   )}
 </Base>
@@ -195,7 +222,8 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
     if (modeBtn) { modeBtn.setAttribute('aria-pressed', String(core)); modeBtn.textContent = core ? '展開進階段落' : '收合進階段落'; }
   };
   modeBtn?.addEventListener('click', () => { const core = !article.classList.contains('core-only'); save('coreOnly', core); setMode(core); });
-  if (modeBtn) setMode(load('coreOnly', false));
+  // 手機上第一次造訪時預設收合進階段落，文章短很多；選擇過就照使用者的
+  if (modeBtn) setMode(load('coreOnly', matchMedia('(max-width: 960px)').matches));
   document.querySelectorAll<HTMLElement>('.sec[data-adv] > h2').forEach((h) =>
     h.addEventListener('click', () => { if (article.classList.contains('core-only')) h.parentElement!.classList.toggle('open'); })
   );
@@ -250,7 +278,12 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
   const links = [...document.querySelectorAll<HTMLAnchorElement>('.toc a')];
   const io = new IntersectionObserver(
     (es) => es.forEach((e) => {
-      if (e.isIntersecting) links.forEach((a) => a.classList.toggle('on', a.hash === `#${e.target.id}`));
+      if (e.isIntersecting) {
+        links.forEach((a) => a.classList.toggle('on', a.hash === `#${e.target.id}`));
+        const now = document.getElementById('toc-now');
+        const t = e.target.id === 'quiz' ? '自我檢核' : (e.target.textContent || '').replace('進階', '').trim();
+        if (now) now.textContent = ` · ${t}`;
+      }
     }),
     { rootMargin: '-80px 0px -70% 0px' }
   );

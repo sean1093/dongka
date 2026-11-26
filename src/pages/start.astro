@@ -3,25 +3,30 @@ import Base from '../layouts/Base.astro';
 import { lessons } from '../data/lessons.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const L = (id: string) => lessons.find((l) => l.id === id)!;
+// 課名一律取自 lessons.js，避免和課程頁的標題對不上
+const T = (id: string, extra = '') => `第 ${id} 篇　${L(id).title}${extra}`;
+const P = (id: string, hash = '') => `/lessons/${L(id).slug}/${hash}`;
 const paths = [
   { icon: '🏠', title: '我剛買了手沖器材', out: '走完之後，你能穩定沖出一杯，並知道太酸、太苦時該改什麼。', steps: [
-    ['讀', `/lessons/${L('05').slug}/`, '第 05 篇　萃取原理與手沖技巧（前六節就夠）'], ['查', '/cheatsheets/pour-over-parameters/', '手沖參數速查表'], ['做', '/tools/timer/', '用沖煮計時器照配方沖一杯'],
-    ['修', '/tools/troubleshoot/', '不好喝時用味道排查'], ['練', '/practice/plan/', '手沖練習計畫第 1 週'], ['讀', `/lessons/${L('03').slug}/`, '第 03 篇的「養豆與保存」一節']] },
+    ['讀', P('05'), T('05', '（先讀核心段落，標「進階」的可以跳過）')], ['存', P('03', '#s8'), '第 03 篇的「養豆與保存」一節：豆子買回來先放對地方'],
+    ['查', '/cheatsheets/pour-over-parameters/', '手沖參數速查表'], ['做', '/tools/timer/', '用沖煮計時器照配方沖一杯'],
+    ['修', '/tools/troubleshoot/', '不好喝時用味道排查'], ['練', '/practice/plan/', '手沖練習計畫第 1 週']] },
   { icon: '🫘', title: '我看不懂咖啡豆的標籤', out: '走完之後，你能在開封前猜到一包豆子大概的味道。', steps: [
-    ['讀', `/lessons/${L('01').slug}/`, '第 01 篇　咖啡豆：品種與處理法'], ['比', '/compare/', '比一比：水洗、蜜處理、日曬'], ['讀', `/lessons/${L('02').slug}/`, '第 02 篇　產區（先看速查表那一節）'],
+    ['讀', P('01'), T('01')], ['比', '/compare/washed-vs-honey-vs-natural/', '比一比：水洗、蜜處理、日曬差在哪'], ['查', P('02', '#s6'), '第 02 篇的「產區風味速查表」一節'],
     ['查', '/atlas/', '豆子圖鑑：依喜歡的味道找產區'], ['練', '/practice/label/', '讀懂豆袋標籤，八題']] },
   { icon: '🥛', title: '我想看懂咖啡店的菜單', out: '走完之後，你知道拿鐵、馥列白、Dirty、冷萃各是什麼，點得出自己想喝的。', steps: [
-    ['讀', `/lessons/${L('06').slug}/`, '第 06 篇　義式濃縮與經典飲品'], ['查', '/drinks/', '飲品配方：三十多款的組成'], ['讀', `/lessons/${L('08').slug}/`, '第 08 篇　冷咖啡與現代特調'], ['查', '/cheatsheets/espresso-drink-ratios/', '義式飲品比例速查表']] },
+    ['讀', P('06'), T('06')], ['查', '/drinks/', '飲品配方：三十多款的組成'], ['讀', P('08'), T('08')], ['查', '/cheatsheets/espresso-drink-ratios/', '義式飲品比例速查表']] },
   { icon: '👃', title: '我想喝得出、說得出風味', out: '走完之後，你有一套描述咖啡的語言，也做過一次杯測。', steps: [
-    ['讀', `/lessons/${L('04').slug}/`, '第 04 篇　風味分析與品飲'], ['查', '/cheatsheets/flavour-vocabulary/', '風味描述速查表'], ['做', '/tools/cupping/', '用杯測紀錄表杯測兩支豆子'], ['讀', `/lessons/${L('03').slug}/`, '第 03 篇　烘焙如何改變風味']] },
+    ['讀', P('04'), T('04')], ['查', '/cheatsheets/flavour-vocabulary/', '風味描述速查表'], ['做', '/tools/cupping/', '用杯測紀錄表杯測兩支豆子'], ['讀', P('03'), T('03')]] },
   { icon: '☕', title: '我只是每天喝，想知道自己喝了什麼', out: '走完之後，你估得出自己一天喝了多少咖啡因，也會泡濾掛、保存豆子。', steps: [
-    ['讀', `/lessons/${L('12').slug}/`, '第 12 篇　咖啡因、低因、濾掛與保養'], ['查', '/cheatsheets/caffeine-quick-reference/', '咖啡因速查表'], ['讀', `/lessons/${L('03').slug}/`, '第 03 篇的「養豆與保存」一節'], ['查', '/faq/', '常見問題']] },
+    ['讀', P('12'), T('12')], ['查', '/cheatsheets/caffeine-quick-reference/', '咖啡因速查表'], ['讀', P('03', '#s8'), '第 03 篇的「養豆與保存」一節'], ['查', '/faq/', '常見問題']] },
   { icon: '💼', title: '我想往專業走，或是開店', out: '走完之後，你看得懂供應鏈與法規的輪廓，也知道開店前該算哪些數字。', steps: [
-    ['讀', `/lessons/${L('11').slug}/`, '第 11 篇　職涯與咖啡館經營'], ['讀', `/lessons/${L('09').slug}/`, '第 09 篇　生豆貿易與食品衛生'], ['讀', `/lessons/${L('10').slug}/`, '第 10 篇　台灣咖啡'], ['讀', `/lessons/${L('07').slug}/`, '第 07 篇　世界咖啡文化與歷史']] },
+    ['讀', P('11'), T('11')], ['讀', P('09'), T('09')], ['讀', P('10'), T('10')], ['讀', P('07'), T('07')]] },
 ];
+
 ---
-<Base fullTitle="咖啡新手從哪裡開始學？六條入門路線｜懂咖" description="不知道咖啡要從哪裡開始學？依你想做的事選一條路線：在家手沖、看懂豆袋標籤、看懂咖啡店菜單、學會描述風味、往專業或開店。">
-  <div class="wrap narrow">
+<Base fullTitle="咖啡新手從哪裡開始學？六條入門路線｜懂咖" description="不知道咖啡要從哪裡開始學？依你想做的事選一條路線：在家手沖、看懂豆袋標籤、看懂咖啡店菜單、學會描述風味、了解每天喝進多少咖啡因、往專業或開店。">
+  <div class="wrap narrow" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow">新手入口</p>
       <h1>從這裡開始</h1>

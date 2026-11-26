@@ -3,6 +3,6 @@ const { current } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const tabs = [['faq', '常見問題', '/faq/'], ['compare', '比一比', '/compare/'], ['cheatsheets', '速查表', '/cheatsheets/']];
 ---
-<nav class="subnav" aria-label="速查">
+<nav class="subnav" data-pagefind-ignore aria-label="速查">
   {tabs.map(([k, label, href]) => <a href={`${base}${href}`} class:list={{ on: k === current }} aria-current={k === current ? 'page' : undefined}>{label}</a>)}
 </nav>
