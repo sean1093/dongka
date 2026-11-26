@@ -16,21 +16,21 @@ const src = s.lessons.map((id: string) => lessons.find((l) => l.id === id)).filt
 const path = `${base}/cheatsheets/${s.slug}/`;
 ---
 <Base
-  fullTitle={`${s.title}：${s.question.replace(/？$/, '')}｜懂咖`}
+  fullTitle={`${s.title}${s.question.length <= 22 ? `：${s.question.replace(/？$/, '')}` : '：一頁看完'}｜懂咖`}
   description={`${s.question}${s.intro}`}
   ogType="article"
   shareText={`${s.title}｜${s.question}`}
   jsonld={[breadcrumb(origin, [['懂咖', `${base}/`], ['速查表', `${base}/cheatsheets/`], [s.title, path]]), article(origin, { headline: s.title, description: s.question, path })]}
 >
-  <div class="wrap narrow">
+  <div class="wrap narrow" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow"><a href={`${base}/cheatsheets/`}>速查表</a></p>
-      <h1>{s.title}</h1>
+      <h1 data-pagefind-weight="8">{s.title}</h1>
       <p class="lede">{s.question}</p>
       <p class="muted">{s.intro}</p>
       <button type="button" class="btn btn-sm no-print" onclick="window.print()">列印這一頁</button>
     </header>
-    <article class="prose sheet" data-pagefind-body>
+    <article class="prose sheet">
       {s.blocks.map((b: any) => (
         <section>
           <h2 class="h-sm">{b.heading}</h2>
@@ -47,7 +47,7 @@ const path = `${base}/cheatsheets/${s.slug}/`;
         </section>
       ))}
       {s.note && <p class="muted">{s.note}</p>}
-      <p class="src">依據：{src.map((l: any, n: number) => <>{n > 0 && '、'}<a href={`${base}/lessons/${l.slug}/`}>第 {l.id} 篇　{l.title}</a></>)}。最後查核 {site.updated}。懂咖 Dongka</p>
+      <p class="src" data-pagefind-ignore>依據：{src.map((l: any, n: number) => <>{n > 0 && '、'}<a href={`${base}/lessons/${l.slug}/`}>第 {l.id} 篇　{l.title}</a></>)}。最後查核 {site.updated}。懂咖 Dongka</p>
     </article>
     <RefNav current="cheatsheets" />
   </div>

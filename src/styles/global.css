@@ -420,3 +420,31 @@ table.cmp th, table.cmp td { min-width: 7em; }
 .verb { flex: none; width: 1.9em; height: 1.9em; display: inline-grid; place-items: center; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: .82rem; }
 .acard h3 a { color: inherit; text-decoration-color: var(--line); } .acard h3 a:hover { color: var(--accent); }
 @media print { .no-print { display: none !important; } .sheet .table-wrap { border: 1px solid #999; } }
+
+/* ---------- v6：專家審查後的修正 ---------- */
+button:focus-visible, .chip:focus-visible, .icon-btn:focus-visible, .tp-close:focus-visible, .fig-save:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.om-pt:focus circle { stroke: var(--accent); stroke-width: 3; }
+.toc-mobile { top: 58px; }
+#toc-now { font-weight: 400; color: var(--muted); }
+details.adv-h3 { border: 1px dashed var(--line); border-radius: 12px; padding: 0 16px; margin: 1.4em 0; }
+details.adv-h3 > summary { cursor: pointer; padding: 12px 0; font-family: var(--serif); font-weight: 700; font-size: 1.1rem; color: var(--muted); }
+details.adv-h3[open] > summary { color: var(--text); border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+details.adv-h3 > summary::after { content: "點一下展開"; font-family: var(--sans); font-size: .8rem; font-weight: 400; margin-left: 10px; color: var(--accent); }
+details.adv-h3[open] > summary::after { content: "收合"; }
+.rel-quick .path-links { margin: 0 0 10px; }
+.dname { font-family: var(--serif); font-size: 1.15rem; margin: 0; } .dname a { color: inherit; text-decoration: none; } .dname a:hover { color: var(--accent); }
+[aria-invalid="true"] { border-color: var(--warn); }
+@media (pointer: coarse) {
+  .icon-btn, .site-header nav .icon-btn { min-width: 44px; min-height: 44px; }
+  .brand { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; }
+  .btn-sm, .fig-save { min-height: 44px; padding-inline: 16px; }
+  .site-header nav a { min-height: 44px; display: inline-flex; align-items: center; }
+  .slider input[type="range"] { height: 44px; }
+  .cuprow input { width: 30px; height: 30px; }
+  .acard h3 a, .rel-terms a, .path-links a { display: inline-block; padding-block: 8px; }
+}
+@media (max-width: 640px) {
+  .fig:has(svg)::before { content: "圖表可以左右滑動"; display: block; font-size: .74rem; color: var(--muted); text-align: right; margin-bottom: 4px; }
+  .fig.fig-wide::before { content: "圖表可以左右滑動"; }
+  .chart text { font-size: 15px; }
+}

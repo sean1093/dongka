@@ -22,7 +22,8 @@ function build() {
   panel = document.createElement('aside');
   panel.className = 'tp';
   panel.hidden = true;
-  panel.setAttribute('role', 'dialog');
+  // 不遮擋內文、也不鎖住背景，所以是補充區塊而不是對話框
+  panel.setAttribute('role', 'complementary');
   panel.setAttribute('aria-labelledby', 'tp-title');
   panel.tabIndex = -1;
   document.body.append(backdrop, panel);

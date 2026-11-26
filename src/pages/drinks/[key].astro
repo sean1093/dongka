@@ -14,7 +14,8 @@ const origin = (Astro.site?.origin || '').replace(/\/$/, '');
 const lessonSlug: Record<string, string> = { '06': 'espresso', '08': 'signature-drinks' };
 const path = `${base}/drinks/${d.key}/`;
 const same = drinks.filter((x) => x.group === d.group && x.key !== d.key).slice(0, 6);
-const desc = `${d.name}（${d.en}）是什麼？${d.summary}${d.size ? ` 份量${d.size}。` : ''}附組成比例與做法。`.slice(0, 150);
+const comp = (x: any) => [...x.layers].reverse().map((l: any) => l.label).join('＋');
+const desc = `${d.name}（${d.en}）是什麼？${d.summary}${d.size ? ` 份量${d.size}。` : ''}組成：${comp(d)}。附做法、成功關鍵與相近飲品的比較。`.slice(0, 155);
 ---
 <Base
   fullTitle={`${d.name}（${d.en}）是什麼？比例、做法與由來｜懂咖`}
@@ -25,10 +26,10 @@ const desc = `${d.name}（${d.en}）是什麼？${d.summary}${d.size ? ` 份量$
     article(origin, { headline: `${d.name}（${d.en}）是什麼？比例、做法與由來`, description: desc, path }),
   ]}
 >
-  <div class="wrap narrow">
+  <div class="wrap narrow" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow"><a href={`${base}/drinks/`}>飲品配方</a> / {d.group}</p>
-      <h1>{d.name} <small class="h1-en">{d.en}</small></h1>
+      <h1 data-pagefind-weight="8">{d.name} <small class="h1-en">{d.en}</small></h1>
       <p class="lede">{d.summary}</p>
       <p class="meta">
         <span>{d.group}</span><span>{d.temp}飲</span>
@@ -38,7 +39,7 @@ const desc = `${d.name}（${d.en}）是什麼？${d.summary}${d.size ? ` 份量$
       </p>
     </header>
     <SubNav current="drinks" />
-    <article class="prose" data-pagefind-body>
+    <article class="prose">
       <div class="dhero">
         <Fragment set:html={cup(d.layers)} />
         <div>
@@ -57,10 +58,25 @@ const desc = `${d.name}（${d.en}）是什麼？${d.summary}${d.size ? ` 份量$
       <p><a href={`${base}/lessons/${lessonSlug[d.lesson]}/`}>在第 {d.lesson} 篇讀完整的原理與脈絡 →</a></p>
       {same.length > 0 && (
         <>
-          <h2 class="h-sm" style="margin-top:1.6em">同類飲品</h2>
-          <ul class="rel-terms">{same.map((x) => <li><a href={`${base}/drinks/${x.key}/`}>{x.name}</a>：{x.summary}</li>)}</ul>
+          <h2 class="h-sm" style="margin-top:1.6em">和相近的飲品比</h2>
+          <div class="table-wrap">
+            <table class="stack">
+              <thead><tr><th>飲品</th><th>份量</th><th>組成（由上到下）</th><th>需要濃縮機</th></tr></thead>
+              <tbody>
+                {[d, ...same.slice(0, 4)].map((x) => (
+                  <tr>
+                    <td data-label="飲品">{x.key === d.key ? <b>{x.name}</b> : <a href={`${base}/drinks/${x.key}/`}>{x.name}</a>}</td>
+                    <td data-label="份量">{x.size || '依店家而定'}</td>
+                    <td data-label="組成（由上到下）">{comp(x)}</td>
+                    <td data-label="需要濃縮機">{x.machine ? '是' : '否'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
+
       <p style="margin-top:2em"><a href={`${base}/drinks/`}>← 回飲品配方（共 {drinks.length} 款）</a></p>
     </article>
   </div>

@@ -24,7 +24,7 @@ export const recipes = [
   },
   {
     key: 'big', name: '兩段注水高萃取（大杯）', gear: 'V60 濾杯', dose: 30, water: 500, grind: '中細研磨',
-    temp: '淺焙用高水溫', target: '目標約 3:30 滴完', end: 210,
+    temp: '淺焙 92 至 96°C', target: '目標約 3:30 滴完', end: 210,
     steps: [
       { t: 0, w: 60, text: '悶蒸並搖晃，讓粉全部濕潤' },
       { t: 45, w: 300, text: '在約 30 秒內注到這個水量（總水量的 60%）' },
@@ -52,7 +52,7 @@ export const recipes = [
   {
     key: 'iced', name: '冰手沖', gear: 'V60 濾杯 + 下壺放冰塊', dose: 20, water: 180, grind: '比熱沖稍細',
     temp: '約 94°C', target: '滴完後搖勻讓冰融化', end: 150, ice: 120,
-    note: '第二、三注的時間點筆記沒有寫明，這裡的 1:00 是建議值。',
+    note: '第 08 篇的配方沒有規定第二次注水的時間點，這裡的 1:00 是建議值。冰塊算在總水量裡。',
     steps: [
       { t: 0, w: 40, text: '注水悶蒸' },
       { t: 30, w: 110, text: '第一次注水' },

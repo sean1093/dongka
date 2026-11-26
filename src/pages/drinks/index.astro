@@ -35,7 +35,7 @@ const lessonSlug: Record<string, string> = { '06': 'espresso', '08': 'signature-
           <div class="dtop">
             <Fragment set:html={cup(d.layers)} />
             <div>
-              <h3><a href={`${base}/drinks/${d.key}/`}>{d.name}</a></h3>
+              <h2 class="dname"><a href={`${base}/drinks/${d.key}/`}>{d.name}</a></h2>
               <p class="den">{d.en}</p>
               <p class="dmeta">
                 <span>{d.group}</span><span>{d.temp}</span>

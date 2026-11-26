@@ -6,10 +6,10 @@ export const drinks = [
     key: 'espresso',
     name: '義式濃縮', en: 'Espresso',
     group: '濃縮', temp: '熱', machine: true, alcohol: false,
-    size: '單份約 25–35ml，雙份約加倍',
+    size: '單份約 25 至 35ml，雙份約加倍',
     summary: '高壓快速萃出的一小杯濃郁咖啡，其他奶咖的基底。',
     layers: [
-      { part: 'espresso', label: '單份濃縮 25–35ml', amount: 3 },
+      { part: 'espresso', label: '單份濃縮 25 至 35ml', amount: 3 },
     ],
     recipe: [
       '雙份用粉 18 至 20g，萃出約 2 倍重的液體（例如 18g 粉萃出 36g）。',
@@ -80,7 +80,7 @@ export const drinks = [
     name: '康寶藍', en: 'Con Panna',
     group: '濃縮', temp: '熱', machine: true, alcohol: false,
     size: '',
-    summary: '濃縮上加一球打發鮮奶油。',
+    summary: '一份濃縮上加一球打發鮮奶油的小杯飲品。',
     layers: [
       { part: 'espresso', label: '濃縮', amount: 3 },
       { part: 'cream', label: '一球打發鮮奶油', amount: 2 },
@@ -124,8 +124,8 @@ export const drinks = [
       '下壺用熱水預熱，縮短加熱時間，避免粉被悶焦。',
       '粉不壓實，用中小火加熱。',
       '蒸氣壓把熱水推過咖啡粉，進入上壺。',
-      '聽到嘶嘶聲、開始出液時就離火。',
-      '用冷毛巾冷卻壺底，避免過度萃取。',
+      '開始出液後轉小火。',
+      '液體顏色變淺、開始發出嘶嘶與噴濺聲時離火，立刻用冷毛巾冷卻壺底，避免過度萃取。',
     ],
     tip: '壓力只有約 1 至 2 bar，遠低於濃縮的約 9 bar，所以不是真正的 espresso。',
     story: '1933 年義大利的 Alfonso Bialetti 推出 Moka Express，八角形鋁壺成為義大利家庭的象徵。',
@@ -173,7 +173,7 @@ export const drinks = [
     key: 'piccolo-latte',
     name: '短笛拿鐵', en: 'Piccolo Latte',
     group: '奶咖', temp: '熱', machine: true, alcohol: false,
-    size: '約 90–100ml',
+    size: '約 90 至 100ml',
     summary: '短萃濃縮加牛奶的小杯版拿鐵。',
     layers: [
       { part: 'espresso', label: '一份短萃濃縮', amount: 3 },
@@ -191,12 +191,12 @@ export const drinks = [
     key: 'cappuccino',
     name: '卡布奇諾', en: 'Cappuccino',
     group: '奶咖', temp: '熱', machine: true, alcohol: false,
-    size: '約 150–180ml',
+    size: '約 150 至 180ml',
     summary: '咖啡、牛奶、奶泡平衡，泡沫輕盈。',
     layers: [
-      { part: 'espresso', label: '雙份濃縮 36g', amount: 4 },
-      { part: 'milk', label: '熱牛奶', amount: 9 },
-      { part: 'foam', label: '奶泡 1–1.5 公分', amount: 5 },
+      { part: 'espresso', label: '雙份濃縮 36g', amount: 6 },
+      { part: 'milk', label: '熱牛奶', amount: 7 },
+      { part: 'foam', label: '奶泡 1 至 1.5 公分', amount: 5 },
     ],
     recipe: [
       '溫杯（約 180ml 杯）。',
@@ -219,7 +219,7 @@ export const drinks = [
     layers: [
       { part: 'espresso', label: '濃縮', amount: 4 },
       { part: 'milk', label: '熱牛奶', amount: 17 },
-      { part: 'foam', label: '奶泡 0.5–1 公分', amount: 3 },
+      { part: 'foam', label: '奶泡 0.5 至 1 公分', amount: 3 },
     ],
     recipe: [
       '萃取濃縮到杯中。',
@@ -235,7 +235,7 @@ export const drinks = [
     key: 'flat-white',
     name: '馥列白', en: 'Flat White',
     group: '奶咖', temp: '熱', machine: true, alcohol: false,
-    size: '約 150–180ml',
+    size: '約 150 至 180ml',
     summary: '雙份或短萃濃縮配極薄奶泡，咖啡味明顯。',
     layers: [
       { part: 'espresso', label: '雙份或短萃濃縮', amount: 5 },
@@ -419,8 +419,8 @@ export const drinks = [
     summary: '通寧水的苦與氣泡，突顯濃縮的酸質與果香。',
     layers: [
       { part: 'ice', label: '冰塊', amount: 6 },
-      { part: 'tonic', label: '冰通寧水 120–150ml', amount: 13 },
-      { part: 'espresso', label: '濃縮 30–40ml', amount: 3 },
+      { part: 'tonic', label: '冰通寧水 120 至 150ml', amount: 13 },
+      { part: 'espresso', label: '濃縮 30 至 40ml', amount: 3 },
     ],
     recipe: [
       '冰塊裝滿高玻璃杯。',
@@ -442,9 +442,9 @@ export const drinks = [
     layers: [
       { part: 'ice', label: '冰塊', amount: 6 },
       { part: 'juice', label: '檸檬汁 15ml', amount: 2 },
-      { part: 'syrup', label: '糖漿 10–15ml', amount: 1 },
+      { part: 'syrup', label: '糖漿 10 至 15ml', amount: 1 },
       { part: 'tonic', label: '氣泡水 100ml', amount: 10 },
-      { part: 'espresso', label: '濃縮 30–40ml', amount: 3 },
+      { part: 'espresso', label: '濃縮 30 至 40ml', amount: 3 },
     ],
     recipe: [
       '冰塊裝滿杯。',
@@ -505,7 +505,7 @@ export const drinks = [
     size: '',
     summary: '越南風格，咖啡鋪上椰奶煉乳沙冰。',
     layers: [
-      { part: 'coffee', label: '滴漏或濃縮咖啡 40–50ml', amount: 5 },
+      { part: 'coffee', label: '滴漏或濃縮咖啡 40 至 50ml', amount: 5 },
       { part: 'ice', label: '椰子沙冰', amount: 12 },
     ],
     recipe: [
@@ -615,10 +615,10 @@ export const drinks = [
     key: 'irish-coffee',
     name: '愛爾蘭咖啡', en: 'Irish Coffee',
     group: '調酒', temp: '熱', machine: false, alcohol: true,
-    size: '腳杯約 180–240ml',
+    size: '腳杯約 180 至 240ml',
     summary: '熱咖啡加威士忌，頂層浮著冰涼鮮奶油。',
     layers: [
-      { part: 'syrup', label: '紅糖或黑糖 1–2 小匙', amount: 1 },
+      { part: 'syrup', label: '紅糖或黑糖 1 至 2 小匙', amount: 1 },
       { part: 'coffee', label: '熱咖啡約 120ml', amount: 12 },
       { part: 'spirit', label: '愛爾蘭威士忌 40ml', amount: 4 },
       { part: 'cream', label: '鮮奶油約 1.5 公分', amount: 3 },
@@ -643,8 +643,8 @@ export const drinks = [
     summary: '伏特加、咖啡利口酒與濃縮搖出綿密泡沫。',
     layers: [
       { part: 'spirit', label: '伏特加 45ml', amount: 5 },
-      { part: 'spirit', label: '咖啡利口酒 15–20ml', amount: 2 },
-      { part: 'syrup', label: '糖漿 5–10ml', amount: 1 },
+      { part: 'spirit', label: '咖啡利口酒 15 至 20ml', amount: 2 },
+      { part: 'syrup', label: '糖漿 5 至 10ml', amount: 1 },
       { part: 'espresso', label: '新鮮濃縮 30ml', amount: 3 },
       { part: 'foam', label: '綿密泡沫', amount: 3 },
     ],
@@ -668,7 +668,7 @@ export const drinks = [
     layers: [
       { part: 'ice', label: '冰塊', amount: 6 },
       { part: 'spirit', label: 'Licor 43 約 45ml', amount: 5 },
-      { part: 'espresso', label: '濃縮 30–40ml', amount: 3 },
+      { part: 'espresso', label: '濃縮 30 至 40ml', amount: 3 },
     ],
     recipe: [
       '冰塊裝滿岩石杯。',

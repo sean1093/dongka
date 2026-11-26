@@ -31,7 +31,7 @@ export const origins = [
     processes: ['washed'],
     varieties: ['SL28', 'SL34', 'Ruiru 11', 'Batian'],
     flavors: ['berry', 'citrus'],
-    acidity: 5, body: 2, sweetness: 3,
+    acidity: 5, body: 3, sweetness: 3,
     summary: '黑醋栗、紅莓，明亮多汁的酸',
     notes: '代表品種是 SL28 與 SL34，風味常被形容為多汁、明亮、帶磷酸般的清脆酸質。處理以水洗為主，不少處理站在發酵、洗淨後再把帶殼豆泡在清水中，業界常叫「雙重發酵」，實際上是二次浸洗。大部分咖啡經奈洛比咖啡交易所拍賣，另有直接賣給國外買家的「第二窗口」。',
   },
@@ -77,7 +77,7 @@ export const origins = [
     flavors: ['spice', 'berry'],
     acidity: 2, body: 4, sweetness: 2,
     summary: '羅布斯塔大國，也有果香阿拉比卡',
-    notes: '羅布斯塔每年占總產量八成以上，2025 年 5 月出口首度超越衣索比亞成為非洲第一，並推出 KR 系列抗枯萎病品系。阿拉比卡在東部 Mount Elgon 的 Bugisu 與西部 Rwenzori，水洗豆叫 Wugar、日曬豆叫 Drugar，Bugisu 常見的描述是果香與酒香。風味標籤的香料木質調是依羅布斯塔的一般特徵推估。',
+    notes: '羅布斯塔每年占總產量八成以上，2025 年 5 月出口首度超越衣索比亞成為非洲第一，並推出 KR 系列抗枯萎病品系。阿拉比卡在東部 Mount Elgon 的 Bugisu 與西部 Rwenzori，水洗豆叫 Wugar、日曬豆叫 Drugar，Bugisu 常見的描述是果香與酒香。風味標籤的香料木質調是依羅布斯塔的一般特徵推估。酸質與醇厚的分數以佔產量多數的羅布斯塔為準，Bugisu 等地的阿拉比卡較明亮。',
   },
 
   // ---------- 中美洲與加勒比海 ----------
@@ -259,7 +259,7 @@ export const origins = [
     flavors: ['spice'],
     acidity: 1, body: 5, sweetness: 2,
     summary: '季風馬拉巴，低酸厚重帶木質',
-    notes: '最有名的是季風馬拉巴（Monsooned Malabar），把生豆放在季風中吸收濕氣膨脹，風味低酸、厚重、木質香料。常見的說法是帆船時代長途海運讓生豆變味，蘇伊士運河開通後這種風味消失，產地才刻意重現。印度也是羅布斯塔的重要產地。',
+    notes: '最有名的是季風馬拉巴（Monsooned Malabar），把生豆放在季風中吸收濕氣膨脹，風味低酸、厚重、木質香料。常見的說法是帆船時代長途海運讓生豆變味，蘇伊士運河開通後這種風味消失，產地才刻意重現。印度也是羅布斯塔的重要產地。酸質與醇厚的分數以季風馬拉巴為準，水洗阿拉比卡不是這個風格。',
   },
   {
     key: 'vietnam', name: '越南', region: '亞洲、中東與大洋洲',
@@ -456,7 +456,7 @@ export const processes = [
     how: '去除外果皮與果肉，保留部分或全部果膠層後直接乾燥。',
     effect: '風味介於水洗與日曬之間，甜感與醇厚提高，又保留一定乾淨度。',
     flavors: ['sweet'],
-    clean: 3, fruit: 3, body: 4,
+    clean: 4, fruit: 3, body: 3,
     caution: '白蜜、黃蜜、紅蜜、黑蜜的分法依業者定義而異，不是國際標準。',
   },
   {
@@ -472,7 +472,7 @@ export const processes = [
     how: '果實或去皮後的種子放進密閉槽，隔絕氧氣發酵，控制時間與溫度。',
     effect: '濃郁熱帶水果、酒香、肉桂、優格感，強度高。',
     flavors: ['stone', 'berry', 'spice'],
-    clean: 2, fruit: 5, body: 3,
+    clean: 2, fruit: 5, body: 4,
     caution: '',
   },
   {
