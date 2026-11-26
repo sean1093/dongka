@@ -50,8 +50,11 @@ const desc = `${d.name}（${d.en}）是什麼？${d.summary}${d.size ? ` 份量$
           <p class="muted" style="font-size:.84rem;margin:0">分層是示意比例，各店做法不同。</p>
         </div>
       </div>
+      {d.forWho && <p class="for-who"><b>適合誰</b>　{d.forWho}</p>}
+      {d.versus && <><h2 class="h-sm" style="margin-top:1.6em">和容易搞混的飲品差在哪</h2><p>{d.versus}</p></>}
       <h2 class="h-sm" style="margin-top:1.6em">做法</h2>
       <ol>{d.recipe.map((s) => <li>{s}</li>)}</ol>
+      {d.pitfalls?.length > 0 && <><h2 class="h-sm" style="margin-top:1.6em">常見的失誤</h2><ul class="points">{d.pitfalls.map((x: string) => <li>{x}</li>)}</ul></>}
       {d.tip && <><h2 class="h-sm" style="margin-top:1.6em">成功關鍵</h2><p>{d.tip}</p></>}
       {d.story && <><h2 class="h-sm" style="margin-top:1.6em">名稱與由來</h2><p>{d.story}</p></>}
       {d.alcohol && <aside class="callout"><span class="callout-icon" aria-hidden="true">🍸</span><div class="callout-body"><p>含酒精飲品，請適量飲用。未滿 18 歲請勿飲酒。</p></div></aside>}
