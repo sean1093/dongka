@@ -111,7 +111,7 @@ async function shareSection(btn) {
   const body = [...el.querySelectorAll('tr, li')].map((n) => n.innerText.replace(/\s+/g, ' ').trim()).filter(Boolean).slice(0, 8).join('\n');
   const text = `${title}\n${body}`;
   if (navigator.share) {
-    try { await navigator.share({ title, text, url }); return; } catch { return; }
+    try { await navigator.share({ title, text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
   }
   copy(`${text}\n（出處：懂咖 ${url}）`, btn);
 }

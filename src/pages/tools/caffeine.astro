@@ -238,7 +238,7 @@ const drinks = [
 
   function sync() {
     const p = new URLSearchParams();
-    const a = drinkInputs.filter((i) => +i.value > 0).map((i) => `${i.dataset.drink}${Math.floor(+i.value)}`);
+    const a = drinkInputs.filter((i) => +i.value > 0).map((i) => `${i.dataset.drink}${Math.min(99, Math.floor(+i.value))}`);
     if (a.length) p.set('a', a.join('_'));
     if (store.length) p.set('s', store.map((s) => s.c + (FIXED[s.c] ? '' : s.mg.replace(/[^\d.]/g, ''))).join('_'));
     if (+$('ml').value > 0) p.set('ml', $('ml').value);
@@ -258,7 +258,7 @@ const drinks = [
     if (inp) inp.value = String(+m![2]);
   });
   (qs.get('s') || '').split('_').forEach((x) => {
-    const m = x.match(/^([ngyr])(\d{0,4}(?:\.\d+)?)$/);
+    const m = x.match(/^([ngyr])(\d{0,5}(?:\.\d+)?)$/);
     if (m && store.length < 20) store.push({ c: m[1], mg: FIXED[m[1]] ? '' : m[2] });
   });
   for (const [k, id] of [['ml', 'ml'], ['o', 'other'], ['w', 'w']]) { const v = parseFloat(qs.get(k) || ''); if (v > 0) $(id).value = String(v); }

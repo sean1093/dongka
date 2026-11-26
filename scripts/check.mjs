@@ -5,6 +5,11 @@ import { join } from 'node:path';
 import { lessons } from '../src/data/lessons.js';
 import { glossary } from '../src/data/glossary.js';
 import { faqs, faqGroups } from '../src/data/faq.js';
+import { slugify } from '../src/data/site.js';
+import { fileURLToPath } from 'node:url';
+
+// 從任何目錄執行都以 repo 根目錄為準
+process.chdir(fileURLToPath(new URL('..', import.meta.url)));
 
 const problems = [];
 const fail = (where, msg) => problems.push(`${where}：${msg}`);
@@ -34,6 +39,7 @@ const mdCount = readdirSync('src/content/lessons').filter((f) => /^\d\d\.md$/.te
 if (mdCount !== lessons.length) fail('src/data/lessons.js', `有 ${mdCount} 個課程檔，但 lessons.js 列了 ${lessons.length} 篇`);
 scan(/(\d+)\s*(?:堂課|堂|篇課程)/g, `課程篇數應為 ${lessons.length}`, { skip: (m) => +m[1] === lessons.length });
 scan(/(十一|十二|十三)\s*(?:堂|篇課程)/g, `課程篇數請用數字並與實際一致`);
+scan(/自學課\s*(\d+)\s*篇/g, `課程篇數應為 ${lessons.length}，請用 lessons.length`, { skip: (m) => +m[1] === lessons.length });
 
 // 2. 名詞數量不要寫死
 scan(/(\d+)\s*個(?:咖啡)?(?:術語|名詞)/g, `名詞數量應由 glossary.length 計算（目前 ${glossary.length}）`, { skip: (m) => +m[1] === glossary.length });
@@ -61,7 +67,7 @@ for (const f of faqs) {
 // 6. 名詞的網址代稱不可重複或空白
 const slugs = new Map();
 for (const g of glossary) {
-  const s = g.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const s = slugify(g.en); // 與頁面和 sitemap 用同一個函式
   if (!s) fail(`glossary:${g.term}`, '英文名稱產生的網址是空的');
   else if (slugs.has(s)) fail(`glossary:${g.term}`, `網址 ${s} 和「${slugs.get(s)}」重複`);
   slugs.set(s, g.term);

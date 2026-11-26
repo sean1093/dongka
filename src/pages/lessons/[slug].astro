@@ -231,6 +231,8 @@ const relTools = (related[lesson.id] || []).map((s) => tools.find((t) => t.slug 
     b.className = 'adv-toggle';
     while (h.firstChild) b.append(h.firstChild);
     h.append(b);
+    // 標題列其他地方（包括「點一下展開」提示）也能點
+    h.addEventListener('click', (e) => { if (e.target === h) b.click(); });
     b.addEventListener('click', () => {
       if (!article.classList.contains('core-only')) return;
       h.parentElement!.classList.toggle('open');
