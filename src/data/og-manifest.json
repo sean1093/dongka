@@ -1,5 +1,17 @@
 {
  "pages": [
+  "home",
+  "tools--timer",
+  "tools--troubleshoot",
+  "tools--extraction",
+  "tools--brew-log",
+  "tools--cupping",
+  "tools--caffeine",
+  "tools--espresso",
+  "tools--break-even",
+  "practice--plan",
+  "practice--label",
+  "practice--review",
   "lessons--beans",
   "lessons--origins",
   "lessons--roasting",
