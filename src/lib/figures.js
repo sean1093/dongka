@@ -1,7 +1,28 @@
 import { origins as _origins } from '../data/atlas.js';
 // 原創教學插圖（SVG）。顏色用固定色表現咖啡本身，文字與線條跟著主題色。
+// 圖的文字說明：寫出圖要表達的內容，給看不到圖的讀者（螢幕閱讀器、搜尋引擎）
+const DESC = {
+  '咖啡櫻桃剖面圖': '由外到內依序是外果皮、果肉、果膠層、內果皮（羊皮紙）、銀皮，最裡面是兩粒平面相對的種子，也就是咖啡豆。',
+  '水洗、蜜處理、日曬三種處理法乾燥時保留的層次': '水洗只帶著羊皮紙乾燥；蜜處理多保留一層果膠；日曬連果皮與果肉整顆乾燥。留下的層越多，果香與醇厚越強，乾淨度越低。',
+  '烘焙度光譜': '由淺到深六個烘焙度：極淺焙、淺焙、中焙、中深焙、深焙、極深焙。一爆落在極淺焙到淺焙之間，二爆落在深焙。越淺酸質與花果香越明顯，越深苦味與醇厚越重、表面開始出油。',
+  '萃取順序示意圖': '酸與果香最先溶出並很快下降，甜在中段達到高峰，苦與澀在後段持續上升。停得太早偏酸而單薄，剛好時酸甜平衡，太晚則苦澀。',
+  '三種濾杯的剖面比較': 'V60 是圓錐、底部單一大孔，流速由手法控制；Kalita Wave 是平底三孔，粉床厚度均勻；Melitta 是梯形、底部小孔，由濾杯限制流速。',
+  '經典義式飲品的組成比例': 'Espresso 只有濃縮；瑪奇朵是濃縮加一匙奶泡；可塔朵的濃縮與牛奶約各半；馥列白是雙份濃縮加牛奶與極薄奶泡；卡布奇諾奶泡最厚；拿鐵牛奶最多；美式是濃縮加熱水；摩卡多了巧克力。',
+  '簡化的咖啡風味輪：九個大類': '九個大類依序是花香、水果、酸發酵、綠色植物、其他、烘焙、香料、堅果可可、甜。使用時先選大類，再往外找細項。',
+  '烘焙曲線示意圖': '入豆後豆溫先降到回溫點再上升，依序經過脫水期與梅納反應期，約 195 至 205°C 發生一爆，之後是發展期，直到下豆。',
+  '杯測流程時間軸': '六個步驟：磨粉後聞乾香；注入 93 ± 3°C 的熱水；3 到 5 分鐘時破渣聞濕香；撈渣；約 8 到 10 分鐘、降到約 70°C 時開始啜吸；之後隨降溫再評，直到低於體溫。',
+  '研磨度與適合的沖煮法': '由粗到細：粗適合冷萃與 4:6 法，中適合聰明濾杯與法式濾壓，中細適合一般手沖，細適合摩卡壺與愛樂壓，極細用於義式濃縮。越細萃取越多、水流越慢。',
+  '近年濾杯的四種設計方向': '閥門式可以在浸泡與滲濾之間切換；快流速平底讓粉床淺而平；無旁通讓水全部穿過粉層；可調流速可以轉動底座改變出水孔。',
+  '沖煮控制圖九宮格': '橫軸是萃取率，分為不足（低於 18%）、理想（18 至 22%）與過度；縱軸是濃度，分為偏淡（低於 1.15%）、理想與偏濃（高於 1.35%）。正中央是金杯區，其餘八格各有調整方向。',
+  '一份義式濃縮的參數': '18g 極細研磨的咖啡粉，在約 9 bar、90 至 94°C、25 至 30 秒下萃出 36g 濃縮液。同樣粉量，短萃約 1:1 至 1:1.5，標準約 1:2，長萃約 1:3 以上。',
+  '三波咖啡浪潮': '第一波是普及，讓家家戶戶喝得到；第二波是咖啡館與義式飲品；第三波是把咖啡當成農產品看待的精品咖啡。',
+  '三種冷咖啡：水溫與時間': '冰手沖用熱水、數分鐘完成，保留花果香；冰滴用冰水、數小時；冷萃用冷水浸泡 12 至 24 小時，酸感低而柔順。',
+  '台灣咖啡自給率約百分之二': '一百個點裡只有兩個代表國產咖啡，其餘九十八個是進口。',
+  '各國官方的每日咖啡因參考值': '一般成人：歐盟 EFSA、美國 FDA、加拿大衛生部都是 400 毫克，台灣食藥署是 300 毫克。懷孕或哺乳：加拿大衛生部 300 毫克，EFSA 與台灣國健署 200 毫克。',
+};
+const describe = (svg) => svg.replace(/aria-label="([^"]+)"/, (m, label) => (DESC[label] ? `aria-label="${label}。${DESC[label]}"` : m));
 const wrap = (svg, caption, cls = '') =>
-  `<figure class="fig ${cls}">${svg}<figcaption>${caption}</figcaption></figure>`;
+  `<figure class="fig ${cls}">${describe(svg)}<figcaption>${caption}</figcaption></figure>`;
 
 const cherry = () => {
   const L = 'M185 85 A62 75 0 0 0 185 235 Z';
@@ -185,7 +206,7 @@ export const journey = () => {
     ['沖煮', '05–06', `<path d="M10 10 L27 36 h6 L50 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 22 L27 36 h6 L41 22 Z" fill="#6b4226"/><path d="M30 40 v5" stroke="#6b4226" stroke-width="2.5" stroke-linecap="round"/><path d="M18 48 h24 v4 a6 6 0 0 1 -6 6 h-12 a6 6 0 0 1 -6 -6 z" fill="none" stroke="currentColor" stroke-width="2.5"/>`],
     ['文化與產業', '07–11', `<path d="M12 22 h30 v14 a12 12 0 0 1 -12 12 h-6 a12 12 0 0 1 -12 -12 z" fill="#a8481f"/><path d="M42 26 h4 a6 6 0 0 1 0 12 h-5" fill="none" stroke="#a8481f" stroke-width="3"/><path d="M20 16 q-4 -5 0 -10 M30 16 q-4 -5 0 -10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".5"/>`],
   ];
-  return `<svg class="journey" viewBox="0 0 660 110" role="img" aria-label="從種子到杯子的六個階段">
+  return `<svg class="journey" viewBox="0 0 660 110" role="img" aria-label="從種子到杯子的六個階段：種植（第 01 到 02 篇）、處理（第 01 篇）、烘焙（第 03 篇）、品飲（第 04 篇）、沖煮（第 05 到 06 篇）、文化與產業（第 07 到 11 篇）">
     ${steps.map(([name, no, icon], i) => `<g transform="translate(${20 + i * 108} 6)">${icon}
       <text x="30" y="78" text-anchor="middle" class="t-b" style="font-size:14px">${name}</text>
       <text x="30" y="96" text-anchor="middle" class="t-a" style="font-size:12px">${no}</text>
@@ -387,7 +408,8 @@ export const originMapSvg = (list = _origins.filter((o) => o.flavors.length), in
   for (const group of Object.values(cells)) {
     group.forEach((o, n) => pts.push({ o, x: X(o.acidity) - 34, y: Y(o.body) + (n - (group.length - 1) / 2) * 15 }));
   }
-  return `<svg viewBox="0 0 640 460" role="img" aria-label="各產區的酸質與醇厚度分布">
+  const top = (k, dir) => [...list].sort((x, y) => dir * (y[k] - x[k])).slice(0, 4).map((o) => o.name).join('、');
+  return `<svg class="om-svg" viewBox="0 0 640 460" role="img" aria-label="各產區的酸質與醇厚度分布。酸質最明亮的有${top('acidity', 1)}；酸質最低的有${top('acidity', -1)}；口感最厚實的有${top('body', 1)}；最輕盈的有${top('body', -1)}。">
     <rect x="70" y="30" width="540" height="370" fill="var(--surface-2)" rx="6"/>
     <path d="M340 30 V400 M70 215 H610" class="lead" stroke-dasharray="4 4"/>
     <text x="190" y="48" class="t-s">厚實、低酸</text><text x="600" y="48" text-anchor="end" class="t-s">厚實、明亮</text>
@@ -400,7 +422,17 @@ export const originMapSvg = (list = _origins.filter((o) => o.flavors.length), in
     ${Object.entries(REGION_COLORS).map(([r, c], i) => `<circle cx="${82 + i * 138}" cy="446" r="5" fill="${c}"/><text x="${92 + i * 138}" y="450" class="t-s">${r}</text>`).join('')}
   </svg>`;
 };
-const originMap = () => wrap(originMapSvg(), '各產區的典型印象（示意）：位置依課文的描述給分，同一個產區不同處理法與烘焙度會差很多。');
+// 手機上散布圖太擠：改用依酸質排序的精簡表格，資料相同
+const dots = (v) => `<span class="om-dots" aria-label="${v} / 5">${'●'.repeat(v)}<i>${'●'.repeat(5 - v)}</i></span>`;
+export const originTable = (list = _origins.filter((o) => o.flavors.length), base = null) =>
+  `<div class="om-table" role="table" aria-label="各產區的酸質與醇厚度（1 到 5）">
+    <div class="om-row om-head" role="row"><span role="columnheader">產區</span><span role="columnheader">酸質</span><span role="columnheader">醇厚</span></div>
+    ${[...list].sort((a, b) => b.acidity - a.acidity || a.body - b.body).map((o) => `<div class="om-row" role="row">
+      <span role="cell"><i class="om-c" style="background:${REGION_COLORS[o.region] || '#888'}"></i>${base === null ? o.name : `<a href="${base}/atlas/#o-${o.key}">${o.name}</a>`}</span>
+      <span role="cell">${dots(o.acidity)}</span><span role="cell">${dots(o.body)}</span></div>`).join('')}
+    <p class="om-legend">${Object.entries(REGION_COLORS).map(([r, c]) => `<span><i class="om-c" style="background:${c}"></i>${r}</span>`).join('')}</p>
+  </div>`;
+const originMap = () => wrap(originMapSvg() + originTable(), '各產區的典型印象（示意）：位置依課文的描述給分，同一個產區不同處理法與烘焙度會差很多。', 'fig-om');
 
 Object.assign(placements, {
   '02': [['6. 產區風味速查表', originMap]],

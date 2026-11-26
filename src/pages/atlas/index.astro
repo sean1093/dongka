@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import SubNav from '../../components/SubNav.astro';
 import { flavorTags, origins, varieties, processes } from '../../data/atlas.js';
-import { originMapSvg } from '../../lib/figures.js';
+import { originMapSvg, originTable } from '../../lib/figures.js';
 import { hasOriginPage } from '../../lib/origin-pages.js';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const tag = Object.fromEntries(flavorTags.map((t) => [t.key, t.label]));
@@ -36,7 +36,7 @@ const bar = (label: string, v: number) => `<span class="mbar"><i>${label}</i><b 
     <section>
       <h2 class="section-title">產區的酸質與醇厚度</h2>
       <p class="muted" style="margin:0 0 12px">點一個產區看說明。課文沒有給出明確風味描述的產區不在圖上。</p>
-      <div class="fig" style="margin-top:0"><Fragment set:html={originMapSvg(known, true)} /></div>
+      <div class="fig fig-om" style="margin-top:0"><Fragment set:html={originMapSvg(known, true) + originTable(known, base)} /></div>
     </section>
 
     {regions.map((r) => (

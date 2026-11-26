@@ -448,3 +448,23 @@ details.adv-h3[open] > summary::after { content: "收合"; }
   .fig.fig-wide::before { content: "圖表可以左右滑動"; }
   .chart text { font-size: 15px; }
 }
+
+/* ---------- v7：圖表在手機上的可讀性、飲品頁 ---------- */
+.om-table { display: none; }
+.om-row { display: grid; grid-template-columns: minmax(0, 1.4fr) 1fr 1fr; gap: 8px; align-items: center; padding: 7px 4px; border-top: 1px solid var(--line); font-size: .9rem; }
+.om-head { border-top: 0; font-size: .76rem; font-weight: 700; color: var(--muted); letter-spacing: .06em; }
+.om-row a { color: var(--text); text-decoration-color: var(--line); }
+.om-c { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; }
+.om-dots { color: var(--accent); letter-spacing: 1px; font-size: .8rem; white-space: nowrap; } .om-dots i { font-style: normal; color: var(--line); }
+.for-who { background: var(--surface-2); border-radius: 12px; padding: 12px 16px; }
+@media (max-width: 640px) {
+  .fig svg { min-width: 600px; }
+  .fig-om svg.om-svg { display: none; }
+  .fig-om .om-table { display: block; }
+  .fig.fig-om::before { content: none; }
+  .fig-om .fig-save { display: none; }
+  .tp-fig .fig svg { min-width: 0; }
+  .tp-fig .fig::before { content: none; }
+}
+.om-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .78rem; color: var(--muted); margin: 10px 0 0; }
+.for-who { margin-top: 1.4em; }
