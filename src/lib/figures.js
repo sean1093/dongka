@@ -72,8 +72,8 @@ const roast = () => {
           <path d="M${x - 3} 22 q8 14 -2 28" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2" transform="rotate(20 ${x} 36)"/>
           <text x="${x}" y="128" text-anchor="middle" class="t-b">${n}</text>`;
       }).join('')}
-      <path d="M78 112 V118 H190 V112" class="lead"/><text x="134" y="150" text-anchor="middle" class="t-a">一爆（開始到結束）</text>
-      <path d="M470 62 V112" class="lead" stroke-dasharray="4 3"/><text x="470" y="150" text-anchor="middle" class="t-a">二爆</text>
+      <path d="M78 136 V141 H190 V136" class="lead"/><text x="134" y="158" text-anchor="middle" class="t-a">一爆（開始到結束）</text>
+      <path d="M470 62 V112" class="lead" stroke-dasharray="4 3"/><text x="470" y="158" text-anchor="middle" class="t-a">二爆</text>
       <path d="M40 186 H590" class="arrow"/><path d="M40 186 l10 -5 v10 z" class="arrowhead"/>
       <text x="40" y="176" class="t-s">← 越淺：酸質、花果香、產地特色越明顯</text>
       <path d="M50 226 H600" class="arrow"/><path d="M600 226 l-10 -5 v10 z" class="arrowhead"/>
