@@ -27,6 +27,8 @@ document.addEventListener('click', (e) => {
   if (c) copy(`${c.dataset.copy}\n（出處：懂咖 ${location.href.split('#')[0]}）`, c);
   const sec = e.target.closest('[data-section-share]');
   if (sec) shareSection(sec);
+  const si = e.target.closest('[data-section-image]');
+  if (si) sectionImage(si);
   const s = e.target.closest('.fig-save');
   if (s) saveFigure(s.closest('.fig'), s);
 });
@@ -91,11 +93,7 @@ async function saveFigure(fig, btn) {
     ctx.fillText('懂咖 Dongka｜從喜歡喝，到喝得懂', pad, H - 32);
     ctx.font = '22px sans-serif'; ctx.textAlign = 'right';
     ctx.fillText(location.host + location.pathname, W - pad, H - 32);
-    const a = document.createElement('a');
-    a.href = cv.toDataURL('image/png');
-    a.download = `dongka-${(svg.getAttribute('aria-label') || 'figure').slice(0, 20)}.png`;
-    a.click();
-    toast(btn, '已下載');
+    await deliver(cv, `dongka-${slug()}-fig${[...document.querySelectorAll('figure.fig')].indexOf(fig) + 1}.png`, btn, cap);
   } catch {
     toast(btn, '這個瀏覽器不支援，請直接截圖');
   }
@@ -114,4 +112,99 @@ async function shareSection(btn) {
     try { await navigator.share({ title, text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
   }
   copy(`${text}\n（出處：懂咖 ${url}）`, btn);
+}
+
+// 檔名只用英數：部分瀏覽器遇到中文檔名會改成「download」
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+const slug = () => location.pathname.slice(location.pathname.startsWith(BASE) ? BASE.length : 0).split('/').filter(Boolean).join('-').replace(/[^\w-]/g, '') || 'home';
+
+// 圖片交給使用者：手機支援分享檔案時叫出系統分享（可以直接傳到 LINE），否則下載（#26、#27）
+// toBlob 是非同步的，等它回來時 iOS 可能已經不算「使用者點擊」而拒絕分享，所以用 toDataURL 同步轉成檔案
+function canvasBlob(cv) {
+  try {
+    const [head, b64] = cv.toDataURL('image/png').split(',');
+    const bin = atob(b64);
+    const buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    return new Blob([buf], { type: head.slice(5, head.indexOf(';')) });
+  } catch {
+    return null;
+  }
+}
+async function deliver(cv, name, btn, text) {
+  const blob = canvasBlob(cv);
+  if (blob && navigator.canShare) {
+    const file = new File([blob], name, { type: 'image/png' });
+    if (navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: document.title, text: text || '' }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+  }
+  const a = document.createElement('a');
+  a.href = blob ? URL.createObjectURL(blob) : cv.toDataURL('image/png');
+  a.download = name;
+  a.hidden = true;
+  document.body.append(a); // 沒有掛在頁面上時，部分瀏覽器會忽略檔名
+  a.click();
+  a.remove();
+  if (blob) setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(btn, '已下載');
+}
+
+// 把速查表的一段畫成分享圖：頁名、段落標題、表格列或清單，底部是品牌與指向這一段的網址
+function wrap(ctx, text, max) {
+  const out = [];
+  let line = '';
+  for (const ch of text) {
+    if (ch === '\n') { out.push(line); line = ''; continue; }
+    if (ctx.measureText(line + ch).width > max && line) { out.push(line); line = ''; }
+    line += ch;
+  }
+  if (line) out.push(line);
+  return out;
+}
+async function sectionImage(btn) {
+  const id = btn.dataset.sectionImage;
+  const el = document.getElementById(id);
+  if (!el) return;
+  try {
+    const W = 1080, pad = 64, max = W - pad * 2;
+    const page = document.querySelector('h1')?.textContent.trim() || '';
+    const head = el.querySelector('h2')?.textContent.trim() || '';
+    const rows = [...el.querySelectorAll('tbody tr')].map((tr) => [...tr.children].map((td) => td.textContent.trim()).filter(Boolean).join('｜'));
+    const items = [...el.querySelectorAll('li')].map((li, i) => (el.querySelector('ol') ? `${i + 1}. ` : '・') + li.textContent.trim());
+    const lines = (rows.length ? rows : items).slice(0, 12);
+    const url = `${location.host}${location.pathname}#${id}`;
+    const cv = document.createElement('canvas');
+    const ctx = cv.getContext('2d');
+    const F = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+    // 先量高度
+    ctx.font = `30px ${F}`;
+    const body = lines.map((l) => wrap(ctx, l, max));
+    ctx.font = `bold 52px ${F}`;
+    const headLines = wrap(ctx, head, max);
+    const H = pad + 40 + 20 + headLines.length * 66 + 24 + body.reduce((n, b) => n + b.length * 44 + 18, 0) + 40 + 96;
+    cv.width = W; cv.height = H;
+    ctx.fillStyle = '#fbf7f1'; ctx.fillRect(0, 0, W, H);
+    ctx.textBaseline = 'top';
+    let y = pad;
+    ctx.fillStyle = '#a8481f'; ctx.font = `bold 28px ${F}`; ctx.fillText(page, pad, y); y += 60;
+    ctx.fillStyle = '#2a1d15'; ctx.font = `bold 52px ${F}`;
+    headLines.forEach((l) => { ctx.fillText(l, pad, y); y += 66; });
+    y += 24;
+    ctx.font = `30px ${F}`;
+    body.forEach((b) => {
+      ctx.fillStyle = '#e8ddd0'; ctx.fillRect(pad, y - 10, max, 1);
+      ctx.fillStyle = '#2a1d15';
+      b.forEach((l) => { ctx.fillText(l, pad, y); y += 44; });
+      y += 18;
+    });
+    ctx.fillStyle = '#a8481f'; ctx.fillRect(0, H - 96, W, 96);
+    ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle';
+    ctx.font = `bold 30px ${F}`; ctx.fillText('懂咖 Dongka', pad, H - 48);
+    ctx.font = `22px ${F}`; ctx.textAlign = 'right'; ctx.fillText(url.length > 60 ? url.slice(0, 60) + '…' : url, W - pad, H - 48);
+    await deliver(cv, `dongka-${slug()}-${id}.png`, btn, `${head}｜${page}\n${location.href.split('#')[0]}#${id}`);
+  } catch {
+    toast(btn, '這個瀏覽器不支援，請直接截圖');
+  }
 }

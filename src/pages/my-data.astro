@@ -40,7 +40,7 @@ import Base from '../layouts/Base.astro';
   function summary() {
     const done = get(P + 'done') || [];
     const quiz = keys().filter((k) => k.startsWith(P + 'quiz:')).reduce((n, k) => n + Object.keys(get(k) || {}).length, 0);
-    const rows = [`已完成的課程：${done.length} 篇`, `作答過的自我檢核題：${quiz} 題`, `沖煮紀錄：${(get(P + 'brewlog') || []).length} 筆`, `杯測紀錄：${(get(P + 'cupping') || []).length} 筆`, `損益平衡情境：${(get(P + 'breakeven') || []).length} 組`];
+    const rows = [`已完成的課程：${done.length} 篇`, `作答過的自我檢核題：${quiz} 題`, `沖煮紀錄：${(get(P + 'brewlog') || []).length} 筆`, `杯測紀錄：${(get(P + 'cupping') || []).length} 筆`, `CVA 杯測紀錄：${(get(P + 'cva') || []).length} 筆`, `損益平衡情境：${(get(P + 'breakeven') || []).length} 組`];
     document.getElementById('md-summary')!.innerHTML = rows.map(() => '<li></li>').join('');
     document.querySelectorAll('#md-summary li').forEach((li, i) => (li.textContent = rows[i]));
   }
@@ -52,8 +52,10 @@ import Base from '../layouts/Base.astro';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `dongka-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.append(a); // 掛在頁面上，瀏覽器才會用指定的檔名
     a.click();
-    URL.revokeObjectURL(a.href);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   });
 
   document.getElementById('md-file')!.addEventListener('change', async (e) => {
@@ -68,12 +70,31 @@ import Base from '../layouts/Base.astro';
         const cur = get(P + k);
         let next = v;
         if (k === 'done') next = [...new Set([...(cur || []), ...(Array.isArray(v) ? v : [])])].sort();
-        else if (k === 'brewlog' || k === 'cupping' || k === 'breakeven') {
+        else if (k === 'brewlog') {
+          // 沖煮紀錄可以編輯：同一個 id 保留「最後更新時間」較晚的那份（updatedAt，舊資料沒有就用建立時間 at）
+          // 時間相同時保留這台裝置現有的。順序依建立時間 at，新的在前。
+          const stamp = (x: any) => { const t = Date.parse(x?.updatedAt || x?.at); return isNaN(t) ? 0 : t; };
+          const byId = new Map<string, any>();
+          const noId: any[] = []; // 現有但沒有 id 的資料照舊保留
+          for (const x of Array.isArray(cur) ? cur : []) if (x && x.id != null) byId.set(String(x.id), x); else if (x) noId.push(x);
+          for (const x of Array.isArray(v) ? v : []) {
+            if (!x || typeof x !== 'object') continue;
+            if (x.id == null) {
+              // 沒有 id 的紀錄（舊版或手動編輯的備份）：建立時間與豆子都相同才視為重複
+              if (!noId.some((y) => y.at === x.at && y.bean === x.bean)) noId.push(x);
+              continue;
+            }
+            const old = byId.get(String(x.id));
+            if (!old || stamp(x) > stamp(old)) byId.set(String(x.id), x);
+          }
+          next = [...byId.values(), ...noId].sort((a: any, b: any) => String(b.at).localeCompare(String(a.at)));
+        } else if (k === 'cupping' || k === 'breakeven' || k === 'cva') {
           // 依每筆紀錄的 id 取聯集，不覆蓋現有的
           const ids = new Set((cur || []).map((x: any) => x.id));
           next = [...(cur || []), ...(Array.isArray(v) ? v : []).filter((x: any) => x && !ids.has(x.id))].sort((a: any, b: any) => String(b.at).localeCompare(String(a.at)));
           // 損益平衡情境最多存 10 組（和試算頁一致），保留最新的
           if (k === 'breakeven') next = next.slice(0, 10);
+          if (k === 'cva') next = next.slice(0, 200); // 和杯測頁的上限一致
         } else if (k.startsWith('quiz:')) next = { ...(v || {}), ...(cur || {}) };
         else if (cur != null) continue; // 其他設定保留這台裝置現有的
         localStorage.setItem(P + k, JSON.stringify(next));

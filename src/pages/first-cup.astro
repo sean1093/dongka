@@ -30,10 +30,22 @@ const steps = [
       <h3 id="no-scale" class="h-sm">沒有秤</h3>
       <ul class="points">
         <li>水：1ml 約 1g，用量杯或壺上的刻度量 240ml。</li>
-        <li>粉：一般湯匙沒有可靠的克數。拿一包知道淨重的豆子，平匙舀完數匙數，淨重除以匙數就是一匙約幾克，再算 15g 要幾匙。</li>
+        <li>粉：一般湯匙沒有可靠的克數。拿一包知道淨重的豆子，平匙舀完數匙數，淨重除以匙數就是一匙約幾克，再算 15g 要幾匙。下面的<a href="#spoon">湯匙換算</a>可以幫你算。</li>
         <li>沒有溫度計：淺焙在煮滾的水倒進手沖壺後就沖，中焙、深焙多放一會兒。</li>
       </ul>
       <p><a href={`${base}/faq/no-scale-pour-over/`}>沒有秤怎麼沖：完整說明</a></p>
+    </section>
+
+    <section class="card spoon" id="spoon" aria-labelledby="spoon-h">
+      <h3 id="spoon-h" class="h-sm">湯匙換算：算出你的一匙幾克</h3>
+      <p class="muted">湯匙大小、豆子烘焙度不同，一匙的重量差很多，所以這裡不給固定數字，用你手上的那包豆子算。每次都用同一支湯匙、平匙。舀整豆就量整豆（量好再磨），買磨好的粉就量粉。</p>
+      <form class="grid spoon-form" id="spoon-f" onsubmit="return false">
+        <label>這包的淨重（g）<input id="sp-net" type="number" inputmode="decimal" min="1" step="1" placeholder="200" /></label>
+        <label>平匙舀完共幾匙<input id="sp-count" type="number" inputmode="decimal" min="1" step="0.5" placeholder="20" /></label>
+        <label>想用的粉量（g）<input id="sp-dose" type="number" inputmode="decimal" min="1" step="1" value="15" /></label>
+      </form>
+      <p id="sp-out" aria-live="polite" class="spoon-out"></p>
+      <p class="muted" style="font-size:.85rem;margin:0">只舀了一部分也可以：例如 200g 的豆子舀了 10 匙後剩一半，就當 100g 配 10 匙。算出的數字只是平均，結果存在你的瀏覽器裡。</p>
     </section>
 
     <h2 class="h-sm">四個步驟</h2>
@@ -55,3 +67,34 @@ const steps = [
     <p>想知道每一步為什麼這樣做，讀<a href={`${base}/lessons/brewing/`}>第 05 篇：萃取原理與手沖技巧</a>。</p>
   </div>
 </Base>
+
+<style>
+  .spoon { margin: 18px 0; }
+  .spoon-form { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 10px 0; }
+  .spoon-out { font-size: 1.05rem; min-height: 1.6em; margin: 6px 0 10px; }
+</style>
+
+<script>
+  import { load, save } from '../scripts/store.js';
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const saved = load('spoon', null as null | { net: number; count: number; dose: number });
+  if (saved) { if (saved.net > 0) $('sp-net').value = String(saved.net); if (saved.count > 0) $('sp-count').value = String(saved.count); if (saved.dose > 0) $('sp-dose').value = String(saved.dose); }
+  // 一匙克數 = 淨重 ÷ 匙數；需要的匙數以半匙為單位四捨五入
+  function calc() {
+    const net = +$('sp-net').value, count = +$('sp-count').value, dose = +$('sp-dose').value;
+    const out = document.getElementById('sp-out')!;
+    if (!(net > 0 && count > 0)) { out.textContent = '填入淨重和匙數，就會算出一匙約幾克。'; save('spoon', null); return; }
+    const per = net / count;
+    let msg = `你的一匙約 <b>${per.toFixed(1)}g</b>`;
+    if (dose > 0) {
+      const n = Math.max(0.5, Math.round((dose / per) * 2) / 2);
+      msg += `，${dose}g 約 <b>${n < 1 ? '半' : `${Math.floor(n)}${n % 1 ? ' 又半' : ''}`} 匙</b>（實際約 ${(n * per).toFixed(1)}g）`;
+    }
+    msg += '。';
+    if (per < 2 || per > 30) msg += '<br>這個數字不太像一般湯匙，請再確認淨重與匙數。';
+    out.innerHTML = msg;
+    save('spoon', { net, count, dose });
+  }
+  document.getElementById('spoon-f')!.addEventListener('input', calc);
+  calc();
+</script>

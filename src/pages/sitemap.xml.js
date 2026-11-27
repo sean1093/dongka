@@ -20,6 +20,7 @@ export function GET({ site: origin }) {
     ...lessons.map((l) => [`/lessons/${l.slug}/`, 0.9]),
     ['/atlas/', 0.8], ['/drinks/', 0.8], ['/glossary/', 0.8], ['/tools/', 0.7],
     ['/first-cup/', 0.9],
+    ['/career/', 0.8],
     ...tools.filter((t) => /^\/(tools|practice)\//.test(t.path)).map((t) => [t.path, t.slug === 'review' ? 0.4 : t.slug === 'plan' ? 0.7 : 0.6]),
     ...drinks.map((d) => [`/drinks/${d.key}/`, 0.6]),
     ...glossary.map((g) => [`/glossary/${slugify(g.en)}/`, 0.5]),

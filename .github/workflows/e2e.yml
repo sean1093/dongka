@@ -1,0 +1,26 @@
+name: E2E tests
+
+# 端對端測試（#28）。不擋部署：部署仍由 deploy.yml 在 main 推送時進行。
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          BASE_PATH: /dongka
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

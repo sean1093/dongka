@@ -1,0 +1,211 @@
+---
+import Base from '../layouts/Base.astro';
+import { breadcrumb, article } from '../lib/seo.js';
+import { lessons } from '../data/lessons.js';
+import { site } from '../data/site.js';
+import { checked, checkedLabel, sources, yearly, levels, schedule, fees, feeParts, exam, steps, intl, world, twChampions, route } from '../data/career.js';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const origin = (Astro.site?.origin || '').replace(/\/$/, '');
+const path = `${base}/career/`;
+const L = (id: string) => lessons.find((l) => l.id === id)!;
+const l11 = `${base}/lessons/${L('11').slug}/`;
+const title = '台灣咖啡證照與比賽：飲料調製丙級、乙級與咖啡比賽一次看懂';
+const desc = '咖啡丙級怎麼考？整理勞動部飲料調製技術士丙級、乙級的報檢資格、學科與術科、115 年度報名時程與費用，世界咖啡錦標賽七項比賽怎麼從各國選拔到世界賽，附半年準備路線與官方公告連結。';
+const toc = [
+  ['yearly', '每年會變的項目'], ['levels', '丙級與乙級'], ['exam', '考什麼'], ['register', '怎麼報名'],
+  ['schedule', '時程'], ['fees', '費用'], ['intl', '國際證照'], ['compete', '咖啡比賽'], ['route', '半年準備路線'], ['sources', '官方連結'],
+];
+const money = (n: number) => `${n.toLocaleString('en-US')} 元`;
+const S = (k: string) => (sources as any)[k];
+---
+<Base
+  fullTitle={`${title}｜懂咖`}
+  description={desc}
+  ogType="article"
+  shareText="台灣咖啡證照與比賽一頁通：飲料調製丙級、乙級與咖啡比賽"
+  jsonld={[
+    breadcrumb(origin, [['懂咖', `${base}/`], [`第 11 篇　${L('11').title}`, l11], ['台灣咖啡證照與比賽', path]]),
+    article(origin, { headline: title, description: desc, path }),
+  ]}
+>
+  <div class="wrap narrow" data-pagefind-body>
+    <header class="tool-head">
+      <p class="eyebrow"><a href={l11}>第 11 篇　{L('11').title}</a> / 延伸</p>
+      <h1 data-pagefind-weight="8">台灣咖啡證照與比賽一頁通</h1>
+      <p class="lede">想轉行進咖啡業，第一張證照考什麼、什麼時候報名、要花多少錢，比賽又怎麼一路打到世界賽。</p>
+      <p class="muted">時程與費用每年會變。標著 <span class="badge">查核日 {checkedLabel}</span> 的項目，是我們在 <time datetime={checked}>{checked}</time> 對照官方原文的結果，報名前請點旁邊的官方連結再確認一次。</p>
+    </header>
+
+    <article class="prose career">
+      <nav class="path-links sheet-jump" aria-label="本頁目錄" data-pagefind-ignore>
+        {toc.map(([id, t]) => <a href={`#${id}`}>{t}</a>)}
+      </nav>
+
+      <div class="takeaways">
+        <strong>先記住這三件事</strong>
+        <ol>
+          <li>台灣的國家咖啡相關證照是勞動部的「飲料調製技術士」，丙級年滿 15 歲就能考，考的不只咖啡。</li>
+          <li>學科與術科都要及格；115 年度丙級只在第二梯次、乙級只在第三梯次，報名期間各約兩週。</li>
+          <li>咖啡比賽是另一條路：各國選拔的冠軍代表參加 SCA 的世界咖啡錦標賽，共七項。</li>
+        </ol>
+      </div>
+
+      <section id="yearly" class="sec">
+        <h2>每年會變的項目</h2>
+        <aside class="callout callout-brown">
+          <span class="callout-icon" aria-hidden="true">📅</span>
+          <div class="callout-body">
+            <p><b>下面這些每年都可能不同，請以主辦單位當年公告為準。</b>截至查核日，116 年度（2027）的簡章還沒有公告。</p>
+            <ul class="points">
+              {yearly.map(([k, v, s]) => <li><b>{k}</b>：{v}（<a href={S(s).url}>{S(s).org}</a>）</li>)}
+            </ul>
+            <p class="muted">比較不會變的：學科 60 分及格、丙級年滿 15 歲可報檢，這些寫在法規裡，修法才會改。</p>
+          </div>
+        </aside>
+      </section>
+
+      <section id="levels" class="sec">
+        <h2>飲料調製技術士：丙級與乙級</h2>
+        <p>由勞動部勞動力發展署技能檢定中心辦理，是國家技術士證照，常聽到的「咖啡丙級」就是它。它由原本的調酒職類調整而來，所以內容涵蓋咖啡、茶、奶類與水果，乙級還有調酒。</p>
+        <div class="table-wrap">
+          <table class="stack">
+            <thead><tr><th>級別</th><th>誰可以考</th><th>考的範圍</th><th>115 年度梯次</th><th>適合</th></tr></thead>
+            <tbody>
+              {levels.map((x) => (
+                <tr>
+                  <td data-label="級別"><b>{x.level}</b></td>
+                  <td data-label="誰可以考">{x.who}</td>
+                  <td data-label="考的範圍">{x.scope}</td>
+                  <td data-label="115 年度梯次">{x.batch2026} <span class="badge">查核日 {checkedLabel}</span></td>
+                  <td data-label="適合">{x.fit}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p><b>轉行的人可以直接考乙級嗎？</b>可以，如果你是大專校院以上畢業（不限科系），就符合乙級的報檢資格之一，不必先有丙級。但乙級包含調酒與成本計算，沒有吧台經驗的人，多數會先從丙級開始。完整的 12 種乙級資格見<a href={S('brochure').url}>簡章</a>第 38 頁。</p>
+      </section>
+
+      <section id="exam" class="sec">
+        <h2>考什麼：學科與術科</h2>
+        <h3 class="h-sm">學科</h3>
+        <ul class="points">{exam.written.map((x) => <li>{x}</li>)}</ul>
+        <h3 class="h-sm">術科</h3>
+        <ul class="points">{exam.practical.map((x) => <li>{x}</li>)}</ul>
+        <h3 class="h-sm">合格與成績保留</h3>
+        <ul class="points">{exam.rules.map((x) => <li>{x}</li>)}</ul>
+        <p class="muted">依據：<a href={S('rules').url}>技術士技能檢定作業及試場規則</a>第 19 條、<a href={S('law').url}>技術士技能檢定及發證辦法</a>第 10 條、115 年度簡章。題庫與術科試題請到<a href={S('wdasec').url}>技能檢定中心的檢定試題與參考資料</a>下載。</p>
+      </section>
+
+      <section id="register" class="sec">
+        <h2>怎麼報名</h2>
+        <ol>{steps.map(([k, v]) => <li><b>{k}</b>：{v}</li>)}</ol>
+        <p>符合特定對象（例如中高齡失業者、長期失業者、二度就業婦女等）可以申請補助報名費與證照費，要在報名時一起提出。詳細流程見<a href={S('regStep').url}>報名程序說明</a>。</p>
+      </section>
+
+      <section id="schedule" class="sec">
+        <h2>時程：115 年度（2026）怎麼排 <span class="badge">查核日 {checkedLabel}</span></h2>
+        <p>全國技能檢定一年三個梯次，但飲料調製不是每梯次都辦。下表只列 115 年度有辦的梯次，115 年度的考期都已經過了，116 年度請看新簡章。</p>
+        <div class="table-wrap">
+          <table class="stack">
+            <thead><tr><th>梯次</th><th>級別</th><th>簡章發售</th><th>報名</th><th>學科准考證</th><th>學科測試</th><th>學科成績</th></tr></thead>
+            <tbody>
+              {schedule.map((x) => (
+                <tr>
+                  <td data-label="梯次">{x.batch}</td><td data-label="級別"><b>{x.level}</b></td><td data-label="簡章發售">{x.sale}</td>
+                  <td data-label="報名">{x.reg}</td><td data-label="學科准考證">{x.ticket}</td><td data-label="學科測試">{x.written}</td><td data-label="學科成績">{x.score}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">術科日期不在日程表上，由術科辦理單位排定並在 14 天前通知。來源：<a href={S('schedule').url}>{S('schedule').name}</a>、<a href={S('brochure').url}>115 年度簡章</a>。</p>
+      </section>
+
+      <section id="fees" class="sec">
+        <h2>費用 <span class="badge">查核日 {checkedLabel}</span></h2>
+        <div class="table-wrap">
+          <table class="stack">
+            <thead><tr><th>級別</th><th>一般報檢人</th><th>申請免試學科</th><th>申請免試術科</th><th>其中術科測試費</th></tr></thead>
+            <tbody>
+              {fees.map((x) => (
+                <tr>
+                  <td data-label="級別"><b>{x.level}</b></td><td data-label="一般報檢人">{money(x.normal)}</td><td data-label="申請免試學科">{money(x.noWritten)}</td>
+                  <td data-label="申請免試術科">{money(x.noPractical)}</td><td data-label="其中術科測試費">{money(x.practical)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p>{feeParts}這是 115 年度簡章的金額，不含練習用的器材、材料與補習費。</p>
+      </section>
+
+      <section id="intl" class="sec">
+        <h2>國際證照</h2>
+        <p>技術士證是國內的入門證明；想走精品咖啡、品管或採購，常見的還有：</p>
+        <ul class="points">{intl.map(([k, v]) => <li><b>{k}</b>：{v}</li>)}</ul>
+        <p>兩者的課程結構、考核項目與效期，在<a href={`${l11}#s3`}>第 11 篇的「證照與課程」</a>有完整整理。證照是入場券，雇主更看重你實際做出來的杯子。</p>
+      </section>
+
+      <section id="compete" class="sec">
+        <h2>咖啡比賽：從台灣選拔到世界賽</h2>
+        <p>世界咖啡錦標賽（World Coffee Championships）由 SCA 的子公司 World Coffee Events 製作，SCA 說目前共七項。各國由取得授權的比賽主辦單位（Competition Body，全球 60 多個）用同一套規則辦選拔，冠軍代表該國參加世界賽。</p>
+        <div class="table-wrap">
+          <table class="stack">
+            <thead><tr><th>比賽</th><th>英文</th><th>下一屆</th></tr></thead>
+            <tbody>
+              {world.map((x) => (
+                <tr>
+                  <td data-label="比賽"><b>{x.zh}</b></td><td data-label="英文">{x.en}</td>
+                  <td data-label="下一屆">{x.next}{x.src[0] !== 'wcc' && <> <span class="badge">查核日 {checkedLabel}</span></>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h3 class="h-sm">台灣怎麼參加</h3>
+        <p>SCA 的新聞稿提到，它與 Taiwan Coffee Association 及台灣國際咖啡展合作，在台灣辦過世界賽：2023 年 11 月 17 日至 20 日，世界拉花、咖啡調酒與咖啡烘焙三項世界賽在南港展覽館舉行。</p>
+        <p><b>台灣選拔賽由哪個單位取得授權、何時報名、報名費多少，我們沒有讀到官方原文，請以主辦單位公告為準。</b>官方的比賽主辦單位名單在 <a href={S('wcc').url}>wcc.coffee</a>，查核時無法連線。</p>
+        <h3 class="h-sm">台灣的世界冠軍</h3>
+        <ul class="points">{twChampions.map(([n, t]) => <li><b>{n}</b>：{t}</li>)}</ul>
+        <p class="muted">依 SCA 2022 年的新聞稿，當時台灣共有 16 位世界賽決賽選手。各項比賽的內容在<a href={`${l11}#s4`}>第 11 篇的「咖啡比賽」</a>。</p>
+      </section>
+
+      <section id="route" class="sec">
+        <h2>半年準備路線</h2>
+        <p>以考丙級為主線、比賽為支線。以 115 年度為例，從 2 月開始，第 3 個月月底開放第二梯次報名、第 4 個月初截止（4/24 至 5/5），第 6 個月考學科（7/5）。116 年度的梯次公告後，把月份往前或往後挪即可。</p>
+        <ol class="route">
+          {route.map((r) => (
+            <li>
+              <span class="route-m">月 {r.m}</span>
+              <div>
+                <b>{r.title}</b>
+                <ul>{r.items.map((x) => <li>{x}</li>)}</ul>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <p>還不確定要不要轉行？先讀<a href={l11}>第 11 篇</a>的職涯地圖與開店算帳，再決定要往證照、比賽還是創業走。</p>
+      </section>
+
+      <section id="sources" class="sec refs">
+        <h2>官方連結</h2>
+        <ul>
+          {Object.values(sources).map((s: any) => (
+            <li><a href={s.url}>{s.name}</a>（{s.org}）：{s.note}{s.checked ? `查核日 ${s.checked}。` : '本次未能讀取。'}</li>
+          ))}
+        </ul>
+        <p class="src" data-pagefind-ignore>查核紀錄：docs/fact-check/round-4/r4-career.md。看到過期或錯誤的資訊，歡迎<a href={site.issuesUrl}>回報</a>。懂咖 Dongka</p>
+      </section>
+    </article>
+  </div>
+</Base>
+
+<style>
+  .career .route { list-style: none; padding: 0; margin: 0 0 1.4em; }
+  .career .route > li { display: grid; grid-template-columns: 3.6em 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .career .route-m { font-family: var(--mono); color: var(--accent); font-weight: 700; }
+  .career .route ul { margin: 4px 0 0; padding-left: 1.2em; }
+  .career h2 .badge { font-size: .7rem; }
+</style>

@@ -28,7 +28,7 @@ export const tools = [
   { slug: 'troubleshoot', kind: 'tool', path: '/tools/troubleshoot/', icon: '🩺', title: '味道排查', desc: '選一個症狀，得到可能原因與調整順序。' },
   { slug: 'extraction', kind: 'tool', path: '/tools/extraction/', icon: '📈', title: '萃取率計算機', desc: '輸入粉重、液重與 TDS，在沖煮控制圖上看這杯落在哪一格。' },
   { slug: 'brew-log', kind: 'tool', path: '/tools/brew-log/', icon: '📝', title: '沖煮紀錄', desc: '記下每一杯的參數與感受，存在你的瀏覽器裡，可匯出 CSV。' },
-  { slug: 'cupping', kind: 'tool', path: '/tools/cupping/', icon: '🥄', title: '杯測紀錄表', desc: '照 100 分制杯測表打分數，自動加總並畫出雷達圖。' },
+  { slug: 'cupping', kind: 'tool', path: '/tools/cupping/', icon: '🥄', title: '杯測紀錄表', desc: '可切換 SCA 新的 CVA 情感評估或傳統 100 分表，附杯測流程參數與計時，自動算分並畫雷達圖。' },
   { slug: 'caffeine', kind: 'tool', path: '/tools/caffeine/', icon: '☕', title: '每日咖啡因加總', desc: '把今天喝的加起來，和各國官方的參考值並列。' },
   { slug: 'espresso', kind: 'tool', path: '/tools/espresso/', icon: '🎯', title: '義式萃取調整', desc: '輸入粉量、液重、秒數與味道，告訴你下一步先調什麼。' },
   { slug: 'break-even', kind: 'tool', path: '/tools/break-even/', icon: '🧮', title: '開店損益平衡試算', desc: '填入租金、人事與客單價，算出每天要多少客人才打平。' },

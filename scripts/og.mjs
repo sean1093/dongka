@@ -16,6 +16,7 @@ const cards = [
   ...lessons.map((l) => ({ key: `lessons--${l.slug}`, kicker: `懂咖課程 · 第 ${l.id} 篇`, title: l.title, sub: l.takeaways[0] })),
   { key: 'faq', kicker: '懂咖 · 速查', title: '咖啡常見問題', sub: '每個問題，先用一兩句話回答' },
   { key: 'compare', kicker: '懂咖 · 速查', title: '咖啡比一比', sub: '水洗和日曬、淺焙和深焙、拿鐵和馥列白差在哪' },
+  { key: 'career', kicker: '懂咖 · 第 11 篇延伸', title: '台灣咖啡證照與比賽', sub: '飲料調製丙級、乙級與世界咖啡錦標賽，一頁看懂' },
   { key: 'cheatsheets', kicker: '懂咖 · 速查', title: '咖啡速查表', sub: '手沖參數、味道排查、養豆保存，一頁一張' },
   { key: 'atlas', kicker: '懂咖 · 圖鑑', title: '豆子圖鑑', sub: '選你喜歡的味道，找適合的產區' },
   { key: 'drinks', kicker: '懂咖 · 圖鑑', title: '咖啡飲品配方', sub: '拿鐵、馥列白、冷萃、Dirty 的比例與做法' },

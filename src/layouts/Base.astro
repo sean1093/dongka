@@ -19,7 +19,7 @@ const ogName = ogPages.includes(ogKey) ? ogKey : ogShared[ogKey.split('--')[0]];
 const ogImage = `${origin}${base}/og/${ogName || 'home'}.jpg`;
 const ld = (Array.isArray(jsonld) ? jsonld : [jsonld]).filter(Boolean);
 const nav = [
-  { href: `${base}/`, label: '課程', on: path === `${base}/` || path.includes('/lessons/') },
+  { href: `${base}/`, label: '課程', on: path === `${base}/` || path.includes('/lessons/') || path.endsWith('/career/') },
   { href: `${base}/faq/`, label: '速查', on: /\/(faq|compare|cheatsheets)\//.test(path) },
   { href: `${base}/atlas/`, label: '圖鑑', on: /\/(atlas|drinks|glossary)\//.test(path) },
   { href: `${base}/tools/`, label: '工具', on: /\/(tools|practice)\//.test(path) },

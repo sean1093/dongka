@@ -37,7 +37,10 @@ const path = `${base}/cheatsheets/${s.slug}/`;
         <section id={`b${i + 1}`} class="sheet-sec">
           <div class="sheet-head">
             <h2 class="h-sm">{b.heading}</h2>
-            <button type="button" class="btn btn-sm" data-section-share={`b${i + 1}`} aria-label={`傳這一段：${b.heading}`} data-pagefind-ignore>傳這一段</button>
+            <span class="sheet-acts no-print" data-pagefind-ignore>
+              <button type="button" class="btn btn-sm" data-section-share={`b${i + 1}`} aria-label={`傳這一段：${b.heading}`}>傳這一段</button>
+              <button type="button" class="btn btn-sm" data-section-image={`b${i + 1}`} aria-label={`把這一段存成圖片：${b.heading}`}>存成圖片</button>
+            </span>
           </div>
           {b.type === 'table' && (
             <div class="table-wrap">

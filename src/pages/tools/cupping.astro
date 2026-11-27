@@ -4,62 +4,323 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const attrs = [['aroma', '乾香／濕香'], ['flavor', '風味'], ['after', '餘韻'], ['acidity', '酸質'], ['body', '醇厚度'], ['balance', '平衡感'], ['overall', '整體']];
 const cups = [['uniform', '一致性'], ['clean', '乾淨度'], ['sweet', '甜度']];
 const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料', '堅果可可', '甜', '其他'];
+// CVA 情感評估（SCA-104-2024）的八個項目，順序同 SCA 表單：i = 1（乾香）到 i = 8（整體）
+const cva = [['fragrance', '乾香', 'Fragrance'], ['aroma', '濕香', 'Aroma'], ['flavor', '風味', 'Flavor'], ['aftertaste', '餘韻', 'Aftertaste'], ['acidity', '酸質', 'Acidity'], ['sweetness', '甜感', 'Sweetness'], ['mouthfeel', '口感', 'Mouthfeel'], ['overall', '整體', 'Overall']];
+// SCA-104 圖 1 的「品質印象」九點量表
+const scale = ['極低', '很低', '中度低', '略低', '不高也不低', '略高', '中度高', '很高', '極高'];
+const defects = [['potato', '馬鈴薯味'], ['moldy', '霉味'], ['phenolic', '酚類（藥味）']];
+// SCA-103 香氣 CATA 詞表的主類別（正式表單還有子項，這裡只列主類別）
+const cata = ['花香', '水果', '酸／發酵', '綠色／植物', '烘焙', '堅果／可可', '香料', '甜', '其他'];
+// 流程檢查點：依 SCA-102-2024 與第 04 篇
+const steps = [
+  ['dry', '聞乾香', '注水前，研磨後盡快'],
+  ['pour', '注水', '0:00，注滿到杯緣，聞未破的粉層'],
+  ['break', '破渣', '靜置 3 至 5 分鐘後，攪約三次並聞香'],
+  ['skim', '撈渣', '所有杯子都破渣後'],
+  ['slurp', '開始啜吸', '降到約 70°C（實務上約注水後 8 至 10 分）'],
+  ['cool', '冷卻再評', '至少三輪，一路評到低於體溫'],
+];
 ---
-<Base fullTitle="咖啡杯測表線上版：100 分制評分、自動加總與雷達圖｜懂咖" description="線上咖啡杯測表：依 100 分制為香氣、風味、餘韻、酸質、醇厚度打分數，自動加總、畫出雷達圖並存下紀錄，適合在家練習杯測。">
+<Base fullTitle="咖啡杯測表線上版：SCA CVA 情感評估、傳統 100 分制與杯測流程計時｜懂咖" description="線上咖啡杯測表：可切換 SCA 新的 CVA 情感評估（九點量表、即時換算分數並列出公式）或傳統 100 分制，附 8.25g／150ml、93°C、破渣時間等杯測流程參數與計時，紀錄存在自己的瀏覽器。">
   <div class="wrap" data-pagefind-body>
     <header class="tool-head">
       <p class="eyebrow">工具</p>
       <h1>杯測紀錄表</h1>
-      <p class="muted">依<a href={`${base}/lessons/tasting/`}>第 04 篇</a>介紹的傳統 100 分制杯測表簡化而成，適合在家練習。SCA 已改推新的 CVA 評估體系，正式評鑑請以最新公告為準。</p>
+      <p class="muted">可以選<a href={`${base}/lessons/tasting/#s4`}>第 04 篇</a>介紹的傳統 100 分制，或 SCA 新的 <b>CVA 情感評估</b>。CVA（Coffee Value Assessment）是 SCA 在 2023 年推出、2024 年發布標準文件（SCA-102 樣品製備、SCA-103 描述評估、SCA-104 情感評估）的評估體系，取代 2004 年的杯測協議。</p>
+      <p class="muted" style="font-size:.9rem">這是在家練習用的工具，不是 SCA 官方表單或計分器；正式評鑑請以 SCA 最新公告的表單與平台為準。</p>
     </header>
-    <div class="tool-layout tl-wide-left">
-      <form class="card" id="cf" onsubmit="return false">
-        <label>樣品（豆子、烘焙日）<input id="c-name" placeholder="衣索比亞孔加水洗，11/15 烘" /></label>
-        <h2 class="h-sm" style="margin-top:18px">七項評分（6 到 10 分）</h2>
-        {attrs.map(([k, l]) => (
-          <label class="slider">{l}<output id={`o-${k}`}>7.50</output>
-            <input type="range" id={`c-${k}`} min="6" max="10" step="0.25" value="7.5" />
-          </label>
-        ))}
-        <h2 class="h-sm" style="margin-top:18px">五杯檢查（每杯 2 分）</h2>
-        <p class="muted" style="font-size:.86rem;margin:0 0 8px">同一支豆子沖五杯。有問題的那一杯就取消勾選。只沖一杯練習時，一致性維持全勾；乾淨度與甜度仍照這一杯的表現判斷，有問題就取消一格。</p>
-        {cups.map(([k, l]) => (
-          <div class="cuprow"><span>{l}</span>
-            {[0, 1, 2, 3, 4].map((n) => <input type="checkbox" class={`cup-${k}`} checked aria-label={`${l} 第 ${n + 1} 杯`} />)}
-          </div>
-        ))}
-        <h2 class="h-sm" style="margin-top:18px">缺點扣分</h2>
-        <div class="grid grid-form">
-          <label>輕微缺點（杯數，每杯扣 2）<input type="number" id="c-taint" min="0" max="5" value="0" /></label>
-          <label>嚴重缺點（杯數，每杯扣 4）<input type="number" id="c-fault" min="0" max="5" value="0" /></label>
+
+    <div class="chips" id="mode" role="group" aria-label="評分表">
+      <button class="chip" type="button" data-mode="sca100" aria-pressed="true">傳統 100 分表</button>
+      <button class="chip" type="button" data-mode="cva" aria-pressed="false">CVA 情感評估</button>
+    </div>
+
+    <details class="card cv-proto" id="proto">
+      <summary><span class="cv-sum-t">流程參數</span> <span class="muted" id="p-sum" style="font-weight:400;font-size:.88rem"></span></summary>
+      <p class="muted" style="font-size:.86rem;margin:10px 0 12px">預設值依 SCA-102-2024（<a href={`${base}/lessons/tasting/#s4`}>第 04 篇「SCA 杯測參數」</a>有整理）。改成你實際的做法，存檔時會一起記在紀錄裡。</p>
+      <div class="grid grid-form">
+        <label>杯容量（ml）<input type="number" id="p-cap" inputmode="decimal" min="50" max="500" step="1" /></label>
+        <label>每杯粉量（g）<input type="number" id="p-dose" inputmode="decimal" min="1" max="40" step="0.05" aria-describedby="p-ratio" /></label>
+        <label>水溫（°C）<input type="number" id="p-temp" inputmode="decimal" min="80" max="100" step="0.5" /></label>
+        <label>破渣時間（分）<input type="number" id="p-break" inputmode="decimal" min="1" max="10" step="0.5" /></label>
+        <label>每支樣品杯數<input type="number" id="p-cups" inputmode="numeric" min="1" max="10" step="1" /></label>
+      </div>
+      <p class="muted" id="p-ratio" style="font-size:.84rem;margin:6px 0 0"></p>
+      <label style="margin-top:12px">研磨<input id="p-grind" /></label>
+      <button class="btn btn-sm" id="p-reset" type="button" style="margin-top:12px">回復 SCA 預設值</button>
+
+      <h2 class="h-sm" style="margin-top:20px">時間點</h2>
+      <div class="cv-timer">
+        <div class="cv-clock" id="t-clock" aria-hidden="true">0:00</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" id="t-start" type="button">注水，開始計時</button>
+          <button class="btn btn-sm" id="t-reset" type="button">重設</button>
         </div>
-        <h2 class="h-sm" style="margin-top:18px">喝到什麼</h2>
-        <div class="chips" id="c-cats">{cats.map((c) => <button class="chip" type="button" aria-pressed="false">{c}</button>)}</div>
-        <label style="margin-top:12px">筆記<textarea id="c-notes" rows="2" placeholder="熱的時候茉莉花香，降溫後檸檬酸變明顯，尾段有蜂蜜甜"></textarea></label>
-        <button class="btn btn-primary" id="c-save" type="button" style="margin-top:14px">存下這次杯測</button>
-      </form>
+      </div>
+      <p id="t-msg" role="status" aria-live="polite" style="min-height:1.5em;font-weight:600;margin:8px 0"></p>
+      <ul class="cv-steps" id="t-steps">
+        {steps.map(([k, l, h]) => (
+          <li><label class="check-inline"><input type="checkbox" data-step={k} /> <b>{l}</b></label> <span class="muted" data-hint={k}>{h}</span> <span class="cv-at" data-at={k}></span></li>
+        ))}
+      </ul>
+      <p class="muted" style="font-size:.84rem;margin:8px 0 0">勾選時會記下當下的計時。計時從「注水」開始；溫度請以溫度計為準，分鐘數只是參考。</p>
+    </details>
+
+    <div class="tool-layout tl-wide-left" style="margin-top:16px">
+      <div>
+        <!-- 傳統 100 分表：欄位 id 與舊版相同，既有紀錄照常讀取 -->
+        <form class="card" id="cf" onsubmit="return false" data-panel="sca100">
+          <label>樣品（豆子、烘焙日）<input id="c-name" placeholder="衣索比亞孔加水洗，11/15 烘" /></label>
+          <h2 class="h-sm" style="margin-top:18px">七項評分（6 到 10 分）</h2>
+          {attrs.map(([k, l]) => (
+            <label class="slider">{l}<output id={`o-${k}`}>7.50</output>
+              <input type="range" id={`c-${k}`} min="6" max="10" step="0.25" value="7.5" />
+            </label>
+          ))}
+          <h2 class="h-sm" style="margin-top:18px">五杯檢查（每杯 2 分）</h2>
+          <p class="muted" style="font-size:.86rem;margin:0 0 8px">同一支豆子沖五杯。有問題的那一杯就取消勾選。只沖一杯練習時，一致性維持全勾；乾淨度與甜度仍照這一杯的表現判斷，有問題就取消一格。</p>
+          {cups.map(([k, l]) => (
+            <div class="cuprow"><span>{l}</span>
+              {[0, 1, 2, 3, 4].map((n) => <input type="checkbox" class={`cup-${k}`} checked aria-label={`${l} 第 ${n + 1} 杯`} />)}
+            </div>
+          ))}
+          <h2 class="h-sm" style="margin-top:18px">缺點扣分</h2>
+          <div class="grid grid-form">
+            <label>輕微缺點（杯數，每杯扣 2）<input type="number" id="c-taint" min="0" max="5" value="0" /></label>
+            <label>嚴重缺點（杯數，每杯扣 4）<input type="number" id="c-fault" min="0" max="5" value="0" /></label>
+          </div>
+          <h2 class="h-sm" style="margin-top:18px">喝到什麼</h2>
+          <div class="chips" id="c-cats">{cats.map((c) => <button class="chip" type="button" aria-pressed="false">{c}</button>)}</div>
+          <label style="margin-top:12px">筆記<textarea id="c-notes" rows="2" placeholder="熱的時候茉莉花香，降溫後檸檬酸變明顯，尾段有蜂蜜甜"></textarea></label>
+          <button class="btn btn-primary" id="c-save" type="button" style="margin-top:14px">存下這次杯測</button>
+        </form>
+
+        <!-- CVA 情感評估（SCA-104-2024） -->
+        <form class="card" id="vf" onsubmit="return false" data-panel="cva" hidden>
+          <label>樣品（豆子、烘焙日）<input id="v-name" placeholder="衣索比亞孔加水洗，11/15 烘" /></label>
+          <p class="muted" style="font-size:.86rem;margin:14px 0 4px">每個項目依你對它的<b>品質印象</b>選 1 到 9：5 是「不高也不低」，越往 9 越喜歡、越往 1 越不喜歡。可以依自己的偏好，也可以依你熟悉的某個市場的偏好，但不要被同桌的人影響。降溫後印象改變就改選，以最後選的為準（對應 SCA 表單上的 FINAL）。</p>
+          <p class="cv-scale-key muted" aria-hidden="true">{scale.map((s, i) => <span><b>{i + 1}</b> {s}</span>)}</p>
+          {cva.map(([k, l, en]) => (
+            <fieldset class="cv-q">
+              <legend>{l} <span class="muted">{en}</span> <output class="cv-val" id={`vo-${k}`}></output></legend>
+              <div class="cv-dots">
+                {scale.map((s, i) => (
+                  <label><input type="radio" name={`v-${k}`} value={i + 1} aria-label={`${l} ${i + 1} 分，${s}`} /><span>{i + 1}</span></label>
+                ))}
+              </div>
+            </fieldset>
+          ))}
+
+          <h2 class="h-sm" style="margin-top:20px">不一致與瑕疵杯</h2>
+          <p class="muted" style="font-size:.86rem;margin:0 0 8px">勾的是哪一杯（共 5 杯）。<b>不一致</b>指某杯出現「性質不同」的特徵，只是強弱不同不算。<b>瑕疵</b>限三種：馬鈴薯味、霉味、酚類；沒選瑕疵種類時，依 SCA-104 不算瑕疵杯。瑕疵杯也要同時標成不一致，只有五杯都一樣有瑕疵時例外。</p>
+          <div class="cuprow"><span>不一致</span>
+            {[0, 1, 2, 3, 4].map((n) => <input type="checkbox" class="v-nu" aria-label={`不一致 第 ${n + 1} 杯`} />)}
+          </div>
+          <div class="cuprow"><span>瑕疵</span>
+            {[0, 1, 2, 3, 4].map((n) => <input type="checkbox" class="v-def" aria-label={`瑕疵 第 ${n + 1} 杯`} />)}
+          </div>
+          <fieldset class="cv-deftype">
+            <legend>瑕疵種類</legend>
+            <label class="check-inline"><input type="radio" name="v-dtype" value="" checked /> 沒有</label>
+            {defects.map(([k, l]) => <label class="check-inline"><input type="radio" name="v-dtype" value={k} /> {l}</label>)}
+          </fieldset>
+          <p class="cv-warn" id="v-warn" role="status" aria-live="polite"></p>
+
+          <h2 class="h-sm" style="margin-top:18px">香氣描述（不計分）</h2>
+          <p class="muted" style="font-size:.86rem;margin:0 0 8px">CVA 把「描述」和「喜好」分開。描述評估（SCA-103）不打分數，而是為每個項目的整體強度在 0 到 15 的量表上打勾，再從詞表勾選聞到的特徵（check-all-that-apply，CATA），乾香與濕香合起來最多選 5 個。這裡只列詞表的主類別，方便順手記下。</p>
+          <div class="chips" id="v-cata" role="group" aria-label="香氣描述，最多 5 個">{cata.map((c) => <button class="chip" type="button" aria-pressed="false">{c}</button>)}</div>
+          <label style="margin-top:12px">筆記（為什麼給這個分數）<textarea id="v-notes" rows="2" placeholder="柑橘酸明亮但尾段略澀，整體偏乾淨"></textarea></label>
+          <button class="btn btn-primary" id="v-save" type="button" style="margin-top:14px">存下這次 CVA 評估</button>
+        </form>
+        <p id="save-msg" role="status" aria-live="polite" class="muted" style="min-height:1.4em;margin:8px 0 0"></p>
+      </div>
+
       <div>
         <div class="card" style="position:sticky;top:76px">
-          <div class="stat"><div><b id="c-total">–</b><span>總分</span></div><div><b id="c-grade" style="font-size:1.15rem;line-height:2.4rem">–</b><span>參考等級（傳統 100 分制）</span></div></div>
-          <svg id="c-radar" viewBox="0 0 300 260" class="chart" role="img" aria-label="七項評分雷達圖"></svg>
+          <div data-panel="sca100">
+            <div class="stat" aria-live="polite" aria-atomic="true"><div><b id="c-total">–</b><span>總分</span></div><div><b id="c-grade" style="font-size:1.15rem;line-height:2.4rem">–</b><span>參考等級（傳統 100 分制）</span></div></div>
+            <svg id="c-radar" viewBox="0 0 300 260" class="chart" role="img" aria-label="七項評分雷達圖"></svg>
+          </div>
+          <div data-panel="cva" hidden>
+            <div class="stat"><div aria-live="polite" aria-atomic="true"><b id="v-total">–</b><span id="v-total-l">CVA 情感評估分數</span></div></div>
+            <p class="cv-formula">S = 0.65625 × ΣH + 52.75 − 2u − 4d<br /><span class="muted">ΣH 是八項 1 至 9 分的總和，u 是不一致杯數，d 是瑕疵杯數；結果取到最接近的 0.25 分。八項都 9 分是 100，都 5 分是 79。</span></p>
+            <p class="cv-formula" id="v-calc" aria-hidden="true"></p>
+            <svg id="v-radar" viewBox="0 0 300 260" class="chart" role="img" aria-label="CVA 八項品質印象雷達圖"></svg>
+            <p class="muted" style="font-size:.8rem;margin:6px 0 0">公式出自 SCA-104-2024 第 5.5 節。CVA 標準文件沒有「80 分以上是精品」這類分級。</p>
+          </div>
         </div>
         <div class="card" style="margin-top:16px">
-          <h2 class="h-sm" style="margin-top:0">紀錄 <span class="muted" id="c-count" style="font-size:.9rem;font-family:var(--sans)"></span></h2>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <h2 class="h-sm" style="margin:0">紀錄 <span class="muted" id="c-count" style="font-size:.9rem;font-family:var(--sans)"></span></h2>
+            <button class="btn btn-sm" id="c-export" type="button">匯出 CSV</button>
+          </div>
           <div id="c-list"></div>
         </div>
       </div>
     </div>
   </div>
-  <script type="application/json" id="c-data" set:html={JSON.stringify({ attrs, cups })} />
+  <script type="application/json" id="c-data" set:html={JSON.stringify({ attrs, cups, cva, steps })} />
 </Base>
 
+<style is:global>
+  .cv-proto { margin-top: 16px; padding-top: 4px; padding-bottom: 4px; }
+  .cv-proto > summary { cursor: pointer; padding: 12px 0; }
+  .cv-proto > summary .cv-sum-t { font-family: var(--serif); font-weight: 700; font-size: 1.1rem; }
+  .cv-proto[open] > summary { border-bottom: 1px solid var(--line); }
+  .cv-timer { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .cv-clock { font-family: var(--mono); font-size: 2.4rem; font-weight: 700; line-height: 1; min-width: 4.2ch; }
+  .cv-steps { list-style: none; padding: 0; margin: 0; }
+  .cv-steps li { border-top: 1px solid var(--line); padding: 8px 0; font-size: .92rem; }
+  .cv-steps li .muted { font-size: .84rem; }
+  .cv-steps li.due { background: var(--accent-soft); }
+  .cv-at { font-family: var(--mono); color: var(--accent); font-weight: 700; margin-left: 4px; }
+  .cv-scale-key { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: .78rem; margin: 0 0 6px; }
+  .cv-q { border: 0; border-top: 1px solid var(--line); padding: 10px 0 6px; margin: 0; min-width: 0; }
+  .cv-q legend { font-weight: 700; font-size: .95rem; padding: 0; float: left; width: 100%; margin-bottom: 6px; }
+  .cv-q legend .muted { font-weight: 400; font-size: .8rem; }
+  .cv-q .cv-val { float: right; font-family: var(--mono); color: var(--accent); }
+  .cv-dots { clear: both; display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 4px; }
+  .cv-dots label { position: relative; display: block; margin: 0; }
+  .cv-dots input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; inset: 0; cursor: pointer; }
+  .cv-dots span { display: flex; align-items: center; justify-content: center; height: 40px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--mono); font-weight: 700; color: var(--text); background: var(--surface); }
+  .cv-dots input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .cv-dots input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cv-deftype { border: 0; padding: 0; margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .cv-deftype legend { font-size: .85rem; font-weight: 600; color: var(--muted); padding: 0; margin-bottom: 4px; }
+  .cv-warn { color: var(--accent); font-size: .86rem; margin: 8px 0 0; min-height: 1.2em; }
+  .cv-formula { font-family: var(--mono); font-size: .88rem; margin: 0 0 8px; overflow-wrap: anywhere; }
+  .cv-formula .muted { font-family: var(--sans); font-size: .8rem; }
+</style>
+
 <script>
-  import { load, save } from '../../scripts/store.js';
-  const { attrs, cups } = JSON.parse(document.getElementById('c-data')!.textContent!);
+  import { load, save, fmtTime } from '../../scripts/store.js';
+  const { attrs, cups, cva, steps } = JSON.parse(document.getElementById('c-data')!.textContent!);
   const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
   const esc = (s: unknown) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  const CVA_MAX = 200;
   let logs: any[] = load('cupping', []);
+  let cvaLogs: any[] = load('cva', []);
 
+  // ── 模式與流程參數（存在 stc:cupping-setup） ──
+  const DEF = { cap: 150, dose: 8.25, temp: 93, breakMin: 4, cups: 5, grind: '70–75% 通過美國 20 號篩（850 µm），比手沖略粗' };
+  const setup: any = { mode: 'sca100', ...load('cupping-setup', {}) };
+  setup.params = { ...DEF, ...(setup.params || {}) };
+  if (location.hash === '#cva') setup.mode = 'cva';
+  const saveSetup = () => save('cupping-setup', setup);
+  const P: Record<string, string> = { cap: 'p-cap', dose: 'p-dose', temp: 'p-temp', breakMin: 'p-break', cups: 'p-cups', grind: 'p-grind' };
+
+  function fillParams() {
+    for (const [k, id] of Object.entries(P)) $(id).value = String(setup.params[k]);
+    paramsInfo();
+  }
+  function paramsInfo() {
+    const p = setup.params;
+    const r = p.dose > 0 ? p.cap / p.dose : 0;
+    $('p-ratio').textContent = r ? `粉水比約 1:${r.toFixed(1)}（SCA：每 150ml 杯容量 8.25g ±0.2g，約 1:18.2）` : '';
+    $('p-sum').textContent = `${p.dose}g／${p.cap}ml · ${p.temp}°C · ${p.breakMin} 分破渣 · ${p.cups} 杯`;
+    document.querySelector<HTMLElement>('[data-hint="break"]')!.textContent = `靜置 ${p.breakMin} 分（SCA：3 至 5 分）後，攪約三次並聞香`;
+  }
+  const protoSnap = () => ({ ...setup.params });
+  document.getElementById('proto')!.addEventListener('input', (e) => {
+    const t = e.target as HTMLInputElement;
+    const k = Object.keys(P).find((k) => P[k] === t.id);
+    if (!k) return;
+    if (k === 'grind') setup.params.grind = t.value;
+    else {
+      let v = parseFloat(t.value);
+      if (!Number.isFinite(v) || v <= 0) return;
+      // 依欄位的 min／max 限制，避免 0 分破渣、0ml 杯子這類數字被存下來
+      const lo = parseFloat(t.min), hi = parseFloat(t.max);
+      if (Number.isFinite(lo) && v < lo) return;
+      if (Number.isFinite(hi)) v = Math.min(v, hi);
+      setup.params[k] = v;
+      // 改杯容量時，粉量依 8.25g／150ml 跟著換算
+      if (k === 'cap') { setup.params.dose = Math.round((v * 8.25) / 150 * 20) / 20; $('p-dose').value = String(setup.params.dose); }
+    }
+    paramsInfo();
+    saveSetup();
+  });
+  $('p-reset').addEventListener('click', () => { setup.params = { ...DEF }; fillParams(); saveSetup(); });
+
+  // ── 計時器與時間點 ──
+  // acc：之前累計的秒數；runAt：這一段開始計時的時間（暫停時為 0）
+  let acc = 0, runAt = 0, timer = 0, started = false, alerted = new Set<string>();
+  const elapsed = () => acc + (runAt ? (Date.now() - runAt) / 1000 : 0);
+  const tmsg = (s: string) => ($('t-msg').textContent = s);
+  function tick() {
+    const s = elapsed();
+    $('t-clock').textContent = fmtTime(s);
+    const b = setup.params.breakMin * 60;
+    const breakBox = document.querySelector<HTMLInputElement>('[data-step="break"]')!;
+    breakBox.closest('li')!.classList.toggle('due', started && s >= b && !breakBox.checked);
+    if (!started) return;
+    if (s >= b && !alerted.has('break')) { alerted.add('break'); tmsg(`${fmtTime(b)}：到破渣時間了。`); }
+    if (s >= 480 && !alerted.has('slurp')) { alerted.add('slurp'); tmsg('8:00：量一下溫度，約 70°C 就可以開始啜吸。'); }
+  }
+  $('t-start').addEventListener('click', () => {
+    if (runAt) {
+      acc = elapsed(); runAt = 0; clearInterval(timer); timer = 0;
+      $('t-start').textContent = '繼續計時'; tmsg(`已暫停在 ${fmtTime(acc)}。`);
+      return;
+    }
+    runAt = Date.now();
+    if (!started) {
+      started = true;
+      const pour = document.querySelector<HTMLInputElement>('[data-step="pour"]')!;
+      pour.checked = true;
+      stamp('pour', 0); // 先勾了注水也一樣補上 0:00
+      tmsg('已注水，開始計時。');
+    } else tmsg('繼續計時。');
+    $('t-start').textContent = '暫停';
+    timer = window.setInterval(tick, 250);
+    tick();
+  });
+  $('t-reset').addEventListener('click', () => {
+    clearInterval(timer); timer = 0; acc = 0; runAt = 0; started = false; alerted = new Set();
+    $('t-start').textContent = '注水，開始計時';
+    document.querySelectorAll<HTMLInputElement>('[data-step]').forEach((c) => { c.checked = false; stamp(c.dataset.step!, null); });
+    tick(); tmsg('');
+  });
+  function stamp(k: string, s: number | null) {
+    document.querySelector<HTMLElement>(`[data-at="${k}"]`)!.textContent = s == null ? '' : started ? `@ ${fmtTime(s)}` : '✓';
+  }
+  document.getElementById('t-steps')!.addEventListener('change', (e) => {
+    const c = e.target as HTMLInputElement;
+    if (!c.dataset.step) return;
+    stamp(c.dataset.step, c.checked ? elapsed() : null);
+    tick();
+  });
+
+  // ── 模式切換 ──
+  function setMode(m: string) {
+    setup.mode = m === 'cva' ? 'cva' : 'sca100';
+    document.querySelectorAll<HTMLElement>('#mode .chip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.mode === setup.mode)));
+    document.querySelectorAll<HTMLElement>('[data-panel]').forEach((el) => (el.hidden = el.dataset.panel !== setup.mode));
+    $('save-msg').textContent = '';
+    list();
+  }
+  document.getElementById('mode')!.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('.chip');
+    if (!b) return;
+    setMode(b.dataset.mode!);
+    saveSetup();
+  });
+
+  // ── 雷達圖（兩種模式共用） ──
+  function radar(svgId: string, labels: string[], vals: (number | null)[], min: number, max: number) {
+    const cx = 150, cy = 128, R = 92, n = labels.length;
+    const pt = (i: number, r: number) => `${(cx + r * Math.sin((i / n) * 6.2832)).toFixed(1)},${(cy - r * Math.cos((i / n) * 6.2832)).toFixed(1)}`;
+    let g = '';
+    for (const f of [0.25, 0.5, 0.75, 1]) g += `<polygon points="${labels.map((_, i) => pt(i, R * f)).join(' ')}" fill="none" stroke="var(--line)"/>`;
+    labels.forEach((l, i) => {
+      const [x, y] = pt(i, R + 20).split(',').map(Number);
+      g += `<line x1="${cx}" y1="${cy}" x2="${pt(i, R).split(',')[0]}" y2="${pt(i, R).split(',')[1]}" stroke="var(--line)"/><text x="${x}" y="${y + 4}" text-anchor="middle">${l}</text>`;
+    });
+    if (vals.some((v) => v != null)) g += `<polygon points="${vals.map((v, i) => pt(i, R * Math.max(0, ((v ?? min) - min) / (max - min)))).join(' ')}" fill="var(--accent)" fill-opacity=".3" stroke="var(--accent)" stroke-width="2"/>`;
+    document.getElementById(svgId)!.innerHTML = g;
+  }
+
+  // ── 傳統 100 分表（邏輯與舊版相同） ──
   function read() {
     const s: Record<string, number> = {};
     attrs.forEach(([k]: string[]) => (s[k] = +$(`c-${k}`).value));
@@ -72,38 +333,14 @@ const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料
   // 分級名稱依第 04 篇：出自傳統 100 分制與 Q 體系，SCA 現行的 CVA 沒有這些分界
   const grade = (t: number) => (t >= 90 ? '傑出' : t >= 85 ? '優秀' : t >= 80 ? '很好' : '未達 80 分');
   let touched = false;
-
-  function radar(s: Record<string, number>) {
-    const cx = 150, cy = 128, R = 92, n = attrs.length;
-    const pt = (i: number, r: number) => `${(cx + r * Math.sin((i / n) * 6.2832)).toFixed(1)},${(cy - r * Math.cos((i / n) * 6.2832)).toFixed(1)}`;
-    let g = '';
-    for (const f of [0.25, 0.5, 0.75, 1]) g += `<polygon points="${attrs.map((_: any, i: number) => pt(i, R * f)).join(' ')}" fill="none" stroke="var(--line)"/>`;
-    attrs.forEach(([, l]: string[], i: number) => {
-      const [x, y] = pt(i, R + 20).split(',').map(Number);
-      g += `<line x1="${cx}" y1="${cy}" x2="${pt(i, R).split(',')[0]}" y2="${pt(i, R).split(',')[1]}" stroke="var(--line)"/><text x="${x}" y="${y + 4}" text-anchor="middle">${l}</text>`;
-    });
-    g += `<polygon points="${attrs.map(([k]: string[], i: number) => pt(i, R * ((s[k] - 6) / 4))).join(' ')}" fill="var(--accent)" fill-opacity=".3" stroke="var(--accent)" stroke-width="2"/>`;
-    document.getElementById('c-radar')!.innerHTML = g;
-  }
-
   function update() {
     const { s, total } = read();
     attrs.forEach(([k]: string[]) => (document.getElementById(`o-${k}`)!.textContent = s[k].toFixed(2)));
     // 還沒動過任何評分之前不顯示總分，避免預設值看起來像一個評價
     $('c-total').textContent = touched ? total.toFixed(2) : '–';
     $('c-grade').textContent = touched ? grade(total) : '–';
-    radar(s);
+    radar('c-radar', attrs.map((a: string[]) => a[1]), attrs.map(([k]: string[]) => s[k]), 6, 10);
   }
-
-  function list() {
-    $('c-count').textContent = logs.length ? `${logs.length} 筆` : '';
-    document.getElementById('c-list')!.innerHTML = logs.length ? logs.map((l) => `<div class="log-item">
-      <div style="display:flex;justify-content:space-between;gap:10px"><h4>${esc(l.name || '未命名樣品')}　<span style="color:var(--accent)">${(+l.total).toFixed(2)}</span></h4>
-      <button class="btn btn-sm" data-del="${esc(l.id)}" type="button">刪除</button></div>
-      <div class="log-meta">${new Date(l.at).toLocaleDateString('zh-TW')}${l.cats?.length ? ' · ' + l.cats.map(esc).join('、') : ''}</div>
-      ${l.notes ? `<div>${esc(l.notes)}</div>` : ''}</div>`).join('') : '<p class="empty">還沒有紀錄。</p>';
-  }
-
   document.getElementById('cf')!.addEventListener('input', (e) => { if ((e.target as HTMLElement).matches('input[type=range], input[type=checkbox], input[type=number]')) touched = true; update(); });
   document.getElementById('c-cats')!.addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest('.chip');
@@ -112,17 +349,122 @@ const cats = ['花香', '水果', '酸發酵', '綠色植物', '烘焙', '香料
   $('c-save').addEventListener('click', () => {
     const r = read();
     const cats = [...document.querySelectorAll('#c-cats .chip[aria-pressed="true"]')].map((c) => c.textContent);
-    logs.unshift({ id: Date.now().toString(36), at: new Date().toISOString(), name: $('c-name').value.trim(), notes: $('c-notes').value.trim(), cats, total: r.total, scores: r.s });
+    logs.unshift({ id: Date.now().toString(36), at: new Date().toISOString(), name: $('c-name').value.trim(), notes: $('c-notes').value.trim(), cats, total: r.total, scores: r.s, protocol: protoSnap() });
     save('cupping', logs);
+    $('save-msg').textContent = '已存下這次杯測。';
     list();
   });
+
+  // ── CVA 情感評估（SCA-104-2024 第 5.5 節） ──
+  // S = 0.65625 × Σh + 52.75 − 2u − 4d，取到最接近的 0.25（對照附錄 7.1 的對照表，剛好在中間時進位）
+  const cvaScore = (sum: number, u: number, d: number) => Math.round((0.65625 * sum + 52.75 - 2 * u - 4 * d) * 4) / 4;
+  function readCva() {
+    const h: Record<string, number | null> = {};
+    cva.forEach(([k]: string[]) => {
+      const r = document.querySelector<HTMLInputElement>(`input[name="v-${k}"]:checked`);
+      h[k] = r ? +r.value : null;
+    });
+    const rated = Object.values(h).filter((v) => v != null) as number[];
+    const sum = rated.reduce((a, b) => a + b, 0);
+    const nu = [...document.querySelectorAll<HTMLInputElement>('.v-nu')].map((c) => c.checked);
+    const dc = [...document.querySelectorAll<HTMLInputElement>('.v-def')].map((c) => c.checked);
+    const dtype = document.querySelector<HTMLInputElement>('input[name="v-dtype"]:checked')?.value || '';
+    const u = nu.filter(Boolean).length;
+    // 沒填瑕疵種類時不算瑕疵杯（SCA-104 5.4.1）
+    const d = dtype ? dc.filter(Boolean).length : 0;
+    const done = rated.length === cva.length;
+    return { h, sum, u, d, dtype, nu, dc, done, n: rated.length, score: done ? cvaScore(sum, u, d) : null };
+  }
+  function updateCva() {
+    const r = readCva();
+    cva.forEach(([k]: string[]) => (document.getElementById(`vo-${k}`)!.textContent = r.h[k] != null ? String(r.h[k]) : ''));
+    $('v-total').textContent = r.score != null ? r.score.toFixed(2) : '–';
+    $('v-total-l').textContent = r.done ? 'CVA 情感評估分數' : `CVA 情感評估分數（還有 ${cva.length - r.n} 項未評）`;
+    const raw = 0.65625 * r.sum + 52.75 - 2 * r.u - 4 * r.d;
+    $('v-calc').textContent = r.done ? `= 0.65625 × ${r.sum} + 52.75 − 2×${r.u} − 4×${r.d} = ${+raw.toFixed(4)} → ${r.score!.toFixed(2)}` : `ΣH 目前 ${r.sum}（${r.n}/8 項）`;
+    const w: string[] = [];
+    const ndc = r.dc.filter(Boolean).length;
+    if (ndc && !r.dtype) w.push('勾了瑕疵杯但沒選瑕疵種類，這些杯不會扣分。');
+    if (r.dtype && !ndc) w.push('選了瑕疵種類，但沒有勾是哪幾杯。');
+    if (ndc && ndc < 5 && r.dc.some((on, i) => on && !r.nu[i])) w.push('瑕疵杯通常也要標成不一致（五杯都有同樣瑕疵時例外）。');
+    $('v-warn').textContent = w.join(' ');
+    radar('v-radar', cva.map((a: string[]) => a[1]), cva.map(([k]: string[]) => r.h[k]), 1, 9);
+  }
+  document.getElementById('vf')!.addEventListener('change', updateCva);
+  document.getElementById('v-cata')!.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('.chip');
+    if (!b) return;
+    const on = b.getAttribute('aria-pressed') === 'true';
+    if (!on && document.querySelectorAll('#v-cata .chip[aria-pressed="true"]').length >= 5) { $('save-msg').textContent = '香氣描述最多選 5 個。'; return; }
+    b.setAttribute('aria-pressed', String(!on));
+  });
+  $('v-save').addEventListener('click', () => {
+    const r = readCva();
+    if (!r.done) { $('save-msg').textContent = `還有 ${cva.length - r.n} 項沒有評分，八項都選好才能存檔。`; return; }
+    const cata = [...document.querySelectorAll('#v-cata .chip[aria-pressed="true"]')].map((c) => c.textContent);
+    const cupsOf = (a: boolean[]) => a.map((on, i) => (on ? i + 1 : 0)).filter(Boolean);
+    cvaLogs.unshift({
+      id: Date.now().toString(36), at: new Date().toISOString(), name: $('v-name').value.trim(), notes: $('v-notes').value.trim(),
+      h: r.h, sum: r.sum, u: r.u, d: r.d, nonUniformCups: cupsOf(r.nu), defectiveCups: r.dtype ? cupsOf(r.dc) : [], defect: r.dtype,
+      score: r.score, cata, protocol: protoSnap(), form: 'SCA-104-2024',
+    });
+    cvaLogs = cvaLogs.slice(0, CVA_MAX);
+    save('cva', cvaLogs);
+    $('save-msg').textContent = '已存下這次 CVA 評估。';
+    list();
+  });
+
+  // ── 紀錄列表與匯出 ──
+  const protoText = (p: any) => (p ? ` · ${esc(p.dose)}g／${esc(p.cap)}ml · ${esc(p.temp)}°C` : '');
+  const defName: Record<string, string> = { potato: '馬鈴薯味', moldy: '霉味', phenolic: '酚類' };
+  function list() {
+    const isCva = setup.mode === 'cva';
+    const arr = isCva ? cvaLogs : logs;
+    $('c-count').textContent = arr.length ? `${isCva ? 'CVA ' : '100 分表 '}${arr.length} 筆${isCva && arr.length >= CVA_MAX ? `（最多保留 ${CVA_MAX} 筆）` : ''}` : '';
+    $('c-export').hidden = !arr.length;
+    document.getElementById('c-list')!.innerHTML = arr.length ? arr.map((l) => `<div class="log-item">
+      <div style="display:flex;justify-content:space-between;gap:10px"><h4>${esc(l.name || '未命名樣品')}　<span style="color:var(--accent)">${(+(isCva ? l.score : l.total)).toFixed(2)}</span></h4>
+      <button class="btn btn-sm" data-del="${esc(l.id)}" type="button">刪除</button></div>
+      <div class="log-meta">${new Date(l.at).toLocaleDateString('zh-TW')}${isCva ? ` · ΣH ${esc(l.sum)}${l.u ? ` · 不一致 ${esc(l.u)} 杯` : ''}${l.d ? ` · 瑕疵 ${esc(l.d)} 杯（${esc(defName[l.defect] || l.defect)}）` : ''}` : ''}${protoText(l.protocol)}${(isCva ? l.cata : l.cats)?.length ? ' · ' + (isCva ? l.cata : l.cats).map(esc).join('、') : ''}</div>
+      ${l.notes ? `<div>${esc(l.notes)}</div>` : ''}</div>`).join('') : '<p class="empty">還沒有紀錄。</p>';
+  }
   document.getElementById('c-list')!.addEventListener('click', (e) => {
     const id = (e.target as HTMLElement).dataset.del;
     if (!id || !confirm('確定刪除這筆紀錄？')) return;
-    logs = logs.filter((l) => l.id !== id);
-    save('cupping', logs);
+    if (setup.mode === 'cva') { cvaLogs = cvaLogs.filter((l) => l.id !== id); save('cva', cvaLogs); }
+    else { logs = logs.filter((l) => l.id !== id); save('cupping', logs); }
     list();
   });
+  $('c-export').addEventListener('click', () => {
+    const isCva = setup.mode === 'cva';
+    const arr = isCva ? cvaLogs : logs;
+    if (!arr.length) return;
+    // 文字開頭是 = + - @ 時前面加 '，避免試算表把它當公式
+    const q = (v: unknown) => { let s = String(v ?? ''); if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = `'${s}`; return `"${s.replace(/"/g, '""')}"`; };
+    const pc: [string, string][] = [['dose', '粉量 g'], ['cap', '杯容量 ml'], ['temp', '水溫 °C'], ['breakMin', '破渣 分'], ['cups', '杯數'], ['grind', '研磨']];
+    const cols: [string, (l: any) => unknown][] = [['時間', (l) => new Date(l.at).toLocaleString('zh-TW')], ['樣品', (l) => l.name]];
+    if (isCva) {
+      cva.forEach(([k, n]: string[]) => cols.push([n, (l) => l.h?.[k]]));
+      cols.push(['ΣH', (l) => l.sum], ['不一致杯數 u', (l) => l.u], ['瑕疵杯數 d', (l) => l.d], ['瑕疵種類', (l) => defName[l.defect] || ''], ['CVA 分數', (l) => l.score], ['香氣描述', (l) => (l.cata || []).join('、')]);
+    } else {
+      attrs.forEach(([k, n]: string[]) => cols.push([n, (l) => l.scores?.[k]]));
+      cols.push(['總分', (l) => l.total], ['喝到什麼', (l) => (l.cats || []).join('、')]);
+    }
+    pc.forEach(([k, n]) => cols.push([n, (l) => l.protocol?.[k]]));
+    cols.push(['筆記', (l) => l.notes]);
+    const csv = '﻿' + [cols.map(([n]) => q(n)).join(','), ...arr.map((l) => cols.map(([, f]) => q(f(l))).join(','))].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = isCva ? 'dongka-cva.csv' : 'dongka-cupping.csv';
+    document.body.append(a); // 掛在頁面上，瀏覽器才會用指定的檔名
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  });
+
+  fillParams();
+  setMode(setup.mode);
   update();
-  list();
+  updateCva();
+  tick();
 </script>

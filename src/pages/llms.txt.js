@@ -26,6 +26,7 @@ export function GET({ site: origin }) {
     ...sheets.map((s) => li(s.title, `/cheatsheets/${s.slug}/`, s.question)),
     '',
     '## 查詢與工具',
+    li('台灣咖啡證照與比賽', '/career/', '飲料調製丙級、乙級的資格、時程、費用，以及世界咖啡錦標賽怎麼參加'),
     li('豆子圖鑑', '/atlas/', '產區、品種、處理法，依風味推薦'),
     li('飲品配方', '/drinks/', '義式、冷咖啡、特調與咖啡調酒的組成與做法'),
     li('名詞辭典', '/glossary/', '咖啡術語白話解釋'),

@@ -499,6 +499,7 @@ details.adv-h3[open] > summary::after { content: "收合"; }
 /* #16 單題與單段分享 */
 .answer-share { display: flex; flex-wrap: wrap; gap: 8px; } .answer-share [hidden] { display: none; }
 .sheet-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sheet-acts { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 .sheet-sec { scroll-margin-top: 80px; border-radius: 12px; }
 .sheet-sec:target { outline: 2px solid var(--accent); outline-offset: 6px; }
 @media print { .sheet-head .btn, .sheet-jump, .answer-share { display: none !important; } }
