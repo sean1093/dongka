@@ -52,8 +52,10 @@ import Base from '../layouts/Base.astro';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `dongka-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.append(a); // 掛在頁面上，瀏覽器才會用指定的檔名
     a.click();
-    URL.revokeObjectURL(a.href);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   });
 
   document.getElementById('md-file')!.addEventListener('change', async (e) => {
@@ -76,7 +78,12 @@ import Base from '../layouts/Base.astro';
           const noId: any[] = []; // 現有但沒有 id 的資料照舊保留
           for (const x of Array.isArray(cur) ? cur : []) if (x && x.id != null) byId.set(String(x.id), x); else if (x) noId.push(x);
           for (const x of Array.isArray(v) ? v : []) {
-            if (!x || typeof x !== 'object' || x.id == null) continue;
+            if (!x || typeof x !== 'object') continue;
+            if (x.id == null) {
+              // 沒有 id 的紀錄（舊版或手動編輯的備份）：建立時間與豆子都相同才視為重複
+              if (!noId.some((y) => y.at === x.at && y.bean === x.bean)) noId.push(x);
+              continue;
+            }
             const old = byId.get(String(x.id));
             if (!old || stamp(x) > stamp(old)) byId.set(String(x.id), x);
           }

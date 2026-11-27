@@ -227,8 +227,12 @@ const steps = [
     if (!k) return;
     if (k === 'grind') setup.params.grind = t.value;
     else {
-      const v = parseFloat(t.value);
-      if (!Number.isFinite(v)) return;
+      let v = parseFloat(t.value);
+      if (!Number.isFinite(v) || v <= 0) return;
+      // 依欄位的 min／max 限制，避免 0 分破渣、0ml 杯子這類數字被存下來
+      const lo = parseFloat(t.min), hi = parseFloat(t.max);
+      if (Number.isFinite(lo) && v < lo) return;
+      if (Number.isFinite(hi)) v = Math.min(v, hi);
       setup.params[k] = v;
       // 改杯容量時，粉量依 8.25g／150ml 跟著換算
       if (k === 'cap') { setup.params.dose = Math.round((v * 8.25) / 150 * 20) / 20; $('p-dose').value = String(setup.params.dose); }
@@ -263,7 +267,8 @@ const steps = [
     if (!started) {
       started = true;
       const pour = document.querySelector<HTMLInputElement>('[data-step="pour"]')!;
-      if (!pour.checked) { pour.checked = true; stamp('pour', 0); }
+      pour.checked = true;
+      stamp('pour', 0); // 先勾了注水也一樣補上 0:00
       tmsg('已注水，開始計時。');
     } else tmsg('繼續計時。');
     $('t-start').textContent = '暫停';
@@ -451,8 +456,10 @@ const steps = [
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     a.download = isCva ? 'dongka-cva.csv' : 'dongka-cupping.csv';
+    document.body.append(a); // 掛在頁面上，瀏覽器才會用指定的檔名
     a.click();
-    URL.revokeObjectURL(a.href);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   });
 
   fillParams();

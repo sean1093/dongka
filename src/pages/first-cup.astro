@@ -83,15 +83,16 @@ const steps = [
   function calc() {
     const net = +$('sp-net').value, count = +$('sp-count').value, dose = +$('sp-dose').value;
     const out = document.getElementById('sp-out')!;
-    if (!(net > 0 && count > 0)) { out.textContent = '填入淨重和匙數，就會算出一匙約幾克。'; return; }
+    if (!(net > 0 && count > 0)) { out.textContent = '填入淨重和匙數，就會算出一匙約幾克。'; save('spoon', null); return; }
     const per = net / count;
     let msg = `你的一匙約 <b>${per.toFixed(1)}g</b>`;
     if (dose > 0) {
       const n = Math.max(0.5, Math.round((dose / per) * 2) / 2);
       msg += `，${dose}g 約 <b>${n < 1 ? '半' : `${Math.floor(n)}${n % 1 ? ' 又半' : ''}`} 匙</b>（實際約 ${(n * per).toFixed(1)}g）`;
     }
-    if (per < 2 || per > 30) msg += '。<br>這個數字不太像一般湯匙，請再確認淨重與匙數。';
-    out.innerHTML = msg + '。';
+    msg += '。';
+    if (per < 2 || per > 30) msg += '<br>這個數字不太像一般湯匙，請再確認淨重與匙數。';
+    out.innerHTML = msg;
     save('spoon', { net, count, dose });
   }
   document.getElementById('spoon-f')!.addEventListener('input', calc);

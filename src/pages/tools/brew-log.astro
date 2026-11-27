@@ -205,9 +205,18 @@ const fields = [
     cancelBtn.hidden = !id;
     form.classList.toggle('is-editing', !!id);
   }
+  // 進入編輯前先記下表單裡還沒存的新一杯，取消或更新後放回去，不會被清掉
+  let draft: Record<string, string> | null = null;
+  const snapshot = () => Object.fromEntries(fields.map(([k]) => [k, (form.elements.namedItem(k) as HTMLInputElement | null)?.value ?? '']));
+  function restoreDraft() {
+    if (draft) for (const [k, v] of Object.entries(draft)) { const el = form.elements.namedItem(k) as HTMLInputElement | null; if (el) el.value = v; }
+    else { form.reset(); brewDateInput.value = localDate(new Date()); }
+    draft = null;
+  }
   function startEdit(id: string) {
     const l = logs.find((x) => x.id === id);
     if (!l) return;
+    if (!editing) draft = snapshot();
     setMode(id);
     for (const [k] of fields) { const el = form.elements.namedItem(k) as HTMLInputElement | null; if (el) el.value = l[k] == null ? '' : String(l[k]); }
     $('prefill-note').hidden = true;
@@ -219,8 +228,7 @@ const fields = [
   function cancelEdit(msg = '已取消編輯，沒有改動。') {
     const id = editing;
     setMode(null);
-    form.reset();
-    brewDateInput.value = localDate(new Date());
+    restoreDraft();
     status(msg);
     render();
     if (id) (list.querySelector(`[data-edit="${CSS.escape(id)}"]`) as HTMLElement | null)?.focus();
@@ -243,14 +251,14 @@ const fields = [
         save('brewlog', logs);
         const id = editing;
         setMode(null);
-        form.reset();
-        brewDateInput.value = localDate(new Date());
+        restoreDraft();
         status(`已更新「${next.bean}」這一杯。`);
         render();
         (list.querySelector(`[data-edit="${CSS.escape(id)}"]`) as HTMLElement | null)?.focus();
         return;
       }
-      setMode(null); // 紀錄已不存在（例如在別的分頁刪掉了）：當成新的一杯存
+      setMode(null);
+      draft = null; // 紀錄已不存在（例如在別的分頁刪掉了）：當成新的一杯存
     }
     logs.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: new Date().toISOString(), ...data });
     save('brewlog', logs);
@@ -281,8 +289,10 @@ const fields = [
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     a.download = 'dongka-brew-log.csv';
+    document.body.append(a); // 掛在頁面上，瀏覽器才會用指定的檔名
     a.click();
-    URL.revokeObjectURL(a.href);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   });
   // 從萃取率計算機帶入：?from=extraction&dose=15&bev=225&tds=1.35，只預填表單，不自動存檔
   const qs = new URLSearchParams(location.search);

@@ -115,11 +115,24 @@ async function shareSection(btn) {
 }
 
 // 檔名只用英數：部分瀏覽器遇到中文檔名會改成「download」
-const slug = () => location.pathname.split('/').filter(Boolean).slice(1).join('-').replace(/[^\w-]/g, '') || 'home';
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+const slug = () => location.pathname.slice(location.pathname.startsWith(BASE) ? BASE.length : 0).split('/').filter(Boolean).join('-').replace(/[^\w-]/g, '') || 'home';
 
 // 圖片交給使用者：手機支援分享檔案時叫出系統分享（可以直接傳到 LINE），否則下載（#26、#27）
+// toBlob 是非同步的，等它回來時 iOS 可能已經不算「使用者點擊」而拒絕分享，所以用 toDataURL 同步轉成檔案
+function canvasBlob(cv) {
+  try {
+    const [head, b64] = cv.toDataURL('image/png').split(',');
+    const bin = atob(b64);
+    const buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    return new Blob([buf], { type: head.slice(5, head.indexOf(';')) });
+  } catch {
+    return null;
+  }
+}
 async function deliver(cv, name, btn, text) {
-  const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
+  const blob = canvasBlob(cv);
   if (blob && navigator.canShare) {
     const file = new File([blob], name, { type: 'image/png' });
     if (navigator.canShare({ files: [file] })) {

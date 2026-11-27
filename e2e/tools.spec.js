@@ -106,3 +106,27 @@ test('杯測 CVA：八項都 5 分是 79.00、都 9 分是 100.00（#25）', asy
   await all(9);
   await expect(page.locator('#v-total')).toHaveText('100.00');
 });
+
+test('沖煮紀錄：編輯舊紀錄再取消，未存的新一杯草稿會回來', async ({ page }) => {
+  await page.goto('tools/brew-log/');
+  await page.fill('input[name="bean"]', '舊的一杯');
+  await page.locator('#form button[type="submit"]').click();
+  await page.fill('input[name="bean"]', '還沒存的草稿');
+  await page.fill('input[name="taste"]', '柑橘');
+  await page.locator('[data-edit]').first().click();
+  await expect(page.locator('input[name="bean"]')).toHaveValue('舊的一杯');
+  await page.locator('#cancel-edit').click();
+  await expect(page.locator('input[name="bean"]')).toHaveValue('還沒存的草稿');
+  await expect(page.locator('input[name="taste"]')).toHaveValue('柑橘');
+});
+
+test('第一杯手沖：清空湯匙欄位後重新整理不會帶回舊數字', async ({ page }) => {
+  await page.goto('first-cup/');
+  await page.fill('#sp-net', '200');
+  await page.fill('#sp-count', '200');
+  await expect(page.locator('#sp-out')).not.toContainText('。。');
+  await page.fill('#sp-net', '');
+  await page.fill('#sp-count', '');
+  await page.reload();
+  await expect(page.locator('#sp-net')).toHaveValue('');
+});
