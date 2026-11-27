@@ -68,7 +68,20 @@ import Base from '../layouts/Base.astro';
         const cur = get(P + k);
         let next = v;
         if (k === 'done') next = [...new Set([...(cur || []), ...(Array.isArray(v) ? v : [])])].sort();
-        else if (k === 'brewlog' || k === 'cupping' || k === 'breakeven') {
+        else if (k === 'brewlog') {
+          // 沖煮紀錄可以編輯：同一個 id 保留「最後更新時間」較晚的那份（updatedAt，舊資料沒有就用建立時間 at）
+          // 時間相同時保留這台裝置現有的。順序依建立時間 at，新的在前。
+          const stamp = (x: any) => { const t = Date.parse(x?.updatedAt || x?.at); return isNaN(t) ? 0 : t; };
+          const byId = new Map<string, any>();
+          const noId: any[] = []; // 現有但沒有 id 的資料照舊保留
+          for (const x of Array.isArray(cur) ? cur : []) if (x && x.id != null) byId.set(String(x.id), x); else if (x) noId.push(x);
+          for (const x of Array.isArray(v) ? v : []) {
+            if (!x || typeof x !== 'object' || x.id == null) continue;
+            const old = byId.get(String(x.id));
+            if (!old || stamp(x) > stamp(old)) byId.set(String(x.id), x);
+          }
+          next = [...byId.values(), ...noId].sort((a: any, b: any) => String(b.at).localeCompare(String(a.at)));
+        } else if (k === 'cupping' || k === 'breakeven') {
           // 依每筆紀錄的 id 取聯集，不覆蓋現有的
           const ids = new Set((cur || []).map((x: any) => x.id));
           next = [...(cur || []), ...(Array.isArray(v) ? v : []).filter((x: any) => x && !ids.has(x.id))].sort((a: any, b: any) => String(b.at).localeCompare(String(a.at)));

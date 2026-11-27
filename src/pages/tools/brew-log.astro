@@ -28,7 +28,8 @@ const fields = [
       <p class="muted">「好喝的配方」是從一次次有紀錄的實驗中找出來的。欄位來自<a href={`${base}/lessons/brewing/`}>第 05 篇</a>的沖煮紀錄表。</p>
     </header>
     <div class="tool-layout tl-form">
-      <form class="card" id="form">
+      <form class="card" id="form" aria-labelledby="form-title">
+        <h2 id="form-title" tabindex="-1" style="margin:0 0 12px;font-size:1.2rem">記下這一杯</h2>
         <p class="callout" id="prefill-note" role="status" hidden style="margin:0 0 14px;padding:10px 14px;font-size:.9rem"></p>
         <div class="grid grid-form">
           {fields.map((f) => (
@@ -37,7 +38,11 @@ const fields = [
             </label>
           ))}
         </div>
-        <button class="btn btn-primary" type="submit" style="margin-top:16px">存下這一杯</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+          <button class="btn btn-primary" id="submit" type="submit">存下這一杯</button>
+          <button class="btn" id="cancel-edit" type="button" hidden>取消編輯</button>
+        </div>
+        <p id="form-status" role="status" aria-live="polite" class="muted" style="margin:10px 0 0;font-size:.9rem;min-height:1.4em"></p>
       </form>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
@@ -47,30 +52,59 @@ const fields = [
         <div id="list" style="margin-top:8px"></div>
       </div>
     </div>
+    <section class="card" id="trend" style="margin-top:24px" aria-labelledby="trend-title">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <h2 id="trend-title" style="margin:0;font-size:1.2rem">趨勢與比較</h2>
+        <label style="display:flex;align-items:center;gap:8px;margin:0">豆子
+          <select id="bean-filter" style="width:auto;margin-top:0;max-width:min(60vw,280px)"><option value="">全部</option></select>
+        </label>
+      </div>
+      <p class="muted" style="margin:8px 0 0;font-size:.9rem">依沖煮日期排列（沒有沖煮日期就用存檔時間）。實線是整體分數，虛線是萃取率（有填 TDS 和液重才有）。</p>
+      <p id="trend-empty" class="empty" hidden></p>
+      <svg class="chart" id="trend-chart" viewBox="0 0 520 260" role="img" aria-label="沖煮趨勢圖" style="margin-top:12px"></svg>
+      <div id="trend-legend" class="muted" style="display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;margin-top:6px"></div>
+      <div id="compare" style="margin-top:16px"></div>
+    </section>
   </div>
   <script type="application/json" id="fields" set:html={JSON.stringify(fields.map((f) => [f.id, f.label]))} />
 </Base>
 
 <script>
   import { load, save } from '../../scripts/store.js';
+  /*
+   * 資料格式：localStorage「stc:brewlog」是一個陣列，新的在前。每筆：
+   *   id        字串，建立時產生，之後不變（匯入合併靠它認同一筆）
+   *   at        ISO 時間，建立（第一次存檔）時間，之後不變
+   *   updatedAt ISO 時間，最後一次編輯的時間；只在編輯過的紀錄上才有
+   *   其餘欄位  見上方 fields（bean、brewDate、dose…；數字欄位存 number 或 ''）
+   * 舊紀錄沒有 updatedAt，一律把 at 當成最後更新時間（updatedAt || at），
+   * 所以不需要搬移舊資料。「我的資料」匯入時，同 id 保留 updatedAt || at 較晚的那份。
+   */
   const fields: [string, string][] = JSON.parse(document.getElementById('fields')!.textContent!);
   const form = document.getElementById('form') as HTMLFormElement;
   const list = document.getElementById('list')!;
+  const $ = (id: string) => document.getElementById(id)!;
   let logs: any[] = load('brewlog', []);
-  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  if (!Array.isArray(logs)) logs = [];
+  let editing: string | null = null;
+  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
   const ey = (l: any) => (l.tds > 0 && l.bev > 0 && l.dose > 0 ? (l.tds * l.bev) / l.dose : null);
   const pad = (n: number) => String(n).padStart(2, '0');
   // 本地日期與時間（不用 toISOString，那是 UTC，台灣早上 8 點前會變成前一天）
   const localDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  const localDateTime = (iso: string) => { const d = new Date(iso); return isNaN(+d) ? String(iso ?? '') : `${localDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  const localDateTime = (iso: string) => { if (!iso) return ''; const d = new Date(iso); return isNaN(+d) ? String(iso) : `${localDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
   const isDate = (s: unknown) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+  // 排序／作圖用的時間：沖煮日期（當地午夜）優先，否則存檔時間
+  const whenTs = (l: any) => (isDate(l.brewDate) ? new Date(l.brewDate + 'T00:00:00').getTime() : new Date(l.at).getTime()) || 0;
+  const whenLabel = (l: any) => (isDate(l.brewDate) ? l.brewDate.replace(/-/g, '/') : l.at ? localDate(new Date(l.at)).replace(/-/g, '/') : '');
   const brewDateInput = form.elements.namedItem('brewDate') as HTMLInputElement;
   brewDateInput.value = localDate(new Date());
+  const status = (t: string) => { $('form-status').textContent = t; };
 
   function render() {
-    document.getElementById('count')!.textContent = logs.length ? `${logs.length} 杯` : '';
-    if (!logs.length) { list.innerHTML = '<p class="empty">還沒有紀錄。沖一杯，把參數和感受寫下來。</p>'; return; }
-    list.innerHTML = logs.map((l) => {
+    $('count').textContent = logs.length ? `${logs.length} 杯` : '';
+    if (!logs.length) list.innerHTML = '<p class="empty">還沒有紀錄。沖一杯，把參數和感受寫下來。</p>';
+    else list.innerHTML = logs.map((l) => {
       const e = ey(l);
       const params = [l.gear, l.grind, l.dose && l.water ? `${l.dose}g : ${l.water}g（1:${(l.water / l.dose).toFixed(1)}）` : '', l.temp ? `${l.temp}°C` : '', l.time,
         l.tds ? `TDS ${l.tds}%` : '', e ? `萃取率 ${e.toFixed(1)}%` : ''].filter(Boolean).map(esc).join(' · ');
@@ -78,45 +112,171 @@ const fields = [
       const brewed = isDate(l.brewDate);
       const days = l.roastDate ? Math.round(((brewed ? new Date(l.brewDate) : new Date(l.at)).getTime() - new Date(l.roastDate).getTime()) / 864e5) : null;
       const when = brewed ? `沖煮日 ${l.brewDate.replace(/-/g, '/')}` : new Date(l.at).toLocaleDateString('zh-TW');
-      return `<div class="log-item">
+      const id = esc(l.id);
+      return `<div class="log-item${editing === l.id ? ' is-editing' : ''}">
         <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
           <h4>${esc(l.bean)}${l.score ? `　<span style="color:var(--accent)">${esc(l.score)} 分</span>` : ''}</h4>
-          <button class="btn btn-sm" data-del="${l.id}" type="button" aria-label="刪除這筆紀錄">刪除</button>
+          <div style="display:flex;gap:6px;flex:none">
+            <button class="btn btn-sm" data-edit="${id}" type="button" aria-label="編輯這筆紀錄：${esc(l.bean)}">編輯</button>
+            <button class="btn btn-sm" data-del="${id}" type="button" aria-label="刪除這筆紀錄：${esc(l.bean)}">刪除</button>
+          </div>
         </div>
-        <div class="log-meta">${esc(when)}${days !== null && days >= 0 ? ` · 養豆第 ${days} 天` : ''}</div>
+        <div class="log-meta">${esc(when)}${days !== null && days >= 0 ? ` · 養豆第 ${days} 天` : ''}${l.updatedAt ? ` · 編輯於 ${esc(localDateTime(l.updatedAt))}` : ''}</div>
         ${params ? `<div class="log-meta">${params}</div>` : ''}
         ${l.method ? `<div>手法：${esc(l.method)}</div>` : ''}
         ${l.taste ? `<div>感官：${esc(l.taste)}</div>` : ''}
         ${l.next ? `<div>下一步：${esc(l.next)}</div>` : ''}
       </div>`;
     }).join('');
+    renderTrend();
   }
+
+  // ---------- 趨勢圖與同一支豆子比較 ----------
+  const filter = $('bean-filter') as HTMLSelectElement;
+  function renderTrend() {
+    const beans = [...new Set(logs.map((l) => String(l.bean ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+    const cur = beans.includes(filter.value) ? filter.value : '';
+    filter.innerHTML = '<option value="">全部</option>' + beans.map((b) => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    filter.value = cur;
+    const rows = logs.filter((l) => !cur || String(l.bean ?? '').trim() === cur).sort((a, b) => whenTs(a) - whenTs(b) || String(a.at).localeCompare(String(b.at)));
+    const pts = rows.map((l) => ({ l, t: whenTs(l), s: l.score > 0 ? +l.score : null, e: ey(l) })).filter((p) => p.s !== null || p.e !== null);
+    const svg = $('trend-chart');
+    const empty = $('trend-empty');
+    const legend = $('trend-legend');
+    if (pts.length < 2) {
+      svg.style.display = 'none'; legend.innerHTML = '';
+      empty.hidden = false;
+      empty.textContent = '至少要有兩筆有分數或萃取率的紀錄，才畫得出趨勢。';
+    } else {
+      svg.style.display = ''; empty.hidden = true;
+      const L = 40, R = 44, T = 14, B = 34, VW = 520, VH = 260, W = VW - L - R, H = VH - T - B;
+      const n = pts.length;
+      const px = (i: number) => L + (n === 1 ? W / 2 : (i * W) / (n - 1)); // 等距排列，圖上一點就是一杯
+      const sy = (v: number) => T + H - ((v - 0) / 10) * H;
+      const eys = pts.map((p) => p.e).filter((v): v is number => v !== null);
+      const eLo = Math.min(14, Math.floor(Math.min(...eys, 99))), eHi = Math.max(26, Math.ceil(Math.max(...eys, 0)));
+      const ey_ = (v: number) => T + H - ((v - eLo) / (eHi - eLo)) * H;
+      let s = `<rect x="${L}" y="${T}" width="${W}" height="${H}" fill="var(--surface-2)" rx="6"/>`;
+      for (let v = 0; v <= 10; v += 2) s += `<line x1="${L}" x2="${L + W}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--line)" stroke-dasharray="${v ? '4 4' : ''}"/><text x="${L - 6}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`;
+      if (eys.length) for (const v of [eLo, (eLo + eHi) / 2, eHi]) s += `<text x="${L + W + 6}" y="${ey_(v) + 4}" text-anchor="start">${Math.round(v)}%</text>`;
+      if (eys.length && eLo <= 18 && eHi >= 22) s += `<rect x="${L}" y="${ey_(22)}" width="${W}" height="${ey_(18) - ey_(22)}" fill="var(--gold)" opacity=".18"/>`;
+      // x 軸標籤：頭、尾，加上中間幾個，避免擠在一起
+      const step = Math.max(1, Math.ceil(n / 5));
+      pts.forEach((p, i) => { if (i % step === 0 || i === n - 1) { if (i !== n - 1 && n - 1 - i < step / 2) return; s += `<text x="${px(i)}" y="${T + H + 18}" text-anchor="middle">${esc(whenLabel(p.l).slice(5))}</text>`; } });
+      const line = (get: (p: any) => number | null, y: (v: number) => number) => pts.map((p, i) => [get(p), i] as const).filter(([v]) => v !== null).map(([v, i]) => `${px(i).toFixed(1)},${y(v as number).toFixed(1)}`);
+      const ePts = line((p) => p.e, ey_);
+      if (ePts.length > 1) s += `<polyline points="${ePts.join(' ')}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+      ePts.forEach((c) => { const [x, y] = c.split(','); s += `<rect x="${+x - 3.5}" y="${+y - 3.5}" width="7" height="7" fill="var(--surface)" stroke="var(--muted)" stroke-width="1.5"/>`; });
+      const sPts = line((p) => p.s, sy);
+      if (sPts.length > 1) s += `<polyline points="${sPts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+      sPts.forEach((c) => { const [x, y] = c.split(','); s += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`; });
+      svg.innerHTML = s;
+      const sc = pts.filter((p) => p.s !== null);
+      const summary = [`${cur || '全部豆子'}，${n} 杯，從 ${whenLabel(pts[0].l)} 到 ${whenLabel(pts[n - 1].l)}`,
+        sc.length ? `分數由 ${sc[0].s} 到 ${sc[sc.length - 1].s}，最高 ${Math.max(...sc.map((p) => p.s!))}` : '',
+        eys.length ? `萃取率 ${Math.min(...eys).toFixed(1)}% 到 ${Math.max(...eys).toFixed(1)}%` : ''].filter(Boolean).join('；');
+      svg.setAttribute('aria-label', `沖煮趨勢圖：${summary}。`);
+      legend.innerHTML = `<span><span aria-hidden="true" style="color:var(--accent)">●—</span> 整體分數（左軸 0–10）</span>` + (eys.length ? `<span><span aria-hidden="true">□- -</span> 萃取率 %（右軸，淡金色是 18–22%）</span>` : '');
+    }
+    // 同一支豆子比較表
+    const cmp = $('compare');
+    if (!cur) { cmp.innerHTML = beans.length ? '<p class="muted" style="margin:0;font-size:.9rem">選一支豆子，就能把它的每一杯排在一起比較。</p>' : ''; return; }
+    const best = Math.max(0, ...rows.map((l) => +l.score || 0));
+    const cell = (v: unknown) => `<td>${v === '' || v == null ? '–' : esc(v)}</td>`;
+    cmp.innerHTML = `<h3 style="margin:0 0 8px;font-size:1rem">${esc(cur)}：${rows.length} 杯</h3>
+      <div class="table-wrap bl-cmp-wrap" tabindex="0" role="region" aria-label="${esc(cur)} 的沖煮比較表（可左右捲動）"><table class="bl-cmp">
+      <thead><tr><th scope="col">日期</th><th scope="col">研磨</th><th scope="col">粉：水</th><th scope="col">水溫</th><th scope="col">時間</th><th scope="col">萃取率</th><th scope="col">分數</th><th scope="col">下一步</th></tr></thead>
+      <tbody>${rows.map((l) => {
+        const e = ey(l);
+        const top = best > 0 && +l.score === best;
+        return `<tr${top ? ' class="is-best"' : ''}>${cell(whenLabel(l))}${cell(l.grind)}${cell(l.dose && l.water ? `${l.dose}:${l.water}（1:${(l.water / l.dose).toFixed(1)}）` : '')}${cell(l.temp ? `${l.temp}°C` : '')}${cell(l.time)}${cell(e ? `${e.toFixed(1)}%` : '')}<td>${l.score ? esc(l.score) : '–'}${top ? ' <span class="bl-best">最高</span>' : ''}</td><td class="bl-next">${esc(l.next) || '–'}</td></tr>`;
+      }).join('')}</tbody></table></div>`;
+  }
+  filter.addEventListener('change', renderTrend);
+
+  // ---------- 編輯模式 ----------
+  const submitBtn = $('submit') as HTMLButtonElement;
+  const cancelBtn = $('cancel-edit') as HTMLButtonElement;
+  const title = $('form-title');
+  function setMode(id: string | null) {
+    editing = id;
+    title.textContent = id ? '編輯這一杯' : '記下這一杯';
+    submitBtn.textContent = id ? '更新這一杯' : '存下這一杯';
+    cancelBtn.hidden = !id;
+    form.classList.toggle('is-editing', !!id);
+  }
+  function startEdit(id: string) {
+    const l = logs.find((x) => x.id === id);
+    if (!l) return;
+    setMode(id);
+    for (const [k] of fields) { const el = form.elements.namedItem(k) as HTMLInputElement | null; if (el) el.value = l[k] == null ? '' : String(l[k]); }
+    $('prefill-note').hidden = true;
+    status(`正在編輯「${l.bean || '未命名'}」（${whenLabel(l)}）。改好後按「更新這一杯」。`);
+    render();
+    form.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    (form.elements.namedItem(fields[0][0]) as HTMLInputElement).focus({ preventScroll: true });
+  }
+  function cancelEdit(msg = '已取消編輯，沒有改動。') {
+    const id = editing;
+    setMode(null);
+    form.reset();
+    brewDateInput.value = localDate(new Date());
+    status(msg);
+    render();
+    if (id) (list.querySelector(`[data-edit="${CSS.escape(id)}"]`) as HTMLElement | null)?.focus();
+  }
+  cancelBtn.addEventListener('click', () => cancelEdit());
+  form.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && editing) { ev.preventDefault(); cancelEdit(); } });
 
   form.addEventListener('submit', (ev) => {
     ev.preventDefault();
     const data: any = Object.fromEntries(new FormData(form));
     if (!data.brewDate) delete data.brewDate; // 選填：沒填就不存這個欄位
     for (const k of ['dose', 'water', 'temp', 'bev', 'tds', 'score']) data[k] = data[k] === '' ? '' : +data[k];
-    logs.unshift({ id: Date.now().toString(36), at: new Date().toISOString(), ...data });
+    if (editing) {
+      const i = logs.findIndex((l) => l.id === editing);
+      if (i >= 0) {
+        const old = logs[i];
+        const next: any = { ...old, ...data, id: old.id, at: old.at, updatedAt: new Date().toISOString() };
+        if (!data.brewDate) delete next.brewDate;
+        logs[i] = next; // 原地取代，順序不變
+        save('brewlog', logs);
+        const id = editing;
+        setMode(null);
+        form.reset();
+        brewDateInput.value = localDate(new Date());
+        status(`已更新「${next.bean}」這一杯。`);
+        render();
+        (list.querySelector(`[data-edit="${CSS.escape(id)}"]`) as HTMLElement | null)?.focus();
+        return;
+      }
+      setMode(null); // 紀錄已不存在（例如在別的分頁刪掉了）：當成新的一杯存
+    }
+    logs.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: new Date().toISOString(), ...data });
     save('brewlog', logs);
     // 保留豆子與器材，方便連續沖同一支豆做對照
     const keep = ['bean', 'brewDate', 'roastDate', 'gear', 'grind', 'dose', 'water', 'temp'];
     [...form.elements].forEach((e: any) => { if (e.name && !keep.includes(e.name)) e.value = ''; });
+    status(`已存下「${data.bean}」這一杯。`);
     render();
   });
   list.addEventListener('click', (ev) => {
-    const id = (ev.target as HTMLElement).dataset.del;
+    const btn = (ev.target as HTMLElement).closest('button') as HTMLElement | null;
+    if (!btn) return;
+    if (btn.dataset.edit) { startEdit(btn.dataset.edit); return; }
+    const id = btn.dataset.del;
     if (!id || !confirm('確定刪除這筆紀錄？')) return;
     logs = logs.filter((l) => l.id !== id);
     save('brewlog', logs);
-    render();
+    if (editing === id) cancelEdit('正在編輯的紀錄已刪除。');
+    else { status('已刪除一筆紀錄。'); render(); }
   });
-  document.getElementById('export')!.addEventListener('click', () => {
+  $('export').addEventListener('click', () => {
     if (!logs.length) return;
-    const cols: [string, string][] = [['at', '存檔時間'], ...fields, ['ey', '萃取率 %']];
+    const cols: [string, string][] = [['at', '存檔時間'], ['updatedAt', '最後編輯時間'], ...fields, ['ey', '萃取率 %']];
     // 文字開頭是 = + - @ 時前面加 '，避免試算表把它當公式
     const q = (v: unknown) => { let s = String(v ?? ''); if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = `'${s}`; return `"${s.replace(/"/g, '""')}"`; };
-    const rows = logs.map((l) => cols.map(([k]) => (k === 'ey' ? q(ey(l)?.toFixed(1) ?? '') : k === 'at' ? q(localDateTime(l.at)) : q(l[k]))).join(','));
+    const rows = logs.map((l) => cols.map(([k]) => (k === 'ey' ? q(ey(l)?.toFixed(1) ?? '') : k === 'at' || k === 'updatedAt' ? q(localDateTime(l[k])) : q(l[k]))).join(','));
     const csv = '﻿' + [cols.map(([, n]) => q(n)).join(','), ...rows].join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
@@ -133,10 +293,22 @@ const fields = [
     if (el && v > 0 && v < 10000) { el.value = String(v); filled.push(k); }
   }
   if (filled.length) {
-    const note = document.getElementById('prefill-note')!;
+    const note = $('prefill-note');
     note.textContent = qs.get('from') === 'extraction' ? '已帶入萃取率計算機的數字。補上豆子和味道後，按「存下這一杯」才會存檔。' : '已帶入網址裡的數字。按「存下這一杯」才會存檔。';
     note.hidden = false;
     history.replaceState(null, '', location.pathname); // 清掉參數，重新整理時不會再帶入
   }
   render();
 </script>
+
+<style is:global>
+  #form.is-editing { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .log-item.is-editing { background: var(--accent-soft); margin-inline: -10px; padding-inline: 10px; border-radius: 8px; }
+  .bl-cmp-wrap { margin: 0; }
+  .bl-cmp-wrap:focus-visible { outline: 2px solid var(--accent); }
+  table.bl-cmp { font-size: .88rem; }
+  table.bl-cmp th, table.bl-cmp td { white-space: nowrap; padding: 6px 10px; text-align: left; }
+  table.bl-cmp td.bl-next { white-space: normal; min-width: 12em; }
+  table.bl-cmp tr.is-best td { background: var(--accent-soft); font-weight: 600; }
+  .bl-best { display: inline-block; font-size: .72rem; padding: 0 6px; border-radius: 99px; background: var(--accent); color: var(--surface); font-weight: 700; }
+</style>
