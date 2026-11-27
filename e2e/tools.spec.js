@@ -93,3 +93,16 @@ test('沖煮紀錄：編輯後原地更新，趨勢圖與同豆比較出現（#2
   await expect(page.locator('table')).toContainText('22');
   await expect(page.locator('svg[role="img"]').first()).toBeVisible();
 });
+
+test('杯測 CVA：八項都 5 分是 79.00、都 9 分是 100.00（#25）', async ({ page }) => {
+  await page.goto('tools/cupping/');
+  await page.locator('[data-mode="cva"]').click();
+  const all = async (n) => {
+    for (const name of await page.$$eval('#vf input[type=radio]', (xs) => [...new Set(xs.map((x) => x.name).filter((n) => n !== "v-dtype"))]))
+      await page.locator(`#vf input[name="${name}"][value="${n}"]`).check({ force: true });
+  };
+  await all(5);
+  await expect(page.locator('#v-total')).toHaveText('79.00');
+  await all(9);
+  await expect(page.locator('#v-total')).toHaveText('100.00');
+});
